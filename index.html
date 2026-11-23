@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Hotel Jacaranda · Mexico City Simulation</title>
+  <meta name="description" content="Walk around a 3D hotel room in Mexico City. Open the curtains, step onto the balcony over Paseo de la Reforma, and watch the city light up at night.">
+  <meta name="theme-color" content="#1d1a2b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d9447a'/%3E%3Cpath d='M14 50V22l18-10 18 10v28' fill='none' stroke='%23fff6e6' stroke-width='5' stroke-linejoin='round'/%3E%3Crect x='26' y='34' width='12' height='16' fill='%23f2a93b'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="3D hotel room"></canvas>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud">
+    <div id="crosshair" aria-hidden="true"></div>
+    <div id="prompt" role="status"><kbd>E</kbd><span class="text"></span></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <aside id="tasks">
+      <button id="tasksToggle" class="tasks-head" type="button" aria-label="Show or hide the checklist">
+        <span class="room-chip">Room 1207</span>
+        <span class="tasks-title">Settle in</span>
+        <span id="taskCount" class="count">0/10</span>
+      </button>
+      <ul id="taskList"></ul>
+    </aside>
+
+    <div class="corner">
+      <button id="dayNight" class="pill" type="button" data-mode="day" aria-label="Toggle day and night">
+        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
+        <span class="label">Night</span>
+      </button>
+      <button id="muteBtn" class="pill icon" type="button" data-muted="0" aria-label="Mute sound">
+        <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>
+      </button>
+      <button id="pauseBtn" class="pill icon" type="button" aria-label="Pause">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+      </button>
+    </div>
+
+    <div id="joy" aria-hidden="true"><div class="knob"></div></div>
+    <button id="useBtn" type="button">Use</button>
+  </div>
+
+  <!-- ============ Title ============ -->
+  <section id="start" class="overlay">
+    <div class="picado" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="card">
+      <p class="eyebrow">Mexico City Simulation</p>
+      <h1>Hotel Jacaranda</h1>
+      <p class="sub">Room 1207 · Paseo de la Reforma</p>
+      <p class="lede">You’ve just checked in, twelve floors above the city. Walk around, settle in, and step out onto the balcony.</p>
+      <button id="startBtn" class="cta" type="button" disabled>Loading…</button>
+      <dl class="keys desktop-only">
+        <div><dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>Walk</dd></div>
+        <div><dt>Mouse</dt><dd>Look around</dd></div>
+        <div><dt><kbd>E</kbd> / click</dt><dd>Use things</dd></div>
+        <div><dt><kbd>Shift</kbd></dt><dd>Walk faster</dd></div>
+        <div><dt><kbd>N</kbd></dt><dd>Day / night</dd></div>
+        <div><dt><kbd>Esc</kbd></dt><dd>Pause</dd></div>
+      </dl>
+      <dl class="keys touch-only">
+        <div><dt>Left thumb</dt><dd>Walk</dd></div>
+        <div><dt>Drag</dt><dd>Look around</dd></div>
+        <div><dt>Tap / Use</dt><dd>Use things</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="pause" class="overlay hidden">
+    <div class="card small">
+      <p class="eyebrow">Paused</p>
+      <h2>Take a breather</h2>
+      <p class="lede">Your room is right where you left it.</p>
+      <button id="resumeBtn" class="cta" type="button">Back to the room</button>
+    </div>
+  </section>
+
+  <section id="done" class="overlay hidden">
+    <div class="picado" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="card small">
+      <p class="eyebrow">All settled in</p>
+      <h2>¡Bienvenidos a la Ciudad de México!</h2>
+      <p class="lede">You’ve unpacked, seen the view, and watched the city light up. Enjoy your stay at Hotel Jacaranda.</p>
+      <button id="keepBtn" class="cta" type="button">Keep exploring</button>
+    </div>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
