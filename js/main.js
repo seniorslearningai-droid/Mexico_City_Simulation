@@ -2,14 +2,16 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildRoom } from './room.js';
 import { buildWorld } from './city.js';
+import { buildArena, ARENA_SPAWN } from './arena.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
+import { MASKS } from './textures.js';
 
 const $ = (s) => document.querySelector(s);
 const touch = matchMedia('(pointer: coarse)').matches;
 document.body.classList.toggle('touch', touch);
 
-const TASKS = [
+const HOTEL_TASKS = [
   ['curtains', 'Open the curtains'],
   ['balcony', 'Step out onto the balcony'],
   ['tv', 'Turn on the TV'],
@@ -20,6 +22,18 @@ const TASKS = [
   ['sink', 'Wash your hands'],
   ['lock', 'Lock the front door'],
   ['night', 'See the city at night'],
+];
+const ARENA_TASKS = [
+  ['mask', 'Buy a luchador mask'],
+  ['wear', 'Put on your mask'],
+  ['snacks', 'Grab a snack'],
+  ['bell', 'Ring the bell'],
+  ['ring', 'Climb into the ring'],
+  ['ropes', 'Bounce off the ropes'],
+  ['turnbuckle', 'Climb a turnbuckle'],
+  ['lights', 'Start the light show'],
+  ['fans', 'Let the fans in'],
+  ['seat', 'Take a seat in the stands'],
 ];
 
 // ---------- renderer / scene ----------
@@ -57,34 +71,36 @@ function toast(msg, ms = 3800) {
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
 }
 
-const done = new Set();
+const sound = new Sound();
+let player;
+let loc; // the place we're in right now
+
 const taskList = $('#taskList');
 function renderTasks(flashId) {
-  taskList.innerHTML = TASKS.map(
-    ([id, label]) => `<li class="${done.has(id) ? 'done' : ''} ${id === flashId ? 'flash' : ''}"><span class="tick" aria-hidden="true"></span>${label}</li>`,
-  ).join('');
-  $('#taskCount').textContent = `${done.size}/${TASKS.length}`;
-  $('#tasks').classList.toggle('all-done', done.size === TASKS.length);
+  const { tasks, done } = loc;
+  taskList.innerHTML = tasks
+    .map(([id, label]) => `<li class="${done.has(id) ? 'done' : ''} ${id === flashId ? 'flash' : ''}"><span class="tick" aria-hidden="true"></span>${label}</li>`)
+    .join('');
+  $('#taskCount').textContent = `${done.size}/${tasks.length}`;
+  $('#tasks').classList.toggle('all-done', done.size === tasks.length);
+  $('#tasksTitle').textContent = loc.tasksTitle;
+  $('#roomChip').textContent = loc.chip;
 }
-renderTasks();
 
-const sound = new Sound();
+// Tasks belong to whichever place lists them (wearing the mask in the hotel still counts).
 function complete(id) {
-  if (done.has(id)) return;
-  done.add(id);
-  renderTasks(id);
+  const owner = [hotel, arena].find((l) => l.tasks.some(([t]) => t === id));
+  if (!owner || owner.done.has(id)) return;
+  owner.done.add(id);
   sound.chime();
-  if (done.size === TASKS.length) setTimeout(celebrate, 1600);
+  if (owner !== loc) return;
+  renderTasks(id);
+  if (owner.done.size === owner.tasks.length) setTimeout(() => celebrate(owner), 1600);
 }
 
-// ---------- world ----------
+// ---------- the two places ----------
 const world = buildWorld(scene);
-let player;
-const room = buildRoom({
-  toast,
-  complete,
-  sit: (seat) => player.sit(seat),
-});
+const room = buildRoom({ toast, complete, sit: (seat) => player.sit(seat) });
 scene.add(room.group);
 room.group.traverse((o) => {
   if (!o.isMesh) return;
@@ -94,9 +110,76 @@ room.group.traverse((o) => {
 room.mirror.castShadow = false;
 room.mirror.receiveShadow = false;
 
+const arenaWorld = buildArena({
+  toast,
+  complete,
+  sound,
+  sit: (seat) => player.sit(seat),
+  warp: (w) => player.warp(w),
+  push: (x, z) => player.push.set(x, z),
+  player: () => player,
+  buyMask,
+});
+scene.add(arenaWorld.group);
+arenaWorld.group.traverse((o) => {
+  if (!o.isMesh) return;
+  o.castShadow = !!o.userData.cast;
+  o.receiveShadow = !o.isInstancedMesh;
+});
+
+const hotel = {
+  id: 'hotel',
+  title: 'Hotel Jacaranda',
+  sub: 'Room 1207 · Paseo de la Reforma',
+  chip: 'Room 1207',
+  tasksTitle: 'Settle in',
+  travelLabel: 'Go to stadium',
+  tasks: HOTEL_TASKS,
+  done: new Set(),
+  root: room.group,
+  colliders: room.colliders,
+  floorAt: () => 0,
+  spawn: { x: 1.7, z: 3.2, yaw: 0.2, pitch: -0.04 },
+  saved: null,
+  enter() {
+    room.group.visible = true;
+    world.setActive(true);
+    scene.environmentIntensity = 0.4;
+  },
+  exit() {
+    room.group.visible = false;
+    world.setActive(false);
+  },
+};
+const arena = {
+  id: 'arena',
+  title: 'Arena México',
+  sub: 'Colonia Doctores · La Catedral de la Lucha Libre',
+  chip: 'Arena México',
+  tasksTitle: 'Fan checklist',
+  travelLabel: 'Back to hotel',
+  tasks: ARENA_TASKS,
+  done: new Set(),
+  root: arenaWorld.group,
+  colliders: arenaWorld.colliders,
+  floorAt: arenaWorld.floorAt,
+  spawn: ARENA_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    arenaWorld.group.visible = true;
+    scene.environmentIntensity = 0.3;
+  },
+  exit() {
+    arenaWorld.group.visible = false;
+  },
+};
+loc = hotel;
+arenaWorld.group.visible = false;
+
 player = new Player(camera, room.colliders);
 
-// A simple traveller who only shows up in the bathroom mirror (layer 1).
+// ---------- avatar (only seen in the bathroom mirror, layer 1) ----------
 const avatar = makeAvatar();
 scene.add(avatar);
 room.mirror.camera.layers.enable(1);
@@ -107,10 +190,10 @@ function makeAvatar() {
   const skin = m(0xc58b62, 0.6);
   const shirt = m(0xf3efe6, 0.9);
   const pants = m(0x2f3b57);
-  const add = (geo, mat, x, y, z) => {
+  const add = (geo, mat, x, y, z, parent = g) => {
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(x, y, z);
-    g.add(mesh);
+    parent.add(mesh);
     return mesh;
   };
   for (const s of [-1, 1]) {
@@ -133,12 +216,73 @@ function makeAvatar() {
   add(new THREE.SphereGeometry(0.112, 16, 12), hairMat, 0, 1.6, 0.03);
   for (const s of [-1, 1]) add(new THREE.SphereGeometry(0.014, 8, 6), m(0x1a1a1a, 0.3), s * 0.04, 1.6, -0.1);
   add(new THREE.ConeGeometry(0.018, 0.04, 8), skin, 0, 1.565, -0.115).rotation.x = -Math.PI / 2;
+
+  // The luchador mask, shown when you wear it.
+  const mask = new THREE.Group();
+  mask.visible = false;
+  g.add(mask);
+  const maskBase = m(0xc8282e, 0.45);
+  const maskTrim = m(0xf2c14e, 0.4);
+  const maskEyes = m(0xffffff, 0.4);
+  const shell = add(new THREE.SphereGeometry(0.126, 22, 16), maskBase, 0, 1.59, 0.004, mask);
+  shell.scale.set(0.95, 1.12, 1.02);
+  for (const s of [-1, 1]) {
+    const rim = add(new THREE.SphereGeometry(0.036, 12, 8), maskTrim, s * 0.042, 1.605, -0.112, mask);
+    rim.scale.set(1.35, 0.8, 0.45);
+    const white = add(new THREE.SphereGeometry(0.027, 12, 8), maskEyes, s * 0.042, 1.605, -0.121, mask);
+    white.scale.set(1.3, 0.7, 0.4);
+    add(new THREE.SphereGeometry(0.012, 8, 6), m(0x1a1a1a, 0.3), s * 0.042, 1.605, -0.13, mask);
+  }
+  const mouth = add(new THREE.SphereGeometry(0.026, 10, 8), maskTrim, 0, 1.52, -0.118, mask);
+  mouth.scale.set(1.2, 0.7, 0.4);
+  g.userData.mask = { group: mask, base: maskBase, trim: maskTrim, eyes: maskEyes };
+
   g.traverse((o) => o.layers.set(1));
   return g;
 }
 
+// ---------- luchador mask ----------
+const maskState = { owned: false, on: false, design: 0 };
+function paintMask() {
+  const [base, trim, , accent] = MASKS[maskState.design];
+  const root = document.documentElement.style;
+  root.setProperty('--mask-base', base);
+  root.setProperty('--mask-trim', trim);
+  root.setProperty('--mask-accent', accent);
+  const am = avatar.userData.mask;
+  am.base.color.set(base);
+  am.trim.color.set(trim);
+}
+function buyMask(design, first) {
+  maskState.owned = true;
+  maskState.design = design;
+  paintMask();
+  $('#maskBtn').hidden = false;
+  complete('mask');
+  toast(
+    first
+      ? `You bought a máscara! Press ${touch ? 'the mask button' : 'K'} to put it on.`
+      : 'Swapped it for another design. ¡Qué bonita!',
+  );
+}
+function toggleMask() {
+  if (!maskState.owned) {
+    toast('Buy a mask at the merch stand in Arena México first.');
+    return;
+  }
+  maskState.on = !maskState.on;
+  document.body.classList.toggle('masked', maskState.on);
+  avatar.userData.mask.group.visible = maskState.on;
+  $('#maskBtn').classList.toggle('active', maskState.on);
+  if (maskState.on) {
+    complete('wear');
+    toast('Mask on. You are now a luchador incógnito.');
+  }
+}
+paintMask();
+
 // ---------- input ----------
-const state = { started: false, playing: false, locked: false, dragMode: touch, modal: false };
+const state = { started: false, playing: false, locked: false, dragMode: touch, modal: false, traveling: false };
 const keys = new Set();
 const has = (c) => keys.has(c);
 const joy = { x: 0, y: 0 };
@@ -150,7 +294,7 @@ function useAction() {
     return;
   }
   if (focus) {
-    focus.act();
+    focus.act(focusHit);
     sound.click();
   }
 }
@@ -158,6 +302,7 @@ function useAction() {
 let nightTarget = 0;
 let night = 0;
 function toggleNight() {
+  if (loc !== hotel) return;
   nightTarget = nightTarget ? 0 : 1;
   $('#dayNight').dataset.mode = nightTarget ? 'night' : 'day';
   $('#dayNight .label').textContent = nightTarget ? 'Day' : 'Night';
@@ -174,6 +319,8 @@ window.addEventListener('keydown', (e) => {
   }
   if (e.code === 'KeyN') toggleNight();
   if (e.code === 'KeyM') toggleMute();
+  if (e.code === 'KeyK') toggleMask();
+  if (e.code === 'KeyG') travel();
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
@@ -272,6 +419,8 @@ function toggleMute() {
   $('#muteBtn').setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
 }
 $('#muteBtn').addEventListener('click', toggleMute);
+$('#maskBtn').addEventListener('click', toggleMask);
+$('#travelBtn').addEventListener('click', travel);
 $('#tasksToggle').addEventListener('click', () => $('#tasks').classList.toggle('collapsed'));
 if (touch || window.innerWidth < 700) $('#tasks').classList.add('collapsed');
 
@@ -298,12 +447,33 @@ function pause() {
 }
 $('#startBtn').addEventListener('click', begin);
 $('#resumeBtn').addEventListener('click', begin);
+$('#pauseTravelBtn').addEventListener('click', () => {
+  begin();
+  travel();
+});
 $('#pauseBtn').addEventListener('click', () => {
   if (document.pointerLockElement) document.exitPointerLock();
   else pause();
 });
 
-function celebrate() {
+const DONE_TEXT = {
+  hotel: {
+    eyebrow: 'All settled in',
+    title: '¡Bienvenidos a la Ciudad de México!',
+    lede: 'You’ve unpacked, seen the view, and watched the city light up. Enjoy your stay at Hotel Jacaranda.',
+  },
+  arena: {
+    eyebrow: '¡Lu-cha! ¡Lu-cha!',
+    title: '¡Eres un aficionado de verdad!',
+    lede: 'You rang the bell, flew off the top rope and packed the cathedral of lucha libre. The luchadores arrive soon…',
+  },
+};
+function celebrate(place) {
+  if (place !== loc) return;
+  const t = DONE_TEXT[place.id];
+  $('#done .eyebrow').textContent = t.eyebrow;
+  $('#done h2').textContent = t.title;
+  $('#done .lede').textContent = t.lede;
   state.modal = true;
   if (document.pointerLockElement) document.exitPointerLock();
   state.playing = false;
@@ -316,29 +486,78 @@ $('#keepBtn').addEventListener('click', () => {
   begin();
 });
 
+// ---------- travel between the hotel and the arena ----------
+const fadeEl = $('#fade');
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+function syncPlaceUI() {
+  document.body.classList.toggle('in-arena', loc === arena);
+  $('#travelBtn .label').textContent = loc.travelLabel;
+  $('#pauseTravelBtn').textContent = loc.travelLabel;
+  $('#travelBtn').dataset.dest = loc === hotel ? 'arena' : 'hotel';
+  renderTasks();
+}
+async function travel() {
+  if (state.traveling || !state.started) return;
+  state.traveling = true;
+  const dest = loc === hotel ? arena : hotel;
+  $('#fade .place').textContent = dest.title;
+  $('#fade .sub').textContent = dest.sub;
+  fadeEl.classList.add('show');
+  await wait(650);
+
+  loc.saved = { x: player.pos.x, z: player.pos.z, yaw: player.yaw, pitch: player.pitch };
+  loc.exit();
+  dest.enter();
+  loc = dest;
+  player.colliders = loc.colliders;
+  player.floorAt = loc.floorAt;
+  player.place(loc.saved || loc.spawn);
+  sound.setScene(loc.id);
+  syncPlaceUI();
+  arenaWorld.dirty = true;
+  room.dirty = true;
+  // Build the new place's shaders while the screen is still dark.
+  renderer.compile(scene, camera);
+  renderer.render(scene, camera);
+  await wait(250);
+
+  fadeEl.classList.remove('show');
+  state.traveling = false;
+  if (loc === arena && !arena.visited) {
+    arena.visited = true;
+    setTimeout(() => toast('¡Bienvenidos a la Arena México, the cathedral of lucha libre! The luchadores haven’t arrived yet.', 5200), 500);
+  }
+}
+
 // ---------- interaction focus ----------
 const ray = new THREE.Raycaster();
 ray.far = 2.5;
 const center = new THREE.Vector2(0, 0);
 let focus = null;
+let focusHit = null;
 const promptEl = $('#prompt');
 const promptText = $('#prompt .text');
 const useBtn = $('#useBtn');
 let lastPrompt = '';
 function updateFocus() {
   focus = null;
+  focusHit = null;
   let text = '';
   if (player.seat) {
-    text = touch ? 'Move the joystick to get up' : 'Move or press E to get up';
-  } else {
+    text = player.seat.arc ? (touch ? 'Move the joystick to jump' : 'Move or press E to jump!') : touch ? 'Move the joystick to get up' : 'Move or press E to get up';
+  } else if (player.blend >= 1) {
     camera.updateMatrixWorld();
     ray.setFromCamera(center, camera);
-    const hit = ray.intersectObject(room.group, true)[0];
+    const hit = ray.intersectObject(loc.root, true)[0];
     let o = hit && hit.object;
     while (o && !o.userData.interact) o = o.parent;
     if (o) {
-      focus = o.userData.interact;
-      text = focus.label();
+      const label = o.userData.interact.label(hit);
+      if (label) {
+        focus = o.userData.interact;
+        focusHit = hit;
+        text = label;
+      }
     }
   }
   if (text !== lastPrompt) {
@@ -364,11 +583,13 @@ let idleT = 0;
 let simT = 0;
 renderer.setAnimationLoop(() => frame(Math.min(clock.getDelta(), 0.05)));
 
+const tapSpot = new THREE.Vector3(-3.2, 1, 1.9);
+const showerSpot = new THREE.Vector3(-3, 1.2, 3.4);
 function frame(dt, draw = true) {
   simT += dt;
   const t = simT;
 
-  if (state.playing) {
+  if (state.playing && !state.traveling) {
     const f = (has('KeyW') || has('ArrowUp') ? 1 : 0) - (has('KeyS') || has('ArrowDown') ? 1 : 0);
     const s = (has('KeyD') || has('ArrowRight') ? 1 : 0) - (has('KeyA') || has('ArrowLeft') ? 1 : 0);
     player.move.x = s + joy.x;
@@ -384,33 +605,41 @@ function frame(dt, draw = true) {
     }
   }
   player.update(dt);
-  avatar.visible = !player.seat;
+  avatar.visible = !player.seat && loc === hotel;
   avatar.position.set(player.pos.x, 0, player.pos.z);
   avatar.rotation.y = player.yaw;
 
   if (state.playing) updateFocus();
-  room.update(dt);
-  world.update(dt, t);
-
   night += THREE.MathUtils.clamp(nightTarget - night, -dt * 0.45, dt * 0.45);
-  world.setNight(night);
-  if (night > 0.97) complete('night');
-  if (camera.position.z < -5.4) complete('balcony');
 
-  const st = room.state;
-  sound.set({
-    open: st.balconyDoor.k,
-    outside: THREE.MathUtils.clamp((-5 - camera.position.z) / 1.4, 0, 1),
-    water: (st.tap.on ? 0.4 : 0) * Math.max(0, 1 - camera.position.distanceTo(new THREE.Vector3(-3.2, 1, 1.9)) / 4) +
-      (st.shower.on ? 1 : 0) * Math.max(0, 1 - camera.position.distanceTo(new THREE.Vector3(-3, 1.2, 3.4)) / 5),
-    night,
-  });
-
-  // Shadows are baked on demand: only when a door or curtain moves.
-  if (room.dirty) {
-    room.dirty = false;
-    world.sun.shadow.needsUpdate = true;
-    room.shadowLights[0].shadow.needsUpdate = true;
+  if (loc === hotel) {
+    room.update(dt);
+    world.update(dt, t);
+    world.setNight(night);
+    if (night > 0.97) complete('night');
+    if (camera.position.z < -5.4) complete('balcony');
+    const st = room.state;
+    sound.set({
+      open: st.balconyDoor.k,
+      outside: THREE.MathUtils.clamp((-5 - camera.position.z) / 1.4, 0, 1),
+      water:
+        (st.tap.on ? 0.4 : 0) * Math.max(0, 1 - camera.position.distanceTo(tapSpot) / 4) +
+        (st.shower.on ? 1 : 0) * Math.max(0, 1 - camera.position.distanceTo(showerSpot) / 5),
+      night,
+    });
+    // Shadows are baked on demand: only when a door or curtain moves.
+    if (room.dirty) {
+      room.dirty = false;
+      world.sun.shadow.needsUpdate = true;
+      room.shadowLights[0].shadow.needsUpdate = true;
+    }
+  } else {
+    arenaWorld.update(dt, t);
+    sound.arena(arenaWorld.state);
+    if (arenaWorld.dirty) {
+      arenaWorld.dirty = false;
+      for (const l of arenaWorld.shadowLights) l.shadow.needsUpdate = true;
+    }
   }
 
   if (draw) renderer.render(scene, camera);
@@ -419,7 +648,8 @@ function frame(dt, draw = true) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, camera, renderer, scene, toggleNight, complete, useAction, state,
+    player, room, world, arena: arenaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state,
+    get loc() { return loc.id; },
     get focus() { return focus; },
     // Advance the game by `seconds` without waiting for the browser to draw.
     step(seconds = 0.5) {
@@ -429,6 +659,7 @@ if (new URLSearchParams(location.search).has('debug')) {
   };
 }
 
+syncPlaceUI();
 $('#startBtn').disabled = false;
 $('#startBtn').textContent = 'Enter room 1207';
 document.body.classList.add('ready');

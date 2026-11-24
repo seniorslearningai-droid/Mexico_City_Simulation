@@ -493,11 +493,24 @@ export function buildWorld(scene) {
   }
   setNight(0);
 
+  const fog = scene.fog;
   return {
     sun,
     setNight,
     update(dt, t) {
       for (const f of dyn) f(dt, t);
+    },
+    // Hide the whole outdoors (and its sun) while we're inside the arena.
+    setActive(on) {
+      group.visible = on;
+      sun.visible = on;
+      hemi.visible = on;
+      scene.fog = on ? fog : null;
+      if (on) {
+        const n = night;
+        night = -1;
+        setNight(Math.max(0, n));
+      }
     },
   };
 }

@@ -26,25 +26,56 @@
   <canvas id="scene" aria-label="3D hotel room"></canvas>
 
   <!-- ============ HUD ============ -->
+  <!-- What you see while wearing the luchador mask: the world through its eye holes. -->
+  <div id="maskView" aria-hidden="true">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <mask id="eyeHoles">
+          <rect width="1600" height="900" fill="white"/>
+          <ellipse cx="560" cy="430" rx="400" ry="310" transform="rotate(-10 560 430)" fill="black"/>
+          <ellipse cx="1040" cy="430" rx="400" ry="310" transform="rotate(10 1040 430)" fill="black"/>
+        </mask>
+      </defs>
+      <g mask="url(#eyeHoles)">
+        <rect class="base" width="1600" height="900"/>
+        <path class="accent" d="M800 -10c70 60 110 120 0 150c-110-30-70-90 0-150z"/>
+        <path class="accent" d="M70 300l140 60-140 70zM1530 300l-140 60 140 70z"/>
+        <path class="accent" d="M640 820c100 60 220 60 320 0l-30 90h-260z"/>
+        <ellipse class="trim" cx="560" cy="430" rx="400" ry="310" transform="rotate(-10 560 430)"/>
+        <ellipse class="trim" cx="1040" cy="430" rx="400" ry="310" transform="rotate(10 1040 430)"/>
+      </g>
+    </svg>
+  </div>
+
   <div id="hud">
     <div id="crosshair" aria-hidden="true"></div>
     <div id="prompt" role="status"><kbd>E</kbd><span class="text"></span></div>
     <div id="toast" role="status" aria-live="polite"></div>
 
-    <aside id="tasks">
-      <button id="tasksToggle" class="tasks-head" type="button" aria-label="Show or hide the checklist">
-        <span class="room-chip">Room 1207</span>
-        <span class="tasks-title">Settle in</span>
-        <span id="taskCount" class="count">0/10</span>
+    <div class="left">
+      <button id="travelBtn" class="pill travel" type="button" data-dest="arena">
+        <svg class="to-arena" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg>
+        <svg class="to-hotel" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg>
+        <span class="label">Go to stadium</span>
       </button>
-      <ul id="taskList"></ul>
-    </aside>
+      <aside id="tasks">
+        <button id="tasksToggle" class="tasks-head" type="button" aria-label="Show or hide the checklist">
+          <span id="roomChip" class="room-chip">Room 1207</span>
+          <span id="tasksTitle" class="tasks-title">Settle in</span>
+          <span id="taskCount" class="count">0/10</span>
+        </button>
+        <ul id="taskList"></ul>
+      </aside>
+    </div>
 
     <div class="corner">
       <button id="dayNight" class="pill" type="button" data-mode="day" aria-label="Toggle day and night">
         <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
         <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
         <span class="label">Night</span>
+      </button>
+      <button id="maskBtn" class="pill icon" type="button" aria-label="Put the mask on or off" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c5 0 7.5 3.5 7.5 9 0 6-3.5 10-7.5 10s-7.5-4-7.5-10c0-5.5 2.5-9 7.5-9z"/><path d="M6.5 11c1.5-1.5 3.5-1.5 4.5 0.5-1.5 1.5-3.5 1-4.5-0.5zM17.5 11c-1.5-1.5-3.5-1.5-4.5 0.5 1.5 1.5 3.5 1 4.5-0.5z" class="eyes"/><path d="M10 17h4"/></svg>
       </button>
       <button id="muteBtn" class="pill icon" type="button" data-muted="0" aria-label="Mute sound">
         <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
@@ -74,6 +105,8 @@
         <div><dt><kbd>E</kbd> / click</dt><dd>Use things</dd></div>
         <div><dt><kbd>Shift</kbd></dt><dd>Walk faster</dd></div>
         <div><dt><kbd>N</kbd></dt><dd>Day / night</dd></div>
+        <div><dt><kbd>G</kbd></dt><dd>Hotel ⇄ stadium</dd></div>
+        <div><dt><kbd>K</kbd></dt><dd>Wear your mask</dd></div>
         <div><dt><kbd>Esc</kbd></dt><dd>Pause</dd></div>
       </dl>
       <dl class="keys touch-only">
@@ -81,6 +114,7 @@
         <div><dt>Drag</dt><dd>Look around</dd></div>
         <div><dt>Tap / Use</dt><dd>Use things</dd></div>
       </dl>
+      <p class="hint">Use the <strong>Go to stadium</strong> button at the top left to visit Arena México.</p>
     </div>
   </section>
 
@@ -88,10 +122,18 @@
     <div class="card small">
       <p class="eyebrow">Paused</p>
       <h2>Take a breather</h2>
-      <p class="lede">Your room is right where you left it.</p>
-      <button id="resumeBtn" class="cta" type="button">Back to the room</button>
+      <p class="lede">Everything is right where you left it.</p>
+      <div class="cta-row">
+        <button id="resumeBtn" class="cta" type="button">Keep playing</button>
+        <button id="pauseTravelBtn" class="cta secondary" type="button">Go to stadium</button>
+      </div>
     </div>
   </section>
+
+  <div id="fade" aria-live="polite">
+    <p class="place"></p>
+    <p class="sub"></p>
+  </div>
 
   <section id="done" class="overlay hidden">
     <div class="picado" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>

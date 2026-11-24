@@ -24,6 +24,9 @@ export class Player {
     this.bobT = 0;
     this.bobAmt = 0;
     this.releasedMove = true;
+    this.push = new THREE.Vector2(); // extra velocity that fades out (rope bounces)
+    this.arc = 0; // height of the hop during a blend (climbing, jumping)
+    this.floorAt = () => 0; // ground height under (x, z): stairs, the ring
     this.target = new THREE.Vector3(this.pos.x, this.eye, this.pos.z);
     camera.rotation.order = 'YXZ';
     this.apply();
@@ -41,6 +44,8 @@ export class Player {
   sit(seat) {
     this.from = this.snapshot();
     this.blend = 0;
+    this.arc = 0;
+    this.push.set(0, 0);
     this.seat = { ...seat, back: this.pos.clone() };
     this.yaw = seat.yaw;
     this.pitch = seat.pitch ?? 0;
@@ -52,8 +57,37 @@ export class Player {
     if (!this.seat) return;
     this.from = this.snapshot();
     this.blend = 0;
+    this.arc = this.seat.arc || 0;
     this.pos.copy(this.seat.back);
     this.seat = null;
+  }
+
+  // Move somewhere else with a short animated hop (into or out of the ring).
+  warp({ x, z, yaw, pitch = 0, arc = 0 }) {
+    this.from = this.snapshot();
+    this.blend = 0;
+    this.arc = arc;
+    this.seat = null;
+    this.pos.set(x, this.floorAt(x, z), z);
+    this.yaw = yaw;
+    this.pitch = pitch;
+    this.vel.set(0, 0);
+    this.push.set(0, 0);
+  }
+
+  // Jump straight to a spot with no animation (arriving at a new place).
+  place({ x, z, yaw, pitch = 0 }) {
+    this.seat = null;
+    this.blend = 1;
+    this.arc = 0;
+    this.pos.set(x, this.floorAt(x, z), z);
+    this.yaw = yaw;
+    this.pitch = pitch;
+    this.vel.set(0, 0);
+    this.push.set(0, 0);
+    this.bobAmt = 0;
+    this.target.set(x, this.pos.y + this.eye, z);
+    this.apply();
   }
 
   update(dt) {
@@ -65,12 +99,13 @@ export class Player {
     if (!this.seat) this.walk(dt);
 
     if (this.seat) this.target.copy(this.seat.eye);
-    else this.target.set(this.pos.x, this.eye + Math.sin(this.bobT * 2) * 0.022 * this.bobAmt, this.pos.z);
+    else this.target.set(this.pos.x, this.pos.y + this.eye + Math.sin(this.bobT * 2) * 0.022 * this.bobAmt, this.pos.z);
 
     if (this.blend < 1) {
       this.blend = Math.min(1, this.blend + dt / 0.6);
       const e = ease(this.blend);
       this.camera.position.lerpVectors(this.from.p, this.target, e);
+      this.camera.position.y += Math.sin(Math.PI * e) * this.arc;
       this.camera.rotation.y = this.from.yaw + wrapAngle(this.yaw - this.from.yaw) * e;
       this.camera.rotation.x = this.from.pitch + (this.pitch - this.from.pitch) * e;
     } else {
@@ -100,13 +135,19 @@ export class Player {
     const a = 1 - Math.exp(-dt * 11);
     this.vel.x += (tx - this.vel.x) * a;
     this.vel.y += (tz - this.vel.y) * a;
-    const dist = Math.hypot(this.vel.x, this.vel.y) * dt;
+    const vx = this.vel.x + this.push.x;
+    const vz = this.vel.y + this.push.y;
+    this.push.multiplyScalar(Math.exp(-dt * 2.4));
+    const dist = Math.hypot(vx, vz) * dt;
     const steps = Math.max(1, Math.ceil(dist / 0.05));
     for (let i = 0; i < steps; i++) {
-      this.pos.x += (this.vel.x * dt) / steps;
-      this.pos.z += (this.vel.y * dt) / steps;
+      this.pos.x += (vx * dt) / steps;
+      this.pos.z += (vz * dt) / steps;
       this.collide();
     }
+    // Ease up and down stairs instead of snapping.
+    const fy = this.floorAt(this.pos.x, this.pos.z);
+    this.pos.y += (fy - this.pos.y) * (1 - Math.exp(-dt * 14));
     const sp = Math.hypot(this.vel.x, this.vel.y);
     this.bobT += sp * dt * 3.3;
     this.bobAmt += (Math.min(1, sp / 1.8) - this.bobAmt) * a;

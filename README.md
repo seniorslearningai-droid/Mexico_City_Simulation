@@ -5,6 +5,10 @@ the (fictional) Hotel Jacaranda, twelve floors above Paseo de la Reforma in
 Mexico City. Walk around the room, open things up, step out onto the balcony,
 and watch the city light up at night.
 
+Press **Go to stadium** (top left, or `G`) to visit **Arena México**, the
+cathedral of lucha libre. No luchadores yet: just you, the ring, and (once
+you open the doors) a few thousand fans.
+
 ## Play
 
 Open `index.html` through any static web server (it uses ES modules, so
@@ -28,6 +32,8 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
+| `G` or **Go to stadium** | **Go to stadium** button | Travel between the hotel and the arena |
+| `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `Esc` | | Pause |
 
 ## What's in the room
@@ -47,13 +53,32 @@ the `main` branch and the root folder.
 You can sit in the chairs and lie on the bed. A checklist of ten things to do
 tracks your progress as you settle in.
 
+## Arena México
+
+- **Entrance stage** — a big LED screen, a lighting truss, and the tunnel
+  doors. Open the doors and the fans pour in and fill the seats.
+- **Merch stand** — buy a luchador mask (and swap designs). Put it on and you
+  see the world through its eye holes; your reflection in the hotel mirror
+  wears it too.
+- **Snack stand** — tacos al pastor, churros, palomitas con chile, agua de
+  jamaica.
+- **The ring** — red, white and green ropes, padded turnbuckles, steel steps.
+  Climb in, bounce off the ropes, climb a turnbuckle and jump, or slide out
+  under the bottom rope.
+- **Timekeeper's table** — ring the bell, or start the light show from the
+  lighting desk (beams, music, a roaring crowd chanting "¡Lu-cha! ¡Lu-cha!").
+- **Stands** — 20 rows in red, white and green. Walk up the aisles and take
+  any empty seat, or sit ringside.
+
+The arena has its own ten-item fan checklist.
+
 ## How it's built
 
 - [three.js](https://threejs.org) r165 from a CDN — no build step, no installs.
 - Every texture (wood floor, tiles, rug, city windows, the painting) is
   painted on a `<canvas>` in code, so there are no image files.
-- Sounds (city traffic, running water, clicks) are synthesized with the Web
-  Audio API.
+- Sounds (city traffic, running water, the crowd, the ring bell, the light
+  show beat) are synthesized with the Web Audio API.
 
 | File | What it does |
 | --- | --- |
@@ -61,7 +86,8 @@ tracks your progress as you settle in.
 | `js/main.js` | Renderer, input, checklist, game loop |
 | `js/room.js` | The hotel room: walls, furniture, lights and everything you can use |
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
-| `js/player.js` | Walking, collisions, sitting and lying down |
+| `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
+| `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |
 

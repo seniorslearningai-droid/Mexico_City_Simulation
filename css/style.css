@@ -118,12 +118,30 @@ body.touch #prompt { padding-left: 14px; }
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* Checklist */
-#tasks {
+/* Top-left: travel button + checklist */
+.left {
   position: absolute;
   left: 16px;
   top: calc(16px + var(--safe-t));
-  width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.pill.travel {
+  background: var(--rosa);
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35);
+}
+.pill.travel:hover { background: #c73a6d; }
+#travelBtn[data-dest='arena'] .to-hotel,
+#travelBtn[data-dest='hotel'] .to-arena { display: none; }
+body.in-arena .pill.travel { background: var(--teal); box-shadow: 0 6px 18px rgba(31, 107, 110, 0.4); }
+body.in-arena #dayNight { display: none; }
+
+/* Checklist */
+#tasks {
+  width: 290px;
   border-radius: var(--radius);
   background: var(--glass);
   backdrop-filter: blur(12px);
@@ -152,7 +170,7 @@ body.touch #prompt { padding-left: 14px; }
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.tasks-title { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 17px; flex: 1; }
+.tasks-title { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 17px; flex: 1; white-space: nowrap; }
 .count {
   font-size: 12px;
   font-weight: 700;
@@ -231,6 +249,43 @@ body.touch #prompt { padding-left: 14px; }
 #dayNight[data-mode='day'] .sun { display: none; }
 #dayNight[data-mode='night'] .moon { display: none; }
 #muteBtn[data-muted='1'] .on, #muteBtn[data-muted='0'] .off { display: none; }
+#maskBtn[hidden] { display: none; }
+#maskBtn svg .eyes { fill: currentColor; stroke: none; }
+#maskBtn.active { background: var(--rosa); border-color: transparent; }
+
+/* Looking out through the mask's eye holes. */
+#maskView {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1.08);
+  transition: opacity 0.35s, transform 0.35s;
+}
+body.masked #maskView { opacity: 0.96; transform: scale(1); }
+#maskView svg { width: 100%; height: 100%; display: block; }
+#maskView .base { fill: var(--mask-base, #c8282e); }
+#maskView .accent { fill: var(--mask-accent, #f2c14e); }
+#maskView .trim { fill: none; stroke: var(--mask-trim, #f2c14e); stroke-width: 40; }
+
+/* Fade to black when travelling. */
+#fade {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  text-align: center;
+  background: #0d0b14;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.55s;
+}
+#fade.show { opacity: 1; pointer-events: auto; }
+#fade p { margin: 0; }
+#fade .place { font-family: Fraunces, Georgia, serif; font-weight: 800; font-size: clamp(36px, 7vw, 60px); color: var(--cream); }
+#fade .sub { font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px; color: var(--marigold); }
 
 /* Touch controls */
 #joy, #useBtn { display: none; }
@@ -344,9 +399,15 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 }
 .cta:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(217, 68, 122, 0.45); }
 .cta:disabled { background: #b9a9b4; box-shadow: none; cursor: progress; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.cta-row .cta { min-width: 180px; }
+.cta.secondary { background: var(--teal); box-shadow: 0 10px 24px rgba(31, 107, 110, 0.35); }
+.cta.secondary:hover { box-shadow: 0 14px 28px rgba(31, 107, 110, 0.4); }
+.hint { margin: 18px 0 0; font-size: 13.5px; color: #6b6478; }
+body:not(.touch) .hint { display: none; }
 .keys {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px 10px;
   margin: 28px 0 0;
   padding-top: 22px;
@@ -358,6 +419,7 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 .keys kbd { background: #fff; color: var(--ink); border-color: rgba(29, 26, 43, 0.2); }
 .touch-only { display: none; }
 body.touch .touch-only { display: grid; }
+.keys.touch-only { grid-template-columns: repeat(3, 1fr); }
 body.touch .desktop-only { display: none; }
 
 /* Papel picado bunting */
@@ -403,8 +465,10 @@ body.touch .desktop-only { display: none; }
   .card { padding: 30px 20px 24px; }
   .keys { grid-template-columns: repeat(3, 1fr); }
   #tasks { width: auto; max-width: calc(100vw - 32px - 150px); }
+  .left { max-width: calc(100vw - 32px - 150px); }
   .tasks-title { display: none; }
   .pill .label { display: none; }
+  .pill.travel .label { display: inline; }
   #dayNight { width: 42px; padding: 0; justify-content: center; }
   #prompt { font-size: 14px; }
 }

@@ -491,3 +491,204 @@ export function avenue() {
     }
   }, { repeat: [1, 1] });
 }
+
+// ---------------- Arena México ----------------
+
+// Ring canvas: blue mat with a white border and the arena's name.
+export function ringCanvas() {
+  return make(1024, 1024, (g, w, h) => {
+    const grd = g.createRadialGradient(w / 2, h / 2, 60, w / 2, h / 2, w * 0.7);
+    grd.addColorStop(0, '#2c6fd6');
+    grd.addColorStop(1, '#1a4aa6');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#f4f1ea';
+    g.lineWidth = 18;
+    g.strokeRect(40, 40, w - 80, h - 80);
+    g.lineWidth = 6;
+    g.beginPath();
+    g.arc(w / 2, h / 2, 250, 0, Math.PI * 2);
+    g.stroke();
+    // Gold star in the middle.
+    g.fillStyle = '#f2c14e';
+    g.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 ? 70 : 170;
+      g.lineTo(w / 2 + Math.cos(a) * r, h / 2 + Math.sin(a) * r);
+    }
+    g.fill();
+    g.fillStyle = '#f4f1ea';
+    g.textAlign = 'center';
+    g.font = 'bold 78px Georgia, serif';
+    g.fillText('ARENA MÉXICO', w / 2, 175);
+    g.save();
+    g.translate(w / 2, h - 135);
+    g.rotate(Math.PI);
+    g.fillText('ARENA MÉXICO', 0, -40);
+    g.restore();
+    // Scuffs.
+    const r = rng(44);
+    for (let i = 0; i < 1500; i++) {
+      g.fillStyle = `rgba(255,255,255,${0.04 * r()})`;
+      g.fillRect(r() * w, r() * h, 2 + r() * 8, 1 + r() * 3);
+    }
+  });
+}
+
+// Apron skirt: black with the arena name and a tricolor stripe.
+export function ringSkirt() {
+  return make(1024, 192, (g, w, h) => {
+    g.fillStyle = '#121216';
+    g.fillRect(0, 0, w, h);
+    const stripe = h / 9;
+    [['#1f8a4c', 0], ['#f4f1ea', 1], ['#c8282e', 2]].forEach(([c, i]) => {
+      g.fillStyle = c;
+      g.fillRect(0, i * stripe, w, stripe);
+    });
+    g.fillStyle = '#f2c14e';
+    g.font = 'bold 64px Georgia, serif';
+    g.textAlign = 'center';
+    g.fillText('ARENA MÉXICO', w / 2, h * 0.72);
+    g.fillStyle = '#f4f1ea';
+    g.font = 'bold 28px sans-serif';
+    g.fillText('★  LUCHA LIBRE  ★', w / 2, h * 0.93);
+  }, { repeat: [1, 1] });
+}
+
+// A luchador mask, used for the banners and merch signs.
+// design: [base, trim, eyes, accent]
+export const MASKS = [
+  ['#c8282e', '#f2c14e', '#ffffff', '#f2c14e'],
+  ['#1f4fa8', '#d9dde6', '#ffffff', '#f4f1ea'],
+  ['#18181c', '#f2c14e', '#e8507e', '#f2c14e'],
+  ['#1f8a4c', '#f4f1ea', '#ffffff', '#c8282e'],
+  ['#e2a72e', '#18181c', '#ffffff', '#18181c'],
+  ['#6b3fa0', '#d9dde6', '#ffffff', '#3fc1c9'],
+];
+export function drawMask(g, cx, cy, s, [base, trim, eyes, accent]) {
+  g.save();
+  g.translate(cx, cy);
+  g.scale(s, s);
+  // Head.
+  g.fillStyle = base;
+  g.beginPath();
+  g.moveTo(0, -120);
+  g.bezierCurveTo(95, -120, 105, -20, 92, 40);
+  g.bezierCurveTo(80, 110, 35, 130, 0, 132);
+  g.bezierCurveTo(-35, 130, -80, 110, -92, 40);
+  g.bezierCurveTo(-105, -20, -95, -120, 0, -120);
+  g.fill();
+  // Forehead flame.
+  g.fillStyle = accent;
+  g.beginPath();
+  g.moveTo(0, -112);
+  g.bezierCurveTo(18, -80, 30, -55, 0, -28);
+  g.bezierCurveTo(-30, -55, -18, -80, 0, -112);
+  g.fill();
+  // Eye holes with trim.
+  for (const sx of [-1, 1]) {
+    g.save();
+    g.scale(sx, 1);
+    g.fillStyle = trim;
+    g.beginPath();
+    g.moveTo(10, -10);
+    g.bezierCurveTo(40, -40, 92, -30, 86, 8);
+    g.bezierCurveTo(70, 30, 30, 26, 10, -10);
+    g.fill();
+    g.fillStyle = eyes;
+    g.beginPath();
+    g.moveTo(22, -6);
+    g.bezierCurveTo(44, -26, 78, -20, 74, 4);
+    g.bezierCurveTo(60, 18, 36, 16, 22, -6);
+    g.fill();
+    // Side wing.
+    g.fillStyle = trim;
+    g.beginPath();
+    g.moveTo(88, -40);
+    g.lineTo(60, -70);
+    g.lineTo(70, -44);
+    g.fill();
+    g.restore();
+  }
+  // Mouth.
+  g.fillStyle = trim;
+  g.beginPath();
+  g.ellipse(0, 78, 30, 20, 0, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = '#1a1014';
+  g.beginPath();
+  g.ellipse(0, 78, 22, 13, 0, 0, Math.PI * 2);
+  g.fill();
+  g.restore();
+}
+
+// Tall hanging banner with a mask on it.
+export function banner(design, seed = 1) {
+  return make(256, 640, (g, w, h) => {
+    const [base, trim] = MASKS[design % MASKS.length];
+    g.fillStyle = '#141218';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = trim;
+    g.fillRect(0, 0, w, 10);
+    g.fillRect(0, h - 10, w, 10);
+    const grd = g.createRadialGradient(w / 2, 250, 10, w / 2, 250, 220);
+    grd.addColorStop(0, base);
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.globalAlpha = 0.45;
+    g.fillStyle = grd;
+    g.fillRect(0, 0, w, h);
+    g.globalAlpha = 1;
+    drawMask(g, w / 2, 250, 0.95, MASKS[design % MASKS.length]);
+    g.fillStyle = trim;
+    g.font = 'bold 44px Georgia, serif';
+    g.textAlign = 'center';
+    g.fillText('LUCHA', w / 2, 480);
+    g.fillText('LIBRE', w / 2, 530);
+    const r = rng(seed);
+    for (let i = 0; i < 40; i++) {
+      g.fillStyle = trim;
+      g.globalAlpha = 0.5 * r();
+      g.beginPath();
+      g.arc(r() * w, 560 + r() * 60, 2 + r() * 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  }, { wrap: false });
+}
+
+// A simple painted shop sign.
+export function sign(text, { bg = '#c8282e', fg = '#fff6e6', w = 512, h = 128, font = 'bold 64px Georgia, serif' } = {}) {
+  return make(w, h, (g) => {
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = fg;
+    g.lineWidth = 6;
+    g.strokeRect(10, 10, w - 20, h - 20);
+    g.fillStyle = fg;
+    g.font = font;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(text, w / 2, h / 2 + 4);
+  }, { wrap: false });
+}
+
+// LED strip: bright dashes running along v, scrolled for a chase effect.
+export function ledStrip() {
+  return make(8, 128, (g, w, h) => {
+    g.fillStyle = '#000';
+    g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 16) {
+      g.fillStyle = '#fff';
+      g.fillRect(0, y + 2, w, 10);
+    }
+  }, { repeat: [1, 1], srgb: false });
+}
+
+// A single mask on a transparent background, for the merch pegboard.
+export function maskFace(design) {
+  return make(256, 320, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    drawMask(g, w / 2, h / 2 + 6, 1.05, MASKS[design % MASKS.length]);
+  }, { wrap: false });
+}

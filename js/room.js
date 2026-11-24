@@ -22,7 +22,7 @@ const H = 2.8; // ceiling height
 
 // Give a box UVs in meters. With an offset (the box's world center) the
 // pattern lines up across neighbouring boxes, so tiles and planks match.
-function meterUV(geo, ox = 0, oy = 0, oz = 0) {
+export function meterUV(geo, ox = 0, oy = 0, oz = 0) {
   const uv = geo.attributes.uv;
   const p = geo.attributes.position;
   for (let i = 0; i < uv.count; i++) {
