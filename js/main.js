@@ -37,16 +37,16 @@ const ARENA_TASKS = [
   ['seat', 'Take a seat in the stands'],
 ];
 const AVIARY_TASKS = [
-  ['feed', 'Feed the macaws'],
-  ['toucan', 'Spot the toucan'],
-  ['hummingbird', 'Watch a hummingbird feed'],
-  ['binoculars', 'Look through the binoculars'],
-  ['bridge', 'Cross the bridge'],
-  ['ducks', 'Feed the whistling ducks'],
-  ['mist', 'Make it rain'],
-  ['bench', 'Sit and listen to the birds'],
+  ['all5', 'Visit all five aviaries'],
+  ['peacock', 'Make a peacock fan its tail'],
+  ['parakeets', 'Hold out a seed stick for the parakeets'],
+  ['macaws', 'Feed the macaws'],
+  ['parrot', 'Say ¡hola! to a parrot'],
+  ['mix', 'Fill the feeder in the mixed aviary'],
+  ['sign', 'Read an aviary sign'],
+  ['toucan', 'Spot the wild toucan with binoculars'],
   ['photo', 'Take a photo'],
-  ['sign', 'Read a bird sign'],
+  ['tape', 'Peek past the caution tape'],
 ];
 
 // ---------- renderer / scene ----------
@@ -202,11 +202,11 @@ aviaryWorld.group.traverse((o) => {
   o.castShadow = !!o.userData.cast;
   o.receiveShadow = !o.isInstancedMesh;
 });
-const aviaryFog = new THREE.Fog(0xd5e6e6, 80, 500);
+const aviaryFog = new THREE.Fog(0xb7c9b1, 25, 150);
 const aviary = {
   id: 'aviary',
   title: 'Aviario',
-  sub: 'Zoológico de Chapultepec',
+  sub: 'Zoológico de Chapultepec · Bird trail',
   chip: 'Aviary',
   tasksTitle: 'Bird spotter',
   goLabel: 'Go to aviary',
@@ -535,7 +535,7 @@ const DONE_TEXT = {
   aviary: {
     eyebrow: '¡Qué bonito!',
     title: 'You’re a true bird spotter!',
-    lede: 'You fed the macaws, found the toucan and made a rainbow over the pond. The birds of Chapultepec say ¡hasta pronto!',
+    lede: 'You walked the whole trail, fed the macaws, chatted with a parrot and saw a peacock show off. The birds of Chapultepec say ¡hasta pronto!',
   },
 };
 function celebrate(place) {
@@ -578,7 +578,21 @@ async function travel(destId) {
   $('#fade .sub').textContent = dest.sub;
   fadeEl.classList.add('show');
   await wait(650);
-
+  arrive(dest);
+  await wait(250);
+  fadeEl.classList.remove('show');
+  state.traveling = false;
+  if (loc === arena && !arena.visited) {
+    arena.visited = true;
+    setTimeout(() => toast('¡Bienvenidos a la Arena México, the cathedral of lucha libre! The luchadores haven’t arrived yet.', 5200), 500);
+  }
+  if (loc === aviary && !aviary.visited) {
+    aviary.visited = true;
+    setTimeout(() => toast('¡Bienvenidos! Follow the forest trail past five aviaries — peacocks first, on your left.', 5200), 500);
+  }
+}
+// Swap the world over to another place (while the screen is faded out).
+function arrive(dest) {
   loc.saved = { x: player.pos.x, z: player.pos.z, yaw: player.yaw, pitch: player.pitch };
   loc.exit();
   dest.enter();
@@ -595,18 +609,6 @@ async function travel(destId) {
   // Build the new place's shaders while the screen is still dark.
   renderer.compile(scene, camera);
   renderer.render(scene, camera);
-  await wait(250);
-
-  fadeEl.classList.remove('show');
-  state.traveling = false;
-  if (loc === arena && !arena.visited) {
-    arena.visited = true;
-    setTimeout(() => toast('¡Bienvenidos a la Arena México, the cathedral of lucha libre! The luchadores haven’t arrived yet.', 5200), 500);
-  }
-  if (loc === aviary && !aviary.visited) {
-    aviary.visited = true;
-    setTimeout(() => toast('¡Bienvenidos al Aviario de Chapultepec! Look up — the macaws are flying overhead.', 5200), 500);
-  }
 }
 
 // ---------- interaction focus ----------
@@ -788,6 +790,8 @@ if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
     player, room, world, arena: arenaWorld, aviary: aviaryWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state,
     get loc() { return loc.id; },
+    // Go somewhere instantly, without the fade (handy when timers are slow).
+    jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },
     get focus() { return focus; },
     // Advance the game by `seconds` without waiting for the browser to draw.
     step(seconds = 0.5) {

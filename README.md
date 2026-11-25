@@ -10,9 +10,9 @@ The buttons at the top left take you to two more places:
 - **Go to stadium** — **Arena México**, the cathedral of lucha libre. No
   luchadores yet: just you, the ring, and (once you open the doors) a few
   thousand fans.
-- **Go to aviary** — the walk-through **aviary at Chapultepec Zoo**: a netted
-  dome over a tropical garden full of macaws, parrots, a toucan,
-  hummingbirds and waterbirds.
+- **Go to aviary** — the **bird trail at Chapultepec Zoo**: a U-shaped forest
+  path lined with five mini aviaries of peacocks, parakeets, macaws and
+  parrots.
 
 ## Play
 
@@ -77,22 +77,29 @@ tracks your progress as you settle in.
 
 The arena has its own ten-item fan checklist.
 
-## Chapultepec Zoo aviary
+## Chapultepec Zoo bird trail
 
-- **Flying birds** — scarlet and military macaws and yellow-headed parrots
-  loop under the net; more perch in the trees and palms.
-- **Macaw feeder** — fill it and three macaws swoop down to eat.
-- **Hummingbird garden** — stand by the nectar feeder among the heliconias
-  and a hummingbird zips in to feed.
-- **Pond** — an arched wooden bridge, a waterfall, whistling ducks (pijijes)
-  you can feed, and roseate spoonbills wading in the shallows.
-- **Lookout deck** — walk up the ramp and use the binoculars to zoom in and
-  identify birds. The keel-billed toucan is hiding in the old ahuehuete tree.
-- **Misting rain** — press the button near the entrance for a tropical mist
-  and a rainbow over the pond.
-- **Photo spot** — the camera glides to the best view and you get a polaroid.
-- **Benches and signs** — sit and listen to the birdsong, or read about the
-  birds.
+A dirt trail curves through the forest in a U. Both ends of the U are closed
+off with yellow **"AUTHORIZED ACCESS ONLY"** caution tape, so you walk from
+one end, around the curve, and back down the other side. Five mini aviaries
+line the path: three on the left leg (on your left as you walk) and two on
+the right leg (on your right).
+
+1. **Peacocks** — a blue peacock, a white one and a peahen. Whistle and a
+   peacock struts over and fans out his tail.
+2. **Parakeets** — a flock of green and blue budgies. Hold out a seed stick
+   and they line up on the bar in front of you.
+3. **Macaws** — scarlet and military macaws. Feed them and they come down to
+   the tray.
+4. **Parrots** — yellow-headed and red-crowned parrots. Say ¡hola! and one
+   flies over and talks back.
+5. **Mixed aviary** — a peacock, macaws, parrots and parakeets together. Fill
+   the feeder and everyone comes to eat.
+
+Along the way: signs about each bird, a bench at the top of the U,
+binoculars for spotting the wild toucan in an old ahuehuete tree (and the
+wild monk parakeets that fly over the forest), and a photo spot that gives
+you a polaroid of the mixed aviary.
 
 It has its own ten-item bird-spotter checklist.
 
@@ -112,7 +119,7 @@ It has its own ten-item bird-spotter checklist.
 | `js/room.js` | The hotel room: walls, furniture, lights and everything you can use |
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
-| `js/aviary.js` | Chapultepec Zoo aviary: net dome, garden, pond, birds, binoculars |
+| `js/aviary.js` | Chapultepec Zoo bird trail: forest path, five aviaries, birds, binoculars |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |

@@ -162,7 +162,7 @@ export class Sound {
     if (!this.ctx || this.scene !== 'aviary') return;
     const ctx = this.ctx;
     const t = ctx.currentTime;
-    this.falls.gain.setTargetAtTime(0.04 + water * 0.4, t, 0.3);
+    this.falls.gain.setTargetAtTime(water * 0.4, t, 0.3);
     this.mistHiss.gain.setTargetAtTime(mist * 0.06, t, 0.3);
     if (this.nextChirp < t) this.nextChirp = t + 0.1;
     while (this.nextChirp < t + 0.2) {
@@ -201,9 +201,9 @@ export class Sound {
     }
   }
 
-  // Macaw: a raucous, nasal squawk (or two).
-  squawk() {
-    if (!this.ctx) return;
+  // Macaw: a raucous, nasal squawk (or two). vol 0..1 for birds further away.
+  squawk(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
     const ctx = this.ctx;
     for (let k = 0; k < 2; k++) {
       const t = ctx.currentTime + k * 0.32 + Math.random() * 0.1;
@@ -217,7 +217,7 @@ export class Sound {
       f.Q.value = 2;
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.25 * vol, t + 0.02);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
       o.connect(f).connect(g).connect(this.aviaryBus);
       o.start(t);
@@ -225,24 +225,101 @@ export class Sound {
     }
   }
 
-  // Whistling duck: "pi-ji-ji!"
-  whistle() {
+  // Parakeets: a quick burst of high chirps.
+  chatter(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    const n = 8 + Math.floor(Math.random() * 8);
+    for (let i = 0; i < n; i++) {
+      const t = ctx.currentTime + Math.random() * 1.2;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      const f0 = 3200 + Math.random() * 2400;
+      o.frequency.setValueAtTime(f0, t);
+      o.frequency.exponentialRampToValueAtTime(f0 * (Math.random() < 0.5 ? 1.3 : 0.75), t + 0.05);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.06 * vol, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+      o.connect(g).connect(this.aviaryBus);
+      o.start(t);
+      o.stop(t + 0.07);
+    }
+  }
+
+  // Peacock: the loud two-note "may-AWW!" call.
+  peacock(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    for (let k = 0; k < 2; k++) {
+      const t = ctx.currentTime + k * 0.7;
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(520, t);
+      o.frequency.exponentialRampToValueAtTime(820, t + 0.12);
+      o.frequency.setValueAtTime(900, t + 0.16);
+      o.frequency.exponentialRampToValueAtTime(640, t + 0.55);
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = 1300;
+      f.Q.value = 1.4;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.22 * vol, t + 0.03);
+      g.gain.setValueAtTime(0.22 * vol, t + 0.45);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      o.connect(f).connect(g).connect(this.aviaryBus);
+      o.start(t);
+      o.stop(t + 0.62);
+    }
+  }
+
+  // You whistle to get a bird's attention: a rising two-tone wolf whistle.
+  whistleCall() {
+    if (!this.ctx || this.muted) return;
+    const ctx = this.ctx;
+    [[1400, 2600, 0, 0.22], [1300, 2300, 0.32, 0.4]].forEach(([a, b, dt, len]) => {
+      const t = ctx.currentTime + dt;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.frequency.setValueAtTime(a, t);
+      o.frequency.exponentialRampToValueAtTime(b, t + len * 0.6);
+      if (dt > 0) o.frequency.exponentialRampToValueAtTime(a * 0.8, t + len);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.07, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(g).connect(this.master);
+      o.start(t);
+      o.stop(t + len + 0.02);
+    });
+  }
+
+  // A parrot saying "¡ho-la!": a raspy buzz shaped by two vowel filters (o, then a).
+  hola() {
     if (!this.ctx) return;
     const ctx = this.ctx;
-    for (let r = 0; r < 3; r++) {
-      [0, 0.16, 0.28].forEach((dt, i) => {
-        const t = ctx.currentTime + r * 0.7 + dt;
+    for (let rep = 0; rep < 2; rep++) {
+      const t0 = ctx.currentTime + rep * 0.75;
+      [[0, 0.2, 520, 900, 560], [0.22, 0.28, 760, 1250, 640]].forEach(([dt, len, f1, f2, pitch]) => {
+        const t = t0 + dt;
         const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        const f0 = i === 0 ? 1900 : 2300;
-        o.frequency.setValueAtTime(f0, t);
-        o.frequency.exponentialRampToValueAtTime(f0 * 0.75, t + 0.1);
-        g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.08, t + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-        o.connect(g).connect(this.aviaryBus);
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(pitch, t);
+        o.frequency.linearRampToValueAtTime(pitch * (dt > 0 ? 0.82 : 1.08), t + len);
+        const out = ctx.createGain();
+        out.gain.setValueAtTime(0.0001, t);
+        out.gain.exponentialRampToValueAtTime(0.2, t + 0.03);
+        out.gain.setValueAtTime(0.2, t + len - 0.06);
+        out.gain.exponentialRampToValueAtTime(0.0001, t + len);
+        for (const [fq, q] of [[f1, 6], [f2, 8]]) {
+          const f = ctx.createBiquadFilter();
+          f.type = 'bandpass';
+          f.frequency.value = fq;
+          f.Q.value = q;
+          o.connect(f).connect(out);
+        }
+        out.connect(this.aviaryBus);
         o.start(t);
-        o.stop(t + 0.13);
+        o.stop(t + len + 0.02);
       });
     }
   }
