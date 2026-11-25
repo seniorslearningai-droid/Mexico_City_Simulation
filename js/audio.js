@@ -112,6 +112,31 @@ export class Sound {
     this.music = ctx.createGain();
     this.music.gain.value = 0;
     this.music.connect(this.arenaBus);
+
+    // ----- aviary -----
+    this.aviaryBus = ctx.createGain();
+    this.aviaryBus.gain.value = 0;
+    this.aviaryBus.connect(this.master);
+    const ff = ctx.createBiquadFilter();
+    ff.type = 'bandpass';
+    ff.frequency.value = 1100;
+    ff.Q.value = 0.35;
+    this.falls = ctx.createGain();
+    this.falls.gain.value = 0;
+    loop(false).connect(ff).connect(this.falls).connect(this.aviaryBus);
+    const leaves = ctx.createBiquadFilter();
+    leaves.type = 'highpass';
+    leaves.frequency.value = 2500;
+    const leavesGain = ctx.createGain();
+    leavesGain.gain.value = 0.015;
+    loop(false).connect(leaves).connect(leavesGain).connect(this.aviaryBus);
+    const mf = ctx.createBiquadFilter();
+    mf.type = 'highpass';
+    mf.frequency.value = 4000;
+    this.mistHiss = ctx.createGain();
+    this.mistHiss.gain.value = 0;
+    loop(false).connect(mf).connect(this.mistHiss).connect(this.aviaryBus);
+    this.nextChirp = 0;
     this.setScene(this.scene);
   }
 
@@ -121,12 +146,123 @@ export class Sound {
     const t = this.ctx.currentTime;
     const arena = id === 'arena';
     this.arenaBus.gain.setTargetAtTime(arena ? 1 : 0, t, 0.3);
-    if (arena) {
+    this.aviaryBus.gain.setTargetAtTime(id === 'aviary' ? 1 : 0, t, 0.3);
+    if (id !== 'hotel') {
       this.city.gain.setTargetAtTime(0, t, 0.2);
       this.water.gain.setTargetAtTime(0, t, 0.2);
-    } else {
+    }
+    if (!arena) {
       this.beatOn = false;
       this.chantOn = false;
+    }
+  }
+
+  // Aviary: water 0..1 how close the waterfall is, mist 0..1, calm 0..1 (sitting still: more birdsong).
+  aviary({ water = 0, mist = 0, calm = 0 }) {
+    if (!this.ctx || this.scene !== 'aviary') return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    this.falls.gain.setTargetAtTime(0.04 + water * 0.4, t, 0.3);
+    this.mistHiss.gain.setTargetAtTime(mist * 0.06, t, 0.3);
+    if (this.nextChirp < t) this.nextChirp = t + 0.1;
+    while (this.nextChirp < t + 0.2) {
+      this.song(this.nextChirp);
+      this.nextChirp += (0.25 + Math.random() * 1.1) / (1 + calm * 1.5 + mist * 0.5);
+    }
+  }
+
+  // A little bird song: a few quick whistles from a random direction.
+  song(t) {
+    const ctx = this.ctx;
+    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const out = ctx.createGain();
+    out.gain.value = 0.02 + Math.random() * 0.04;
+    if (pan) {
+      pan.pan.value = Math.random() * 2 - 1;
+      out.connect(pan).connect(this.aviaryBus);
+    } else out.connect(this.aviaryBus);
+    const base = 2200 + Math.random() * 2800;
+    const notes = 2 + Math.floor(Math.random() * 5);
+    const kind = Math.random();
+    for (let i = 0; i < notes; i++) {
+      const st = t + i * (0.07 + Math.random() * 0.06);
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      const f0 = base * (0.85 + Math.random() * 0.3);
+      o.frequency.setValueAtTime(f0, st);
+      if (kind < 0.5) o.frequency.exponentialRampToValueAtTime(f0 * 1.5, st + 0.06);
+      else o.frequency.exponentialRampToValueAtTime(f0 * 0.65, st + 0.08);
+      g.gain.setValueAtTime(0.0001, st);
+      g.gain.exponentialRampToValueAtTime(1, st + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, st + 0.09);
+      o.connect(g).connect(out);
+      o.start(st);
+      o.stop(st + 0.1);
+    }
+  }
+
+  // Macaw: a raucous, nasal squawk (or two).
+  squawk() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    for (let k = 0; k < 2; k++) {
+      const t = ctx.currentTime + k * 0.32 + Math.random() * 0.1;
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(700, t);
+      o.frequency.exponentialRampToValueAtTime(420, t + 0.3);
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = 1500;
+      f.Q.value = 2;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+      o.connect(f).connect(g).connect(this.aviaryBus);
+      o.start(t);
+      o.stop(t + 0.35);
+    }
+  }
+
+  // Whistling duck: "pi-ji-ji!"
+  whistle() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    for (let r = 0; r < 3; r++) {
+      [0, 0.16, 0.28].forEach((dt, i) => {
+        const t = ctx.currentTime + r * 0.7 + dt;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        const f0 = i === 0 ? 1900 : 2300;
+        o.frequency.setValueAtTime(f0, t);
+        o.frequency.exponentialRampToValueAtTime(f0 * 0.75, t + 0.1);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.08, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+        o.connect(g).connect(this.aviaryBus);
+        o.start(t);
+        o.stop(t + 0.13);
+      });
+    }
+  }
+
+  // Camera shutter.
+  shutter() {
+    if (!this.ctx || this.muted) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    for (const dt of [0, 0.07]) {
+      const src = ctx.createBufferSource();
+      src.buffer = this.noiseBuf;
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = 3000;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.2, t + dt);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.04);
+      src.connect(f).connect(g).connect(this.master);
+      src.start(t + dt, 0, 0.05);
     }
   }
 

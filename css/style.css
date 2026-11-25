@@ -118,7 +118,7 @@ body.touch #prompt { padding-left: 14px; }
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* Top-left: travel button + checklist */
+/* Top-left: one button per place you can go, then the checklist */
 .left {
   position: absolute;
   left: 16px;
@@ -128,16 +128,14 @@ body.touch #prompt { padding-left: 14px; }
   align-items: flex-start;
   gap: 10px;
 }
-.pill.travel {
-  background: var(--rosa);
-  border-color: transparent;
-  box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35);
-}
-.pill.travel:hover { background: #c73a6d; }
-#travelBtn[data-dest='arena'] .to-hotel,
-#travelBtn[data-dest='hotel'] .to-arena { display: none; }
-body.in-arena .pill.travel { background: var(--teal); box-shadow: 0 6px 18px rgba(31, 107, 110, 0.4); }
-body.in-arena #dayNight { display: none; }
+#destBtns { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.dest[hidden] { display: none !important; }
+.pill.dest { border-color: transparent; }
+.pill.dest[data-place='hotel'] { background: var(--teal); box-shadow: 0 6px 18px rgba(31, 107, 110, 0.4); }
+.pill.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35); }
+.pill.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 6px 18px rgba(47, 122, 74, 0.4); }
+.pill.dest:hover { filter: brightness(1.08); }
+body:not(.in-hotel) #dayNight { display: none; }
 
 /* Checklist */
 #tasks {
@@ -267,6 +265,44 @@ body.masked #maskView { opacity: 0.96; transform: scale(1); }
 #maskView .base { fill: var(--mask-base, #c8282e); }
 #maskView .accent { fill: var(--mask-accent, #f2c14e); }
 #maskView .trim { fill: none; stroke: var(--mask-trim, #f2c14e); stroke-width: 40; }
+
+/* Binoculars: two round lenses. */
+#binocView {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+body.binoc #binocView { opacity: 1; }
+body.binoc #crosshair { opacity: 0.5; }
+#binocView svg { width: 100%; height: 100%; display: block; }
+
+/* Camera flash and the polaroid from the photo spot. */
+#flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 25; }
+#flash.go { animation: flash-go 0.7s ease-out; }
+@keyframes flash-go { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+#photoCard {
+  position: fixed;
+  right: 20px;
+  bottom: calc(24px + var(--safe-b));
+  margin: 0;
+  width: min(300px, 46vw);
+  padding: 10px 10px 34px;
+  background: #fbf8f1;
+  border-radius: 4px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  transform: translateY(140%) rotate(6deg);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.3s, visibility 0s 0.6s;
+  pointer-events: none;
+  z-index: 24;
+}
+#photoCard.show { transform: translateY(0) rotate(-3deg); opacity: 1; visibility: visible; transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.2s; }
+#photoCard img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #ddd; }
+#photoCard figcaption { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font: 600 15px Fraunces, Georgia, serif; color: #3a3448; }
+body.touch #photoCard { bottom: calc(180px + var(--safe-b)); }
 
 /* Fade to black when travelling. */
 #fade {
@@ -403,6 +439,10 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 .cta-row .cta { min-width: 180px; }
 .cta.secondary { background: var(--teal); box-shadow: 0 10px 24px rgba(31, 107, 110, 0.35); }
 .cta.secondary:hover { box-shadow: 0 14px 28px rgba(31, 107, 110, 0.4); }
+.cta svg { width: 20px; height: 20px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cta.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 10px 24px rgba(217, 68, 122, 0.35); }
+.cta.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 10px 24px rgba(47, 122, 74, 0.35); }
+#pauseDest { margin-top: 12px; }
 .hint { margin: 18px 0 0; font-size: 13.5px; color: #6b6478; }
 body:not(.touch) .hint { display: none; }
 .keys {
@@ -468,7 +508,7 @@ body.touch .desktop-only { display: none; }
   .left { max-width: calc(100vw - 32px - 150px); }
   .tasks-title { display: none; }
   .pill .label { display: none; }
-  .pill.travel .label { display: inline; }
+  .pill.dest .label { display: inline; }
   #dayNight { width: 42px; padding: 0; justify-content: center; }
   #prompt { font-size: 14px; }
 }

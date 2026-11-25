@@ -27,6 +27,7 @@ export class Player {
     this.push = new THREE.Vector2(); // extra velocity that fades out (rope bounces)
     this.arc = 0; // height of the hop during a blend (climbing, jumping)
     this.floorAt = () => 0; // ground height under (x, z): stairs, the ring
+    this.limit = null; // optional (pos, radius) => void that keeps you inside curved areas
     this.target = new THREE.Vector3(this.pos.x, this.eye, this.pos.z);
     camera.rotation.order = 'YXZ';
     this.apply();
@@ -144,6 +145,7 @@ export class Player {
       this.pos.x += (vx * dt) / steps;
       this.pos.z += (vz * dt) / steps;
       this.collide();
+      if (this.limit) this.limit(this.pos, this.radius);
     }
     // Ease up and down stairs instead of snapping.
     const fy = this.floorAt(this.pos.x, this.pos.z);
@@ -160,6 +162,19 @@ export class Player {
       let hit = false;
       for (const c of this.colliders) {
         if (c.off) continue;
+        if (c.r !== undefined) {
+          // Round obstacle (tree trunk, post).
+          const dx = p.x - c.x;
+          const dz = p.z - c.z;
+          const min = c.r + r;
+          const d2 = dx * dx + dz * dz;
+          if (d2 >= min * min) continue;
+          hit = true;
+          const d = Math.sqrt(d2) || 1e-6;
+          p.x = c.x + (dx / d) * min;
+          p.z = c.z + (dz / d) * min;
+          continue;
+        }
         const cx = clamp(p.x, c.x0, c.x1);
         const cz = clamp(p.z, c.z0, c.z1);
         const dx = p.x - cx;

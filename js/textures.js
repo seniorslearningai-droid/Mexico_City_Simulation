@@ -692,3 +692,217 @@ export function maskFace(design) {
     drawMask(g, w / 2, h / 2 + 6, 1.05, MASKS[design % MASKS.length]);
   }, { wrap: false });
 }
+
+// ---------------- Chapultepec Zoo aviary ----------------
+
+// Lawn: mottled greens with blades, 4 m.
+export function grass() {
+  return make(512, 512, (g, w, h) => {
+    const r = rng(61);
+    g.fillStyle = '#5d8a3a';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 90; i++) {
+      const grd = g.createRadialGradient(r() * w, r() * h, 0, r() * w, r() * h, 30 + r() * 80);
+      grd.addColorStop(0, r() > 0.5 ? 'rgba(130,170,70,0.35)' : 'rgba(40,80,30,0.35)');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, w, h);
+    }
+    for (let i = 0; i < 9000; i++) {
+      g.strokeStyle = `hsla(${85 + r() * 30}, ${40 + r() * 30}%, ${25 + r() * 30}%, 0.5)`;
+      g.lineWidth = 1;
+      const x = r() * w;
+      const y = r() * h;
+      g.beginPath();
+      g.moveTo(x, y);
+      g.lineTo(x + (r() - 0.5) * 3, y - 3 - r() * 5);
+      g.stroke();
+    }
+  }, { repeat: [1 / 4, 1 / 4] });
+}
+
+// Decomposed-granite path, 2 m.
+export function gravel() {
+  return make(256, 256, (g, w, h) => {
+    const r = rng(63);
+    g.fillStyle = '#c9b48f';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 5000; i++) {
+      const l = 45 + r() * 35;
+      g.fillStyle = `hsla(${30 + r() * 15}, ${20 + r() * 25}%, ${l}%, 0.8)`;
+      const s = 1 + r() * 2.5;
+      g.fillRect(r() * w, r() * h, s, s);
+    }
+  }, { repeat: [1 / 2, 1 / 2] });
+}
+
+// Aviary netting: thin dark lines on transparent, about 15 cm cells.
+export function netting() {
+  return make(64, 64, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(30,34,30,0.9)';
+    g.lineWidth = 3;
+    g.beginPath();
+    g.moveTo(0, h / 2);
+    g.lineTo(w / 2, 0);
+    g.lineTo(w, h / 2);
+    g.lineTo(w / 2, h);
+    g.closePath();
+    g.stroke();
+  }, { repeat: [1, 1] });
+}
+
+// Gentle ripples for the pond, as a normal map.
+export function waterNormals() {
+  const size = 256;
+  const hgt = new Float32Array(size * size);
+  const r = rng(71);
+  const waves = Array.from({ length: 9 }, () => [r() * 6.28, 2 + Math.floor(r() * 6), 2 + Math.floor(r() * 6), r() * 6.28]);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      let v = 0;
+      for (const [, fx, fy, ph] of waves) v += Math.sin(((x * fx + y * fy) / size) * Math.PI * 2 + ph);
+      hgt[y * size + x] = v;
+    }
+  }
+  return make(size, size, (g) => {
+    const img = g.createImageData(size, size);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const hx = hgt[y * size + ((x + 1) % size)] - hgt[y * size + ((x - 1 + size) % size)];
+        const hy = hgt[((y + 1) % size) * size + x] - hgt[((y - 1 + size) % size) * size + x];
+        const nx = -hx * 0.35;
+        const ny = -hy * 0.35;
+        const l = Math.hypot(nx, ny, 1);
+        const i = (y * size + x) * 4;
+        img.data[i] = ((nx / l) * 0.5 + 0.5) * 255;
+        img.data[i + 1] = ((ny / l) * 0.5 + 0.5) * 255;
+        img.data[i + 2] = ((1 / l) * 0.5 + 0.5) * 255;
+        img.data[i + 3] = 255;
+      }
+    }
+    g.putImageData(img, 0, 0);
+  }, { repeat: [1 / 3, 1 / 3], srgb: false });
+}
+
+// Falling water: white streaks on transparent, scrolled downward.
+export function waterfall() {
+  return make(128, 256, (g, w, h) => {
+    const r = rng(73);
+    g.clearRect(0, 0, w, h);
+    for (let i = 0; i < 160; i++) {
+      const x = r() * w;
+      const y = r() * h;
+      const len = 30 + r() * 90;
+      const grd = g.createLinearGradient(0, y, 0, y + len);
+      grd.addColorStop(0, 'rgba(255,255,255,0)');
+      grd.addColorStop(0.5, `rgba(235,248,255,${0.4 + r() * 0.5})`);
+      grd.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = grd;
+      g.fillRect(x, y, 1 + r() * 3, len);
+      g.fillRect(x, y - h, 1 + r() * 3, len);
+    }
+  }, { repeat: [1, 1] });
+}
+
+// Rainbow bands on a ring (planar UVs: center of the texture is the arc's center).
+export function rainbow() {
+  return make(512, 512, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    const grd = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+    const bands = ['#7a3fd0', '#3f5fe0', '#3fb0e0', '#4fd06a', '#f2e04e', '#f2a03e', '#e8403e'];
+    grd.addColorStop(0, 'rgba(0,0,0,0)');
+    grd.addColorStop(0.865, 'rgba(0,0,0,0)');
+    bands.forEach((c, i) => grd.addColorStop(0.875 + (i / (bands.length - 1)) * 0.115, c));
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, w, h);
+  }, { wrap: false });
+}
+
+// A friendly cartoon bird for the info signs.
+export function drawBird(g, x, y, s, c) {
+  g.save();
+  g.translate(x, y);
+  g.scale(s, s);
+  // Tail.
+  g.fillStyle = c.tail || c.body;
+  g.beginPath();
+  g.moveTo(-40, 10);
+  g.lineTo(-40 - (c.tailLen || 60), 40);
+  g.lineTo(-30, 30);
+  g.fill();
+  // Body.
+  g.fillStyle = c.body;
+  g.beginPath();
+  g.ellipse(0, 10, 48, 32, -0.2, 0, Math.PI * 2);
+  g.fill();
+  if (c.belly) {
+    g.fillStyle = c.belly;
+    g.beginPath();
+    g.ellipse(14, 22, 26, 16, -0.3, 0, Math.PI * 2);
+    g.fill();
+  }
+  // Wing.
+  g.fillStyle = c.wing || c.body;
+  g.beginPath();
+  g.ellipse(-8, 8, 30, 16, -0.35, 0, Math.PI * 2);
+  g.fill();
+  if (c.wingTip) {
+    g.fillStyle = c.wingTip;
+    g.beginPath();
+    g.ellipse(-26, 14, 16, 9, -0.35, 0, Math.PI * 2);
+    g.fill();
+  }
+  // Head.
+  g.fillStyle = c.head || c.body;
+  g.beginPath();
+  g.arc(40, -18, 22, 0, Math.PI * 2);
+  g.fill();
+  if (c.face) {
+    g.fillStyle = c.face;
+    g.beginPath();
+    g.arc(44, -16, 12, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.fillStyle = '#111';
+  g.beginPath();
+  g.arc(46, -22, 4, 0, Math.PI * 2);
+  g.fill();
+  // Beak.
+  g.fillStyle = c.beak;
+  g.beginPath();
+  const bl = c.beakLen || 22;
+  g.moveTo(58, -24);
+  g.quadraticCurveTo(62 + bl, -22, 58 + bl, -4);
+  g.lineTo(56, -10);
+  g.fill();
+  g.restore();
+}
+
+export function birdSign(title, sub, colors) {
+  return make(512, 384, (g, w, h) => {
+    g.fillStyle = '#f4ecd8';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#2f5d3a';
+    g.fillRect(0, 0, w, 70);
+    g.fillStyle = '#f4ecd8';
+    g.font = 'bold 34px Georgia, serif';
+    g.textAlign = 'center';
+    g.fillText(title, w / 2, 48);
+    const sky = g.createLinearGradient(0, 90, 0, 300);
+    sky.addColorStop(0, '#bfe3f2');
+    sky.addColorStop(1, '#e8f4d8');
+    g.fillStyle = sky;
+    g.fillRect(30, 88, w - 60, 220);
+    g.fillStyle = '#6b4a2a';
+    g.fillRect(60, 250, w - 120, 10);
+    drawBird(g, w / 2 - 10, 200, 1.5, colors);
+    g.fillStyle = '#2f5d3a';
+    g.font = 'italic 26px Georgia, serif';
+    g.fillText(sub, w / 2, 348);
+    g.strokeStyle = '#2f5d3a';
+    g.lineWidth = 8;
+    g.strokeRect(4, 4, w - 8, h - 8);
+  }, { wrap: false });
+}

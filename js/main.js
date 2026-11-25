@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildRoom } from './room.js';
 import { buildWorld } from './city.js';
 import { buildArena, ARENA_SPAWN } from './arena.js';
+import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS } from './textures.js';
@@ -34,6 +35,18 @@ const ARENA_TASKS = [
   ['lights', 'Start the light show'],
   ['fans', 'Let the fans in'],
   ['seat', 'Take a seat in the stands'],
+];
+const AVIARY_TASKS = [
+  ['feed', 'Feed the macaws'],
+  ['toucan', 'Spot the toucan'],
+  ['hummingbird', 'Watch a hummingbird feed'],
+  ['binoculars', 'Look through the binoculars'],
+  ['bridge', 'Cross the bridge'],
+  ['ducks', 'Feed the whistling ducks'],
+  ['mist', 'Make it rain'],
+  ['bench', 'Sit and listen to the birds'],
+  ['photo', 'Take a photo'],
+  ['sign', 'Read a bird sign'],
 ];
 
 // ---------- renderer / scene ----------
@@ -89,7 +102,7 @@ function renderTasks(flashId) {
 
 // Tasks belong to whichever place lists them (wearing the mask in the hotel still counts).
 function complete(id) {
-  const owner = [hotel, arena].find((l) => l.tasks.some(([t]) => t === id));
+  const owner = PLACES.find((l) => l.tasks.some(([t]) => t === id));
   if (!owner || owner.done.has(id)) return;
   owner.done.add(id);
   sound.chime();
@@ -133,7 +146,7 @@ const hotel = {
   sub: 'Room 1207 · Paseo de la Reforma',
   chip: 'Room 1207',
   tasksTitle: 'Settle in',
-  travelLabel: 'Go to stadium',
+  goLabel: 'Back to hotel',
   tasks: HOTEL_TASKS,
   done: new Set(),
   root: room.group,
@@ -157,7 +170,7 @@ const arena = {
   sub: 'Colonia Doctores · La Catedral de la Lucha Libre',
   chip: 'Arena México',
   tasksTitle: 'Fan checklist',
-  travelLabel: 'Back to hotel',
+  goLabel: 'Go to stadium',
   tasks: ARENA_TASKS,
   done: new Set(),
   root: arenaWorld.group,
@@ -174,6 +187,49 @@ const arena = {
     arenaWorld.group.visible = false;
   },
 };
+const aviaryWorld = buildAviary({
+  toast,
+  complete,
+  sound,
+  camera,
+  sit: (seat) => player.sit(seat),
+  player: () => player,
+  travel: (id) => travel(id),
+});
+scene.add(aviaryWorld.group);
+aviaryWorld.group.traverse((o) => {
+  if (!o.isMesh) return;
+  o.castShadow = !!o.userData.cast;
+  o.receiveShadow = !o.isInstancedMesh;
+});
+const aviaryFog = new THREE.Fog(0xd5e6e6, 80, 500);
+const aviary = {
+  id: 'aviary',
+  title: 'Aviario',
+  sub: 'Zoológico de Chapultepec',
+  chip: 'Aviary',
+  tasksTitle: 'Bird spotter',
+  goLabel: 'Go to aviary',
+  tasks: AVIARY_TASKS,
+  done: new Set(),
+  root: aviaryWorld.group,
+  colliders: aviaryWorld.colliders,
+  floorAt: aviaryWorld.floorAt,
+  limit: aviaryWorld.limit,
+  spawn: AVIARY_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    aviaryWorld.group.visible = true;
+    scene.fog = aviaryFog;
+    scene.environmentIntensity = 0.5;
+  },
+  exit() {
+    aviaryWorld.group.visible = false;
+    scene.fog = null;
+  },
+};
+const PLACES = [hotel, arena, aviary];
 loc = hotel;
 arenaWorld.group.visible = false;
 
@@ -290,7 +346,10 @@ const joy = { x: 0, y: 0 };
 function useAction() {
   if (!state.playing) return;
   if (player.seat) {
-    if (player.blend >= 1) player.stand();
+    if (player.seat.binoculars && focus) {
+      focus.act(focusHit);
+      sound.click();
+    } else if (player.blend >= 1) player.stand();
     return;
   }
   if (focus) {
@@ -321,6 +380,9 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyM') toggleMute();
   if (e.code === 'KeyK') toggleMask();
   if (e.code === 'KeyG') travel();
+  if (e.code === 'Digit1') travel('hotel');
+  if (e.code === 'Digit2') travel('arena');
+  if (e.code === 'Digit3') travel('aviary');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
@@ -342,7 +404,8 @@ document.addEventListener('pointerlockchange', () => {
 });
 document.addEventListener('pointerlockerror', () => (state.dragMode = true));
 document.addEventListener('mousemove', (e) => {
-  if (state.locked) player.look(e.movementX * 0.0021, e.movementY * 0.0021);
+  const zoom = camera.fov / 70;
+  if (state.locked) player.look(e.movementX * 0.0021 * zoom, e.movementY * 0.0021 * zoom);
 });
 canvas.addEventListener('mousedown', (e) => {
   if (state.locked && e.button === 0) useAction();
@@ -367,7 +430,7 @@ canvas.addEventListener('pointermove', (e) => {
   drag.x = e.clientX;
   drag.y = e.clientY;
   drag.moved += Math.abs(dx) + Math.abs(dy);
-  const k = e.pointerType === 'touch' ? 0.0055 : 0.004;
+  const k = (e.pointerType === 'touch' ? 0.0055 : 0.004) * (camera.fov / 70);
   player.look(dx * k, dy * k);
 });
 const endDrag = (e) => {
@@ -420,7 +483,7 @@ function toggleMute() {
 }
 $('#muteBtn').addEventListener('click', toggleMute);
 $('#maskBtn').addEventListener('click', toggleMask);
-$('#travelBtn').addEventListener('click', travel);
+document.querySelectorAll('#destBtns .dest').forEach((b) => b.addEventListener('click', () => travel(b.dataset.place)));
 $('#tasksToggle').addEventListener('click', () => $('#tasks').classList.toggle('collapsed'));
 if (touch || window.innerWidth < 700) $('#tasks').classList.add('collapsed');
 
@@ -447,10 +510,12 @@ function pause() {
 }
 $('#startBtn').addEventListener('click', begin);
 $('#resumeBtn').addEventListener('click', begin);
-$('#pauseTravelBtn').addEventListener('click', () => {
-  begin();
-  travel();
-});
+document.querySelectorAll('#pauseDest .dest').forEach((b) =>
+  b.addEventListener('click', () => {
+    begin();
+    travel(b.dataset.place);
+  }),
+);
 $('#pauseBtn').addEventListener('click', () => {
   if (document.pointerLockElement) document.exitPointerLock();
   else pause();
@@ -466,6 +531,11 @@ const DONE_TEXT = {
     eyebrow: '¡Lu-cha! ¡Lu-cha!',
     title: '¡Eres un aficionado de verdad!',
     lede: 'You rang the bell, flew off the top rope and packed the cathedral of lucha libre. The luchadores arrive soon…',
+  },
+  aviary: {
+    eyebrow: '¡Qué bonito!',
+    title: 'You’re a true bird spotter!',
+    lede: 'You fed the macaws, found the toucan and made a rainbow over the pond. The birds of Chapultepec say ¡hasta pronto!',
   },
 };
 function celebrate(place) {
@@ -490,16 +560,20 @@ $('#keepBtn').addEventListener('click', () => {
 const fadeEl = $('#fade');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 function syncPlaceUI() {
-  document.body.classList.toggle('in-arena', loc === arena);
-  $('#travelBtn .label').textContent = loc.travelLabel;
-  $('#pauseTravelBtn').textContent = loc.travelLabel;
-  $('#travelBtn').dataset.dest = loc === hotel ? 'arena' : 'hotel';
+  for (const p of PLACES) document.body.classList.toggle(`in-${p.id}`, loc === p);
+  // One button for every place you're not in.
+  document.querySelectorAll('.dest').forEach((b) => {
+    const p = PLACES.find((q) => q.id === b.dataset.place);
+    b.hidden = p === loc;
+    b.querySelector('.label').textContent = p.goLabel;
+  });
   renderTasks();
 }
-async function travel() {
+async function travel(destId) {
   if (state.traveling || !state.started) return;
+  const dest = destId ? PLACES.find((p) => p.id === destId) : PLACES[(PLACES.indexOf(loc) + 1) % PLACES.length];
+  if (!dest || dest === loc) return;
   state.traveling = true;
-  const dest = loc === hotel ? arena : hotel;
   $('#fade .place').textContent = dest.title;
   $('#fade .sub').textContent = dest.sub;
   fadeEl.classList.add('show');
@@ -511,10 +585,12 @@ async function travel() {
   loc = dest;
   player.colliders = loc.colliders;
   player.floorAt = loc.floorAt;
+  player.limit = loc.limit || null;
   player.place(loc.saved || loc.spawn);
   sound.setScene(loc.id);
   syncPlaceUI();
   arenaWorld.dirty = true;
+  aviaryWorld.dirty = true;
   room.dirty = true;
   // Build the new place's shaders while the screen is still dark.
   renderer.compile(scene, camera);
@@ -527,11 +603,17 @@ async function travel() {
     arena.visited = true;
     setTimeout(() => toast('¡Bienvenidos a la Arena México, the cathedral of lucha libre! The luchadores haven’t arrived yet.', 5200), 500);
   }
+  if (loc === aviary && !aviary.visited) {
+    aviary.visited = true;
+    setTimeout(() => toast('¡Bienvenidos al Aviario de Chapultepec! Look up — the macaws are flying overhead.', 5200), 500);
+  }
 }
 
 // ---------- interaction focus ----------
 const ray = new THREE.Raycaster();
 ray.far = 2.5;
+const birdRay = new THREE.Raycaster();
+birdRay.far = 200;
 const center = new THREE.Vector2(0, 0);
 let focus = null;
 let focusHit = null;
@@ -543,7 +625,22 @@ function updateFocus() {
   focus = null;
   focusHit = null;
   let text = '';
-  if (player.seat) {
+  if (player.seat && player.seat.binoculars) {
+    text = touch ? 'Point at a bird and tap · Move to step away' : 'Point at a bird and press E · Move to step away';
+    if (player.blend >= 1 && loc === aviary) {
+      camera.updateMatrixWorld();
+      birdRay.setFromCamera(center, camera);
+      const hit = birdRay.intersectObject(aviaryWorld.birds, true)[0];
+      const key = hit && hit.object.userData.species;
+      if (key) {
+        focus = { act: () => aviaryWorld.identify(key) };
+        focusHit = hit;
+        text = `${BIRDS[key].name} · ${BIRDS[key].es}`;
+      }
+    }
+  } else if (player.seat && player.seat.photo) {
+    text = '¡Sonríe! Say “queso”…';
+  } else if (player.seat) {
     text = player.seat.arc ? (touch ? 'Move the joystick to jump' : 'Move or press E to jump!') : touch ? 'Move the joystick to get up' : 'Move or press E to get up';
   } else if (player.blend >= 1) {
     camera.updateMatrixWorld();
@@ -565,7 +662,7 @@ function updateFocus() {
     promptText.textContent = text;
     promptEl.classList.toggle('show', !!text);
     promptEl.classList.toggle('seated', !!player.seat);
-    useBtn.classList.toggle('ready', !!focus || !!player.seat);
+    useBtn.classList.toggle('ready', !!focus || (!!player.seat && !player.seat.binoculars));
     document.body.classList.toggle('has-focus', !!focus);
   }
 }
@@ -633,22 +730,63 @@ function frame(dt, draw = true) {
       world.sun.shadow.needsUpdate = true;
       room.shadowLights[0].shadow.needsUpdate = true;
     }
-  } else {
+  } else if (loc === arena) {
     arenaWorld.update(dt, t);
     sound.arena(arenaWorld.state);
     if (arenaWorld.dirty) {
       arenaWorld.dirty = false;
       for (const l of arenaWorld.shadowLights) l.shadow.needsUpdate = true;
     }
+  } else {
+    aviaryWorld.update(dt, t);
+    sound.aviary(aviaryWorld.state);
+    if (aviaryWorld.dirty) {
+      aviaryWorld.dirty = false;
+      for (const l of aviaryWorld.shadowLights) l.shadow.needsUpdate = true;
+    }
+  }
+
+  // Binoculars zoom the camera in.
+  const binoc = !!(player.seat && player.seat.binoculars);
+  const wantFov = binoc && player.blend > 0.5 ? 16 : fovFor(camera.aspect);
+  if (Math.abs(camera.fov - wantFov) > 0.01) {
+    camera.fov += (wantFov - camera.fov) * (1 - Math.exp(-dt * 8));
+    camera.updateProjectionMatrix();
+  }
+  document.body.classList.toggle('binoc', binoc && player.blend > 0.5);
+  // The photo spot: once the camera has settled, snap the picture.
+  if (player.seat && player.seat.photo && player.blend >= 1 && !player.seat.shot) {
+    player.seat.shot = true;
+    takePhoto();
+    setTimeout(() => {
+      if (player.seat && player.seat.photo) player.stand();
+    }, 1600);
   }
 
   if (draw) renderer.render(scene, camera);
 }
 
+// Snap the current view (without the HUD) into a little polaroid.
+function takePhoto() {
+  renderer.render(scene, camera);
+  const url = canvas.toDataURL('image/jpeg', 0.85);
+  $('#photoImg').src = url;
+  $('#photoCard').classList.remove('show');
+  void $('#photoCard').offsetWidth;
+  $('#photoCard').classList.add('show');
+  $('#flash').classList.remove('go');
+  void $('#flash').offsetWidth;
+  $('#flash').classList.add('go');
+  sound.shutter();
+  complete('photo');
+  clearTimeout(takePhoto.timer);
+  takePhoto.timer = setTimeout(() => $('#photoCard').classList.remove('show'), 5500);
+}
+
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state,
     get loc() { return loc.id; },
     get focus() { return focus; },
     // Advance the game by `seconds` without waiting for the browser to draw.

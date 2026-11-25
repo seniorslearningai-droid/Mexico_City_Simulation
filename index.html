@@ -47,17 +47,37 @@
     </svg>
   </div>
 
+  <!-- Binocular view: two round lenses. -->
+  <div id="binocView" aria-hidden="true">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <mask id="lenses">
+          <rect width="1600" height="900" fill="white"/>
+          <circle cx="610" cy="450" r="390" fill="black"/>
+          <circle cx="990" cy="450" r="390" fill="black"/>
+        </mask>
+        <radialGradient id="lensEdge" cx="50%" cy="50%" r="50%">
+          <stop offset="80%" stop-color="#000" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#000" stop-opacity="0.55"/>
+        </radialGradient>
+      </defs>
+      <circle cx="610" cy="450" r="390" fill="url(#lensEdge)"/>
+      <circle cx="990" cy="450" r="390" fill="url(#lensEdge)"/>
+      <rect width="1600" height="900" fill="#08090a" mask="url(#lenses)"/>
+    </svg>
+  </div>
+
   <div id="hud">
     <div id="crosshair" aria-hidden="true"></div>
     <div id="prompt" role="status"><kbd>E</kbd><span class="text"></span></div>
     <div id="toast" role="status" aria-live="polite"></div>
 
     <div class="left">
-      <button id="travelBtn" class="pill travel" type="button" data-dest="arena">
-        <svg class="to-arena" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg>
-        <svg class="to-hotel" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg>
-        <span class="label">Go to stadium</span>
-      </button>
+      <div id="destBtns">
+        <button class="pill dest" data-place="hotel" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg><span class="label">Back to hotel</span></button>
+        <button class="pill dest" data-place="arena" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg><span class="label">Go to stadium</span></button>
+        <button class="pill dest" data-place="aviary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13c3 0 5-1 7-3l3-4c1.5-2 4.5-2 5.5 0l2.5 1-2.5 1c0 4-2.5 8-8 9.5L6 21l1.5-4C5 16.5 3.5 15 3 13z"/><path d="M16.5 6.5h.01"/></svg><span class="label">Go to aviary</span></button>
+      </div>
       <aside id="tasks">
         <button id="tasksToggle" class="tasks-head" type="button" aria-label="Show or hide the checklist">
           <span id="roomChip" class="room-chip">Room 1207</span>
@@ -105,7 +125,7 @@
         <div><dt><kbd>E</kbd> / click</dt><dd>Use things</dd></div>
         <div><dt><kbd>Shift</kbd></dt><dd>Walk faster</dd></div>
         <div><dt><kbd>N</kbd></dt><dd>Day / night</dd></div>
-        <div><dt><kbd>G</kbd></dt><dd>Hotel ⇄ stadium</dd></div>
+        <div><dt><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></dt><dd>Hotel · stadium · aviary</dd></div>
         <div><dt><kbd>K</kbd></dt><dd>Wear your mask</dd></div>
         <div><dt><kbd>Esc</kbd></dt><dd>Pause</dd></div>
       </dl>
@@ -114,7 +134,7 @@
         <div><dt>Drag</dt><dd>Look around</dd></div>
         <div><dt>Tap / Use</dt><dd>Use things</dd></div>
       </dl>
-      <p class="hint">Use the <strong>Go to stadium</strong> button at the top left to visit Arena México.</p>
+      <p class="hint">Use the buttons at the top left to visit <strong>Arena México</strong> and the <strong>Chapultepec Zoo aviary</strong>.</p>
     </div>
   </section>
 
@@ -125,10 +145,21 @@
       <p class="lede">Everything is right where you left it.</p>
       <div class="cta-row">
         <button id="resumeBtn" class="cta" type="button">Keep playing</button>
-        <button id="pauseTravelBtn" class="cta secondary" type="button">Go to stadium</button>
+      </div>
+      <div id="pauseDest" class="cta-row">
+        <button class="cta secondary dest" data-place="hotel" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg><span class="label">Back to hotel</span></button>
+        <button class="cta secondary dest" data-place="arena" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg><span class="label">Go to stadium</span></button>
+        <button class="cta secondary dest" data-place="aviary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13c3 0 5-1 7-3l3-4c1.5-2 4.5-2 5.5 0l2.5 1-2.5 1c0 4-2.5 8-8 9.5L6 21l1.5-4C5 16.5 3.5 15 3 13z"/><path d="M16.5 6.5h.01"/></svg><span class="label">Go to aviary</span></button>
       </div>
     </div>
   </section>
+
+  <!-- Camera flash + the polaroid you get from the photo spot. -->
+  <div id="flash" aria-hidden="true"></div>
+  <figure id="photoCard" aria-live="polite">
+    <img id="photoImg" alt="Your photo from the aviary">
+    <figcaption>Aviario · Chapultepec</figcaption>
+  </figure>
 
   <div id="fade" aria-live="polite">
     <p class="place"></p>
