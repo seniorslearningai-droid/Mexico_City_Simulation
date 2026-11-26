@@ -22,16 +22,16 @@ import { meterUV } from './room.js';
 const std = (o) => new THREE.MeshStandardMaterial(o);
 const Y = new THREE.Vector3(0, 1, 0);
 
-const LEG = 10; // the legs run along x = -10 and x = +10
-const CZ = -8; // center of the curve; the legs run from here south to the tape
+const LEG = 20; // the legs run along x = -20 and x = +20
+const CZ = -20; // center of the curve; the legs run from here south to the tape
 const HW = 1.8; // half-width of the path
-const TAPE_Z = 19.2;
-const PATH_END = 40; // the path carries on (off-limits) past the tape
-const BINO = { x: 0, z: -19.3 };
-const BIG_TREE = { x: -4.6, z: 1.0 };
-const TOUCAN_TREE = { x: 1.8, z: -30 };
+const TAPE_Z = 28;
+const PATH_END = TAPE_Z + 20; // the path carries on (off-limits) past the tape
+const BINO = { x: 0, z: CZ - LEG - 1.3 }; // at the top of the U, on the outer edge
+const BIG_TREE = { x: -8, z: 4 };
+const TOUCAN_TREE = { x: 1.8, z: BINO.z - 10.7 };
 
-export const AVIARY_SPAWN = { x: -LEG, z: 17.6, yaw: 0, pitch: -0.04 };
+export const AVIARY_SPAWN = { x: -LEG, z: TAPE_Z - 1.6, yaw: 0, pitch: -0.04 };
 // Yaw that makes a forward-facing (-z) model or camera look from (x, z) toward (tx, tz).
 const lookYaw = (x, z, tx, tz) => Math.atan2(x - tx, z - tz);
 
@@ -239,11 +239,11 @@ export function buildAviary(ctx) {
   sky.renderOrder = -1;
   group.add(sky);
   const sun = new THREE.DirectionalLight(0xfff0d8, 2.8);
-  sun.target.position.set(-2, 0, 0);
-  sun.position.copy(sunDir).multiplyScalar(80).add(sun.target.position);
+  sun.target.position.set(-3, 0, -7);
+  sun.position.copy(sunDir).multiplyScalar(100).add(sun.target.position);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -28, right: 28, top: 28, bottom: -28, near: 20, far: 170 });
+  Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 30, far: 200 });
   sun.shadow.bias = -0.0006;
   sun.shadow.normalBias = 0.04;
   sun.shadow.autoUpdate = false;
@@ -744,6 +744,21 @@ export function buildAviary(ctx) {
 
   const westFront = -LEG - HW - 0.3;
   const eastFront = LEG - HW - 0.3;
+  // Space the aviaries out along each leg: the gap between neighbours is
+  // one aviary wide (the average of the two widths).
+  function spread(start, dir, widths) {
+    const centers = [];
+    let edge = start;
+    widths.forEach((w, i) => {
+      centers.push(edge + (dir * w) / 2);
+      edge += dir * (w + (i < widths.length - 1 ? (w + widths[i + 1]) / 2 : 0));
+    });
+    return centers;
+  }
+  // Left leg: starting right by the tape and heading north.
+  const westZ = spread(TAPE_Z - 4, -1, [7.4, 6.4, 7.2]);
+  // Right leg: starting a little after the curve and heading south.
+  const eastZ = spread(CZ + 10.8, 1, [6.4, 9]);
   const SIGN = {
     peacock: { body: '#1f4fb8', head: '#1f4fb8', wing: '#b89a6a', tail: '#2f7a5a', tailLen: 110, beak: '#9a8a7a' },
     budgie: { body: '#7cc243', head: '#f2d13a', wing: '#5a9a2a', wingTip: '#1a1a1a', tail: '#2a5fb0', tailLen: 70, beak: '#e8c8a8' },
@@ -753,7 +768,7 @@ export function buildAviary(ctx) {
 
   // 1. Peacocks (left).
   const peacockCage = makeCage({
-    x: westFront, z: 13.4, w: 7.4, d: 6, floor: M.grass, tray: false,
+    x: westFront, z: westZ[0], w: 7.4, d: 6, floor: M.grass, tray: false,
     title: 'PAVOS REALES', sub: 'Peacocks · Pavo cristatus', colors: SIGN.peacock,
     fact: `${BIRDS.peacock.fact} ${BIRDS.peacockWhite.fact}`,
     action: 'Whistle to the peacocks',
@@ -770,7 +785,7 @@ export function buildAviary(ctx) {
 
   // 2. Parakeets (left).
   const parakeetCage = makeCage({
-    x: westFront, z: 4.6, w: 6.4, d: 5, spacing: 0.36,
+    x: westFront, z: westZ[1], w: 6.4, d: 5, spacing: 0.36,
     title: 'PERIQUITOS', sub: 'Parakeets · Budgies', colors: SIGN.budgie,
     fact: `${BIRDS.budgie.fact} ${BIRDS.budgieBlue.fact}`,
     action: 'Hold out a seed stick',
@@ -787,7 +802,7 @@ export function buildAviary(ctx) {
 
   // 3. Macaws (left).
   const macawCage = makeCage({
-    x: westFront, z: -4.2, w: 7.2, d: 5.5, h: 3.8, spacing: 0.75,
+    x: westFront, z: westZ[2], w: 7.2, d: 5.5, h: 3.8, spacing: 0.75,
     title: 'GUACAMAYAS', sub: 'Macaws · Ara', colors: SIGN.macaw,
     fact: `${BIRDS.scarlet.fact} ${BIRDS.military.fact}`,
     action: 'Feed the macaws',
@@ -804,7 +819,7 @@ export function buildAviary(ctx) {
 
   // 4. Parrots (right).
   const parrotCage = makeCage({
-    x: eastFront, z: -3.2, w: 6.4, d: 5, spacing: 0.6,
+    x: eastFront, z: eastZ[0], w: 6.4, d: 5, spacing: 0.6,
     title: 'LOROS', sub: 'Parrots · Amazona', colors: SIGN.parrot,
     fact: `${BIRDS.parrot.fact} ${BIRDS.redcrown.fact}`,
     action: 'Say ¡hola! to the parrots',
@@ -825,7 +840,7 @@ export function buildAviary(ctx) {
 
   // 5. A mix of all of them (right).
   const mixedCage = makeCage({
-    x: eastFront, z: 7.6, w: 9, d: 6, h: 3.8, spacing: 0.55, floor: M.grass,
+    x: eastFront, z: eastZ[1], w: 9, d: 6, h: 3.8, spacing: 0.55, floor: M.grass,
     title: 'AVIARIO MIXTO', sub: 'Peacocks, macaws, parrots & parakeets', colors: SIGN.parrot,
     fact: 'In the mixed aviary, peacocks share their home with macaws, parrots and parakeets — just like a busy forest.',
     action: 'Fill the feeder',
@@ -893,14 +908,14 @@ export function buildAviary(ctx) {
     nearestOnU(x, z, tmpN);
     if (Math.hypot(x - tmpN.x, z - tmpN.z) < HW + 0.9 + r) return false;
     if (cageRects.some((c) => x > c.x0 - 1.2 - r && x < c.x1 + 1.2 + r && z > c.z0 - 1.2 - r && z < c.z1 + 1.2 + r)) return false;
-    if (x > -3.5 && x < 6.5 && z > -28 && z < -19) return false; // the binoculars' view
+    if (x > BINO.x - 3.5 && x < BINO.x + 6.5 && z > TOUCAN_TREE.z + 2 && z < BINO.z + 0.3) return false; // the binoculars' view
     if (Math.hypot(x - BIG_TREE.x, z - BIG_TREE.z) < 5 || Math.hypot(x - TOUCAN_TREE.x, z - TOUCAN_TREE.z) < 4.5) return false;
     return true;
   }
   const trees = [];
-  for (let tries = 0; tries < 4000 && trees.length < 340; tries++) {
-    const x = -50 + rand() * 92;
-    const z = -56 + rand() * 104;
+  for (let tries = 0; tries < 9000 && trees.length < 650; tries++) {
+    const x = -62 + rand() * 124;
+    const z = CZ - LEG - 36 + rand() * (PATH_END - (CZ - LEG - 36));
     const r = 0.22 + rand() * 0.35;
     if (!treeOK(x, z, r)) continue;
     if (trees.some((t) => Math.hypot(x - t.x, z - t.z) < 2.6 + (r + t.r) * 2)) continue;
@@ -954,9 +969,9 @@ export function buildAviary(ctx) {
     return mergeGeometries(fronds);
   })();
   const fernSpots = [];
-  for (let tries = 0; tries < 3000 && fernSpots.length < 420; tries++) {
-    const x = -30 + rand() * 62;
-    const z = -40 + rand() * 82;
+  for (let tries = 0; tries < 9000 && fernSpots.length < 900; tries++) {
+    const x = -LEG - 12 + rand() * (2 * LEG + 24);
+    const z = CZ - LEG - 10 + rand() * (TAPE_Z + 10 - (CZ - LEG - 10));
     nearestOnU(x, z, tmpN);
     const d = Math.hypot(x - tmpN.x, z - tmpN.z);
     if (d < HW + 0.45 || (d > HW + 4 && rand() < 0.7)) continue;
@@ -972,7 +987,7 @@ export function buildAviary(ctx) {
   group.add(ferns);
   noRay(ferns);
   const logGeo = new THREE.CylinderGeometry(0.28, 0.32, 1, 10);
-  for (const [x, z, len, a] of [[-14.6, 20.5, 4, 0.3], [3.5, -12.5, 3.6, 1.1], [-4.5, -11.5, 3.2, 2.2], [14.5, 2.0, 3.8, 0.1], [-15.5, -12.0, 3.4, 0.7]]) {
+  for (const [x, z, len, a] of [[-24.6, 32.5, 4, 0.3], [6, -28, 3.6, 1.1], [-8, -27, 3.2, 2.2], [24.5, 2.0, 3.8, 0.1], [-25.5, -22, 3.4, 0.7], [-6, 14, 3.6, 1.6], [7, 20, 3.2, 0.4]]) {
     const log = add(group, new THREE.Mesh(logGeo, M.bark), x, 0.28, z);
     log.scale.y = len;
     log.rotation.set(0, a, Math.PI / 2);
@@ -1008,7 +1023,7 @@ export function buildAviary(ctx) {
   // A bench at the top of the U, facing the forest.
   {
     const x = 0;
-    const z = -16.75;
+    const z = CZ - LEG + 1.25; // just inside the top of the U
     const yaw = 0;
     const bg = node(group, x, 0, z, yaw);
     for (let i = 0; i < 4; i++) box(bg, M.wood, 1.7, 0.04, 0.1, 0, 0.45, -0.18 + i * 0.12);
@@ -1031,7 +1046,7 @@ export function buildAviary(ctx) {
   }
 
   // ---------- photo spot, facing the mixed aviary ----------
-  const PHOTO = { x: LEG + HW + 0.35, z: 9.6 };
+  const PHOTO = { x: LEG + HW + 0.35, z: mixedCage.def.z + 2 };
   const ps = node(group, PHOTO.x, 0, PHOTO.z, -Math.PI / 2);
   const photoParts = [cyl(ps, M.darkWood, 0.06, 0.06, 1.5, 0, 0.75, 0, 8)];
   photoParts.push(add(ps, new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.46), new THREE.MeshBasicMaterial({ map: T.sign('📷 FOTO', { bg: '#d9447a', font: 'bold 56px sans-serif' }), toneMapped: false, side: THREE.DoubleSide })), 0, 1.6, -0.07));
@@ -1051,7 +1066,7 @@ export function buildAviary(ctx) {
   for (let i = 0; i < 6; i++) {
     const b = makeBird('monk');
     b.mode = 'loop';
-    b.loop = { a: 11 + rand() * 4, b: 15 + rand() * 6, cx: (rand() - 0.5) * 4, cz: 4 + (rand() - 0.5) * 6, h: 9 + rand() * 3, w: (0.22 + rand() * 0.08) * (i % 2 ? 1 : -1), p: rand() * 6.28, q: rand() * 6.28 };
+    b.loop = { a: LEG + 2 + rand() * 5, b: 30 + rand() * 6, cx: (rand() - 0.5) * 4, cz: -6 + (rand() - 0.5) * 6, h: 10 + rand() * 3, w: (0.22 + rand() * 0.08) * (i % 2 ? 1 : -1), p: rand() * 6.28, q: rand() * 6.28 };
     flyers.push(b);
   }
   const loopPos = (b, t, out) => {
