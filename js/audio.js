@@ -506,6 +506,111 @@ export class Sound {
     }
   }
 
+  // Souvenir coin machine: a coin dropping into the slot.
+  coinIn() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    [[0, 2650], [0.09, 3400], [0.16, 2900]].forEach(([dt, f]) => {
+      for (const k of [1, 2.76]) {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.frequency.value = f * k;
+        g.gain.setValueAtTime(0.0001, t + dt);
+        g.gain.exponentialRampToValueAtTime((k === 1 ? 0.09 : 0.03), t + dt + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.25);
+        o.connect(g).connect(this.master);
+        o.start(t + dt);
+        o.stop(t + dt + 0.27);
+      }
+    });
+  }
+
+  // The crank's ratchet: a run of quick clicks.
+  ratchet() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    for (let i = 0; i < 9; i++) {
+      const st = t + i * 0.095;
+      const src = ctx.createBufferSource();
+      src.buffer = this.noiseBuf;
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = 2200 + Math.random() * 600;
+      f.Q.value = 4;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, st);
+      g.gain.exponentialRampToValueAtTime(0.18, st + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, st + 0.035);
+      src.connect(f).connect(g).connect(this.master);
+      src.start(st, Math.random() * 0.5, 0.05);
+    }
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(70, t);
+    o.frequency.linearRampToValueAtTime(95, t + 0.85);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 300;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+    o.connect(lp).connect(g).connect(this.master);
+    o.start(t);
+    o.stop(t + 0.92);
+  }
+
+  // The rollers squashing the coin flat: a heavy "ka-chunk".
+  coinPress() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    for (const [dt, f0] of [[0, 160], [0.14, 110]]) {
+      const o = ctx.createOscillator();
+      o.frequency.setValueAtTime(f0, t + dt);
+      o.frequency.exponentialRampToValueAtTime(45, t + dt + 0.2);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t + dt);
+      g.gain.exponentialRampToValueAtTime(0.35, t + dt + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.25);
+      o.connect(g).connect(this.master);
+      o.start(t + dt);
+      o.stop(t + dt + 0.27);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 1800;
+    f.Q.value = 1.5;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    src.connect(f).connect(g).connect(this.master);
+    src.start(t, 0, 0.15);
+  }
+
+  // The finished coin rattling down into the tray.
+  coinDrop() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    [0, 0.12, 0.2, 0.25, 0.28].forEach((dt, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.frequency.value = 3100 + i * 150;
+      g.gain.setValueAtTime(0.0001, t + dt);
+      g.gain.exponentialRampToValueAtTime(0.07 / (1 + i * 0.5), t + dt + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.12);
+      o.connect(g).connect(this.master);
+      o.start(t + dt);
+      o.stop(t + dt + 0.13);
+    });
+  }
+
   // Camera shutter.
   shutter() {
     if (!this.ctx || this.muted) return;

@@ -61,6 +61,7 @@ const PANDA_TASKS = [
   ['pKeeper', 'Chat with the keeper'],
   ['pSign', 'Read a panda sign'],
   ['pPlush', 'Buy a panda plushie'],
+  ['pCoin', 'Press a panda souvenir coin'],
   ['pPhoto', 'Take a photo of Xin Xin'],
 ];
 
@@ -249,6 +250,7 @@ const pandaWorld = buildPandas({
   complete,
   sound,
   camera,
+  showCoin,
   sit: (seat) => player.sit(seat),
   player: () => player,
 });
@@ -597,7 +599,7 @@ const DONE_TEXT = {
   pandas: {
     eyebrow: '¡Qué ternura!',
     title: 'You’re a true panda pal!',
-    lede: 'You watched Xin Xin munch her bamboo and doze off for a nap, and you took home a plushie to remember her by. ¡Hasta pronto, Xin Xin!',
+    lede: 'You watched Xin Xin munch her bamboo and doze off for a nap, and you took home a plushie and a panda coin to remember her by. ¡Hasta pronto, Xin Xin!',
   },
 };
 function celebrate(place) {
@@ -840,6 +842,17 @@ function frame(dt, draw = true) {
   }
 
   if (draw) renderer.render(scene, camera);
+}
+
+// Show the souvenir coin you just pressed.
+function showCoin(url, caption) {
+  $('#coinImg').src = url;
+  $('#coinCard figcaption').textContent = caption;
+  $('#coinCard').classList.remove('show');
+  void $('#coinCard').offsetWidth;
+  $('#coinCard').classList.add('show');
+  clearTimeout(showCoin.timer);
+  showCoin.timer = setTimeout(() => $('#coinCard').classList.remove('show'), 5500);
 }
 
 // Snap the current view (without the HUD) into a little polaroid.

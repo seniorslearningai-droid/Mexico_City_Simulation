@@ -1193,3 +1193,161 @@ export function waterfall() {
     }
   }, { repeat: [1, 1] });
 }
+
+// ---------- souvenir coin machine ----------
+
+const EMOJI_FONT = '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+
+// An elongated pressed coin: copper oval, the animal stamped in the middle.
+export function zooCoin(emoji, name) {
+  return make(512, 320, (g, w, h) => {
+    const r = rng(name.length * 31 + name.charCodeAt(0));
+    g.clearRect(0, 0, w, h);
+    const oval = (rx, ry) => {
+      g.beginPath();
+      g.ellipse(w / 2, h / 2, rx, ry, 0, 0, Math.PI * 2);
+    };
+    // Rim and face.
+    oval(w / 2 - 4, h / 2 - 4);
+    g.fillStyle = '#8a4a24';
+    g.fill();
+    const face = g.createRadialGradient(w * 0.42, h * 0.38, 10, w / 2, h / 2, w / 2);
+    face.addColorStop(0, '#f2c29a');
+    face.addColorStop(0.55, '#d08a5a');
+    face.addColorStop(1, '#a45e34');
+    oval(w / 2 - 16, h / 2 - 14);
+    g.fillStyle = face;
+    g.fill();
+    g.save();
+    oval(w / 2 - 16, h / 2 - 14);
+    g.clip();
+    for (let i = 0; i < 1500; i++) {
+      g.fillStyle = `rgba(${r() < 0.5 ? '255,230,200' : '90,40,15'},${0.08 * r()})`;
+      g.fillRect(r() * w, r() * h, 2, 2);
+    }
+    // Stretch marks from the rollers.
+    for (let i = 0; i < 14; i++) {
+      g.strokeStyle = `rgba(255,235,210,${0.05 + 0.05 * r()})`;
+      g.lineWidth = 1 + r() * 2;
+      const y = r() * h;
+      g.beginPath();
+      g.moveTo(0, y);
+      g.lineTo(w, y + (r() - 0.5) * 10);
+      g.stroke();
+    }
+    g.restore();
+    // Inner ring.
+    oval(w / 2 - 30, h / 2 - 27);
+    g.strokeStyle = 'rgba(110,55,25,0.55)';
+    g.lineWidth = 3;
+    g.stroke();
+    // Stamped lettering: dark groove with a light edge.
+    const stamp = (text, y, size) => {
+      g.font = `bold ${size}px Georgia, serif`;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillStyle = 'rgba(255,225,190,0.7)';
+      g.fillText(text, w / 2 + 1.5, y + 1.5);
+      g.fillStyle = '#6e3416';
+      g.fillText(text, w / 2, y);
+    };
+    stamp('ZOOLÓGICO DE CHAPULTEPEC', 56, 24);
+    stamp(name.toUpperCase(), h - 58, 30);
+    // The animal, toned copper and squashed long like a real pressed coin.
+    g.save();
+    g.translate(w / 2, h / 2 + 2);
+    g.scale(1.3, 0.95);
+    g.font = `150px ${EMOJI_FONT}`;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.filter = 'grayscale(1) brightness(0.35) sepia(1)';
+    g.globalAlpha = 0.6;
+    g.fillText(emoji, 3, 4);
+    g.globalAlpha = 1;
+    g.filter = 'grayscale(1) sepia(1) saturate(1.7) hue-rotate(-12deg) brightness(0.95) contrast(1.25)';
+    g.fillText(emoji, 0, 0);
+    g.restore();
+    g.filter = 'none';
+    // A shine across the top.
+    g.save();
+    oval(w / 2 - 16, h / 2 - 14);
+    g.clip();
+    const shine = g.createLinearGradient(0, 0, w, h);
+    shine.addColorStop(0, 'rgba(255,255,255,0.28)');
+    shine.addColorStop(0.35, 'rgba(255,255,255,0)');
+    shine.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = shine;
+    g.fillRect(0, 0, w, h);
+    g.restore();
+  }, { wrap: false });
+}
+
+// A small LED display: call set(line1, line2) to change what it says.
+export function ledPanel() {
+  const t = make(512, 160, () => {}, { wrap: false });
+  const c = t.image;
+  const g = c.getContext('2d');
+  let last = '';
+  t.set = (a, b = '') => {
+    if (a + '|' + b === last) return;
+    last = a + '|' + b;
+    g.fillStyle = '#10140e';
+    g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = 'rgba(80,255,120,0.06)';
+    for (let y = 0; y < c.height; y += 4) g.fillRect(0, y, c.width, 2);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.shadowColor = '#5cff7a';
+    g.shadowBlur = 12;
+    g.fillStyle = '#8dffa0';
+    g.font = 'bold 50px "Courier New", monospace';
+    g.fillText(a, c.width / 2, b ? 52 : 80);
+    if (b) {
+      g.font = 'bold 34px "Courier New", monospace';
+      g.fillText(b, c.width / 2, 116);
+    }
+    g.shadowBlur = 0;
+    t.needsUpdate = true;
+  };
+  return t;
+}
+
+// The machine's step-by-step instructions.
+export function coinSteps() {
+  return make(512, 384, (g, w, h) => {
+    g.fillStyle = '#f4ecd8';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#b02428';
+    g.fillRect(0, 0, w, 64);
+    g.fillStyle = '#f2c14e';
+    g.font = 'bold 34px Georgia, serif';
+    g.textAlign = 'center';
+    g.fillText('¿CÓMO FUNCIONA?', w / 2, 44);
+    const steps = [
+      ['1', 'Elige un animal', 'Choose an animal'],
+      ['2', 'Inserta 2 monedas', 'Insert 2 coins'],
+      ['3', 'Gira la manivela 3 veces', 'Turn the crank 3 times'],
+    ];
+    steps.forEach(([n, es, en], i) => {
+      const y = 112 + i * 92;
+      g.fillStyle = '#1f5a3a';
+      g.beginPath();
+      g.arc(52, y, 28, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#f4ecd8';
+      g.font = 'bold 34px Georgia, serif';
+      g.textAlign = 'center';
+      g.fillText(n, 52, y + 12);
+      g.textAlign = 'left';
+      g.fillStyle = '#2a2418';
+      g.font = 'bold 30px Georgia, serif';
+      g.fillText(es, 98, y - 4);
+      g.fillStyle = '#6a5a40';
+      g.font = 'italic 24px Georgia, serif';
+      g.fillText(en, 98, y + 26);
+    });
+    g.strokeStyle = '#b02428';
+    g.lineWidth = 8;
+    g.strokeRect(4, 4, w - 8, h - 8);
+  }, { wrap: false });
+}

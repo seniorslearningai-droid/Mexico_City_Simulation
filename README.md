@@ -144,7 +144,15 @@ signs about Mexico's pandas and about Xin Xin, a souvenir kiosk with plush
 pandas, benches, the panda house where she sleeps at night (keepers only),
 and a photo spot that snaps a polaroid of Xin Xin.
 
-It has its own eight-item panda-watch checklist.
+On the plaza there's a **souvenir coin machine**, like the pressed-penny
+machines at real zoos. Pick one of eight zoo animals (panda, lion, elephant,
+giraffe, zebra, tiger, penguin or flamingo), drop two coins in the slot, then
+turn the gear-shaped crank three times. You can watch the gears turn and the
+coin get squashed flat behind the glass. The finished copper coin, stretched
+long with your animal pressed into it, drops into the tray. Take it to see
+it up close, and try to collect all eight designs.
+
+It has its own nine-item panda-watch checklist.
 
 ## How it's built
 
@@ -152,7 +160,7 @@ It has its own eight-item panda-watch checklist.
 - Every texture (wood floor, tiles, rug, city windows, the painting) is
   painted on a `<canvas>` in code, so there are no image files.
 - Sounds (city traffic, running water, the crowd, the ring bell, the light
-  show beat, birdsong, squawks, whistles, emu drumming, honks, quacks, crunching bamboo and a snoring panda) are synthesized with the Web
+  show beat, birdsong, squawks, whistles, emu drumming, honks, quacks, crunching bamboo, a snoring panda and the coin machine's clinks, ratchet and ka-chunk) are synthesized with the Web
   Audio API.
 
 | File | What it does |
@@ -163,7 +171,7 @@ It has its own eight-item panda-watch checklist.
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
 | `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |
-| `js/pandas.js` | Chapultepec Zoo panda exhibit: gate, terrace, yard, Xin Xin and her daily routine |
+| `js/pandas.js` | Chapultepec Zoo panda exhibit: gate, terrace, yard, Xin Xin and her daily routine, souvenir coin machine |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |

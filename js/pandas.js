@@ -967,6 +967,278 @@ export function buildPandas(ctx) {
     aabb(-7.9, -6.0, 15.9, 19.1);
   }
 
+  // ---------- souvenir coin machine (on the plaza, across from the kiosk) ----------
+  // Pick an animal, drop in two coins, turn the crank three times and a
+  // squashed copper coin with that animal pressed into it drops into the tray.
+  const COINS = [
+    { emoji: '🐼', name: 'Panda', es: 'Panda gigante' },
+    { emoji: '🦁', name: 'Lion', es: 'León' },
+    { emoji: '🐘', name: 'Elephant', es: 'Elefante' },
+    { emoji: '🦒', name: 'Giraffe', es: 'Jirafa' },
+    { emoji: '🦓', name: 'Zebra', es: 'Cebra' },
+    { emoji: '🐯', name: 'Tiger', es: 'Tigre' },
+    { emoji: '🐧', name: 'Penguin', es: 'Pingüino' },
+    { emoji: '🦩', name: 'Flamingo', es: 'Flamenco' },
+  ];
+  const coinTex = COINS.map((c) => T.zooCoin(c.emoji, c.es));
+  const CM = {
+    chrome: std({ color: 0xd8dce0, metalness: 0.9, roughness: 0.25 }),
+    brass: std({ color: 0xc8a040, metalness: 0.85, roughness: 0.3 }),
+    copper: std({ color: 0xc87a4a, metalness: 0.8, roughness: 0.35 }),
+    peso: std({ color: 0xd8c890, metalness: 0.9, roughness: 0.3 }),
+    inside: std({ color: 0x1f3a2c, roughness: 0.8 }),
+    dark: std({ color: 0x141414, roughness: 0.7 }),
+    knob: std({ color: 0xd0282a, roughness: 0.35 }),
+  };
+  // A toothed gear, facing +z, centred on the origin.
+  function gearGeo(teeth, r, depth, thick) {
+    const s = new THREE.Shape();
+    const n = teeth * 4;
+    for (let i = 0; i <= n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const rr = i % 4 < 2 ? r : r - depth;
+      if (i === 0) s.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      else s.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    const hole = new THREE.Path();
+    hole.absarc(0, 0, r * 0.16, 0, Math.PI * 2, true);
+    s.holes.push(hole);
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
+      const h = new THREE.Path();
+      h.absarc(Math.cos(a) * r * 0.5, Math.sin(a) * r * 0.5, r * 0.17, 0, Math.PI * 2, true);
+      s.holes.push(h);
+    }
+    return new THREE.ExtrudeGeometry(s, { depth: thick, bevelEnabled: false, curveSegments: 8 }).translate(0, 0, -thick / 2);
+  }
+  const COIN_AT = { x: 6.3, z: 15.4 };
+  const cm = node(group, COIN_AT.x, 0, COIN_AT.z, -Math.PI / 2);
+  {
+    // Cabinet: a red lower box, an upper box with a window, a green header.
+    box(cm, CM.dark, 0.9, 0.12, 0.66, 0, 0.06, -0.27);
+    box(cm, M.red, 0.8, 0.85, 0.55, 0, 0.545, -0.275);
+    for (const s of [-1, 1]) box(cm, M.red, 0.04, 0.95, 0.5, s * 0.38, 1.445, -0.25);
+    box(cm, M.red, 0.8, 0.95, 0.04, 0, 1.445, -0.48);
+    box(cm, M.red, 0.8, 0.56, 0.04, 0, 1.64, -0.02);
+    for (const s of [-1, 1]) box(cm, M.red, 0.09, 0.36, 0.04, s * 0.355, 1.18, -0.02);
+    box(cm, M.red, 0.8, 0.03, 0.04, 0, 0.985, -0.02);
+    box(cm, CM.inside, 0.72, 0.38, 0.02, 0, 1.18, -0.3);
+    for (const y of [1.0, 1.36]) box(cm, M.gold, 0.66, 0.025, 0.03, 0, y, 0.005);
+    for (const s of [-1, 1]) box(cm, M.gold, 0.025, 0.385, 0.03, s * 0.32, 1.18, 0.005);
+    box(cm, M.gold, 0.82, 0.03, 0.03, 0, 0.97, 0.002);
+    const glass = add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.36), M.glass), 0, 1.18, 0.0);
+    noRay(glass);
+    box(cm, M.tileTrim, 0.88, 0.32, 0.56, 0, 2.08, -0.25);
+    for (const y of [1.92, 2.24]) box(cm, M.gold, 0.9, 0.03, 0.58, 0, y, -0.25);
+    add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.26), new THREE.MeshBasicMaterial({ map: T.boardSign('纪念币', 'MONEDAS RECUERDO'), toneMapped: false })), 0, 2.08, 0.032);
+    add(cm, new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 8), M.gold), 0, 2.31, -0.25);
+    // How-to plate on the front, a panda poster on the side.
+    add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.27), std({ map: T.coinSteps(), roughness: 0.7 })), -0.16, 0.68, 0.002);
+    const poster = add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.375), std({ map: T.pandaSign('MONEDAS RECUERDO', 'Souvenir zoo coins'), roughness: 0.7 })), -0.402, 0.62, -0.275);
+    poster.rotation.y = -Math.PI / 2;
+    box(cm, CM.dark, 0.74, 0.31, 0.012, 0, 1.755, 0.006);
+    cast(cm);
+  }
+  aabb(COIN_AT.x - 0.15, COIN_AT.x + 0.6, COIN_AT.z - 0.47, COIN_AT.z + 0.62);
+
+  const cmState = { sel: 0, coins: 0, turns: 0, turnT: -1, base: 0, angle: 0, blankT: -1, dropT: -1, ready: false, collected: new Set(), inserts: [] };
+  const busyPressing = () => cmState.turns > 0 || cmState.turnT >= 0 || cmState.dropT >= 0 || cmState.ready;
+
+  // The eight designs, in two rows of little oval windows.
+  const ovalGeo = new THREE.PlaneGeometry(0.16, 0.1);
+  const rimGeo = new THREE.RingGeometry(0.93, 1.06, 36).scale(0.082, 0.052, 1);
+  COINS.forEach((c, i) => {
+    const x = -0.27 + (i % 4) * 0.18;
+    const y = i < 4 ? 1.83 : 1.68;
+    const face = add(cm, new THREE.Mesh(ovalGeo, std({ map: coinTex[i], alphaTest: 0.5, metalness: 0.45, roughness: 0.35 })), x, y, 0.014);
+    const rim = add(cm, new THREE.Mesh(rimGeo, M.gold), x, y, 0.016);
+    interact([face, rim], {
+      label: () => (cmState.sel === i ? `${c.name} coin · selected` : `Choose the ${c.name} coin`),
+      act: () => {
+        if (cmState.sel === i) return;
+        if (busyPressing()) {
+          ctx.toast('Too late to switch — this coin is already being pressed!');
+          return;
+        }
+        cmState.sel = i;
+        ctx.toast(`You picked the ${c.name} design (${c.es}).`, 2400);
+      },
+    });
+  });
+  const selRing = add(cm, new THREE.Mesh(new THREE.RingGeometry(1.08, 1.3, 36).scale(0.082, 0.052, 1), new THREE.MeshBasicMaterial({ color: 0xffe14a, toneMapped: false })), 0, 0, 0.017);
+  noRay(selRing);
+
+  // LED screen and the coin slot.
+  const led = T.ledPanel();
+  box(cm, CM.dark, 0.43, 0.15, 0.008, -0.08, 1.49, 0.004);
+  add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.125), new THREE.MeshBasicMaterial({ map: led, toneMapped: false })), -0.08, 1.49, 0.009);
+  const slotParts = [
+    box(cm, CM.chrome, 0.12, 0.13, 0.025, 0.27, 1.5, 0.012),
+    box(cm, CM.dark, 0.014, 0.07, 0.01, 0.27, 1.51, 0.026),
+    add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.04), new THREE.MeshBasicMaterial({ map: T.sign('$10 × 2', { bg: '#1a1a1c', fg: '#f2c14e', w: 256, h: 84, font: 'bold 46px Arial, sans-serif' }), toneMapped: false })), 0.27, 1.408, 0.003),
+  ];
+  cast(...slotParts);
+  const pesoGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.004, 20).rotateZ(Math.PI / 2);
+  const pesos = [0, 1].map(() => {
+    const p = add(cm, new THREE.Mesh(pesoGeo, CM.peso));
+    p.visible = false;
+    noRay(p);
+    return p;
+  });
+  interact(slotParts, {
+    label: () => (cmState.ready ? 'Take your coin from the tray first' : cmState.coins < 2 ? `Insert a coin (${cmState.coins}/2)` : 'Coins in · now turn the crank'),
+    act: () => {
+      if (cmState.ready) return ctx.toast('Take your coin from the tray first!');
+      if (cmState.coins >= 2) return ctx.toast('That’s enough coins — now turn the crank!');
+      cmState.coins++;
+      const n = cmState.coins;
+      cmState.inserts.push({ mesh: pesos[n - 1], t0: time, last: n === 2 });
+      ctx.toast(n === 1 ? 'You drop a 10-peso coin in the slot… one more to go.' : 'Clink! Two coins in. Now turn the crank!', 3000);
+    },
+  });
+
+  // Behind the glass: two meshing gears and a little press.
+  const bigGear = add(cm, new THREE.Mesh(gearGeo(16, 0.115, 0.018, 0.02), CM.brass), -0.14, 1.17, -0.2);
+  const smallGear = add(cm, new THREE.Mesh(gearGeo(10, 0.07, 0.016, 0.02), CM.chrome), -0.14 + 0.167 * Math.cos(0.44), 1.17 + 0.167 * Math.sin(0.44), -0.2);
+  for (const g of [bigGear, smallGear]) cyl(cm, CM.dark, 0.012, 0.012, 0.12, g.position.x, g.position.y, -0.24, 10).rotation.x = Math.PI / 2;
+  box(cm, CM.chrome, 0.11, 0.04, 0.07, 0.2, 1.06, -0.15);
+  box(cm, CM.chrome, 0.012, 0.2, 0.012, 0.2, 1.3, -0.15);
+  const stamp = box(cm, CM.chrome, 0.08, 0.05, 0.06, 0.2, 1.27, -0.15);
+  const blank = add(cm, new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.005, 24).rotateX(Math.PI / 2), CM.copper), 0.2, 1.108, -0.13);
+  blank.visible = false;
+  noRay(blank);
+  const ANVIL_TOP = 1.08;
+
+  // The crank: a brass gear wheel on the side with a red knob.
+  cyl(cm, CM.chrome, 0.02, 0.02, 0.1, 0.43, 1.17, -0.2, 10).rotation.z = Math.PI / 2;
+  const crank = node(cm, 0.47, 1.17, -0.2);
+  const crankParts = [
+    add(crank, new THREE.Mesh(gearGeo(14, 0.16, 0.025, 0.03).rotateY(Math.PI / 2), CM.brass)),
+    cyl(crank, CM.chrome, 0.035, 0.035, 0.05, 0.01, 0, 0, 12),
+    box(crank, CM.brass, 0.025, 0.17, 0.035, 0.025, 0.085, 0),
+    cyl(crank, CM.knob, 0.024, 0.024, 0.11, 0.08, 0.16, 0, 12),
+    add(crank, new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), M.gold), 0.14, 0.16, 0),
+  ];
+  crankParts[1].rotation.z = Math.PI / 2;
+  crankParts[3].rotation.z = Math.PI / 2;
+  cast(crank, bigGear, smallGear);
+  interact([...crankParts, bigGear, smallGear, stamp], {
+    label: () => (cmState.ready ? 'Take your coin from the tray first' : cmState.coins < 2 ? 'Turn the crank (insert 2 coins first)' : `Turn the crank (${cmState.turns}/3)`),
+    act: () => {
+      if (cmState.turnT >= 0 || cmState.dropT >= 0) return;
+      if (cmState.ready) return ctx.toast('Take your coin from the tray first!');
+      if (cmState.coins < 2) return ctx.toast(cmState.coins === 0 ? 'Insert 2 coins first — the slot is next to the little screen.' : 'One more coin, then turn the crank!');
+      cmState.turnT = time;
+      ctx.sound.ratchet();
+    },
+  });
+
+  // The tray at the bottom, where the finished coin lands.
+  const trayParts = [
+    box(cm, CM.chrome, 0.26, 0.015, 0.14, 0, 0.235, 0.07),
+    box(cm, CM.chrome, 0.012, 0.07, 0.14, -0.124, 0.265, 0.07),
+    box(cm, CM.chrome, 0.012, 0.07, 0.14, 0.124, 0.265, 0.07),
+    box(cm, CM.chrome, 0.26, 0.045, 0.012, 0, 0.26, 0.14),
+    add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.13, 0.06), CM.dark), 0, 0.35, 0.002),
+  ];
+  cast(...trayParts);
+  const trayCoin = add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.056), std({ map: coinTex[0], alphaTest: 0.5, metalness: 0.45, roughness: 0.35 })), 0, 0.25, 0.065);
+  trayCoin.rotation.x = -Math.PI / 2 + 0.3;
+  trayCoin.visible = false;
+  trayParts.push(trayCoin);
+  interact(trayParts, {
+    label: () => (cmState.ready ? `Take your ${COINS[cmState.sel].name} coin` : null),
+    act: () => {
+      if (!cmState.ready) return;
+      const c = COINS[cmState.sel];
+      cmState.ready = false;
+      cmState.coins = 0;
+      cmState.turns = 0;
+      trayCoin.visible = false;
+      cmState.collected.add(cmState.sel);
+      if (ctx.showCoin) ctx.showCoin(coinTex[cmState.sel].image.toDataURL(), `${c.es} · Chapultepec`);
+      const n = cmState.collected.size;
+      ctx.toast(n === COINS.length ? `You got the ${c.name} coin — that’s every design! ¡Felicidades, coin collector!` : `You got the ${c.name} coin! You’ve collected ${n} of ${COINS.length} designs.`, 4500);
+      if (c.name === 'Panda') ctx.complete('pCoin');
+    },
+  });
+
+  const smooth = (k) => k * k * (3 - 2 * k);
+  function updateCoinMachine(t) {
+    const S = cmState;
+    // Coins sliding into the slot.
+    for (let i = S.inserts.length - 1; i >= 0; i--) {
+      const it = S.inserts[i];
+      const u = (t - it.t0) / 0.35;
+      it.mesh.visible = u < 1;
+      it.mesh.position.set(0.27, 1.51, lerp(0.22, 0.0, Math.min(1, u)));
+      if (u >= 1) {
+        S.inserts.splice(i, 1);
+        ctx.sound.coinIn();
+        if (it.last) S.blankT = t;
+      }
+    }
+    // The copper blank drops onto the anvil once both coins are in.
+    let squish = S.turns;
+    let press = 0;
+    if (S.turnT >= 0) {
+      const u = Math.min(1, (t - S.turnT) / 0.95);
+      const e = smooth(u);
+      S.angle = S.base + e * Math.PI * 2;
+      press = Math.sin(Math.PI * e);
+      squish += smooth(clamp((e - 0.4) / 0.2, 0, 1));
+      if (u >= 1) {
+        S.base += Math.PI * 2;
+        S.turnT = -1;
+        S.turns++;
+        if (S.turns === 3) {
+          ctx.sound.coinPress();
+          S.dropT = t;
+        }
+      }
+    }
+    bigGear.rotation.z = S.angle;
+    smallGear.rotation.z = -S.angle * 1.6 + Math.PI / 10;
+    crank.rotation.x = -S.angle;
+    stamp.position.y = 1.27 - 0.1 * press;
+    if (S.blankT >= 0 && S.dropT < 0) {
+      const u = Math.min(1, (t - S.blankT) / 0.25);
+      blank.visible = true;
+      blank.scale.set(1 + 0.25 * squish, 1 - 0.13 * squish, 1);
+      const rest = ANVIL_TOP + 0.028 * blank.scale.y;
+      blank.position.y = lerp(1.3, rest, u * u);
+    }
+    // After the last turn the squashed coin falls out of sight, then into the tray.
+    if (S.dropT >= 0) {
+      const u = (t - S.dropT) / 0.35;
+      blank.position.y = ANVIL_TOP + 0.017 - Math.min(1, u) * 0.25;
+      blank.visible = u < 1;
+      if (t - S.dropT > 0.7) {
+        S.dropT = -1;
+        S.blankT = -1;
+        blank.visible = false;
+        blank.scale.set(1, 1, 1);
+        S.ready = true;
+        trayCoin.material.map = coinTex[S.sel];
+        trayCoin.material.needsUpdate = true;
+        trayCoin.visible = true;
+        ctx.sound.coinDrop();
+        ctx.toast(`Ka-chunk! A squashed ${COINS[S.sel].name.toLowerCase()} coin drops into the tray. Take it!`, 3800);
+      }
+    }
+    // The selected design gets a glowing ring.
+    const sx = -0.27 + (S.sel % 4) * 0.18;
+    const sy = S.sel < 4 ? 1.83 : 1.68;
+    selRing.position.set(sx, sy, 0.017);
+    selRing.material.color.setHSL(0.14, 1, 0.5 + Math.sin(t * 5) * 0.12);
+    // What the little screen says.
+    const c = COINS[S.sel];
+    if (S.ready) led.set('¡LISTO!', 'TAKE YOUR COIN');
+    else if (S.dropT >= 0) led.set('KA-CHUNK!', 'PRESSING...');
+    else if (S.coins < 2) led.set(c.es.toUpperCase(), S.coins === 0 ? 'INSERT 2 COINS' : 'INSERT 1 MORE');
+    else led.set(c.es.toUpperCase(), `TURN CRANK ${S.turns}/3`);
+  }
+
   // ---------- signs and the photo spot ----------
   signPost(-11.8, -0.45, 0, 'PANDAS EN MÉXICO', 'Desde 1975 · Since 1975', 'In 1975 China gave Mexico two giant pandas, Pe Pe and Ying Ying. In 1981 their cub Tohui was born right here — the first giant panda born and raised in a zoo outside China!');
   signPost(7.6, -0.45, 0, 'XIN XIN', 'Nuestra panda · Our panda', 'Xin Xin was born right here at Chapultepec Zoo in 1990. She lives alone — giant pandas like their own space, and in the wild they wander the bamboo forests by themselves.');
@@ -1062,6 +1334,7 @@ export function buildPandas(ctx) {
     keeper.g.rotation.y = damp(keeper.g.rotation.y, 0.5 + Math.sin(t * 0.3) * 0.3, 2, dt);
     keeper.armR.rotation.z = kt < 2 ? -0.08 - 2.4 * Math.sin(Math.min(1, kt / 0.4) * Math.PI * 0.5) : damp(keeper.armR.rotation.z, -0.08, 5, dt);
     keeper.armR.rotation.x = kt < 2 ? Math.sin(kt * 10) * 0.25 : 0;
+    updateCoinMachine(t);
 
     waterTex.offset.set(t * 0.015, t * 0.011);
     fallsTex.offset.y = t * 0.9;
