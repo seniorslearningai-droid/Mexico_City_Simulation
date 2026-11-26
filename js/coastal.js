@@ -1,7 +1,11 @@
 import * as THREE from 'three';
-import { buildCoastalPress } from './coastal-press.js';
+import { buildZooPress } from './zoo-press.js';
 import { boardSign, grass, gravel, rng, waterNormals, woodGrain } from './textures.js';
 
+export const COASTAL_COINS = [
+  { name: 'Penguin', es: 'Pingüino', stamp: '🐧', task: 'coastPenguinCoin' },
+  { name: 'Seal', es: 'Lobo marino', stamp: '🦭', task: 'coastSealCoin' },
+];
 export const COASTAL_SPAWN = { x: 0, z: 9, yaw: 0.16, pitch: -0.05 };
 
 export function buildCoastal(ctx) {
@@ -289,7 +293,7 @@ export function buildCoastal(ctx) {
   });
   block(-4.12, -3.88, 2.43, 2.67);
 
-  const press = buildCoastalPress(group, ctx);
+  const press = buildZooPress(group, ctx, COASTAL_COINS);
   press.machine.position.set(4.55, 0, 4.6);
   press.machine.rotation.y = -0.22;
   box(group, coast.concrete, 2.55, 0.09, 1.62, 4.55, 0.025, 4.6);

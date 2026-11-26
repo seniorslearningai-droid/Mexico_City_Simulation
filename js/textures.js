@@ -1071,9 +1071,9 @@ export function boardSign(top, bottom, { bg = '#1f5a3a', fg = '#f2c14e', w = 102
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.font = 'bold 104px "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif';
-    g.fillText(top, w / 2, h * 0.36);
+    g.fillText(top, w / 2, h * 0.36, w - 72);
     g.font = 'bold 60px Georgia, serif';
-    g.fillText(bottom, w / 2, h * 0.76);
+    g.fillText(bottom, w / 2, h * 0.76, w - 72);
   }, { wrap: false });
 }
 
@@ -1199,7 +1199,7 @@ export function waterfall() {
 const EMOJI_FONT = '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
 
 // An elongated pressed coin: copper oval, the animal stamped in the middle.
-export function zooCoin(emoji, name) {
+export function zooCoin(animal, name) {
   return make(512, 320, (g, w, h) => {
     const r = rng(name.length * 31 + name.charCodeAt(0));
     g.clearRect(0, 0, w, h);
@@ -1260,12 +1260,20 @@ export function zooCoin(emoji, name) {
     g.font = `150px ${EMOJI_FONT}`;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.filter = 'grayscale(1) brightness(0.35) sepia(1)';
-    g.globalAlpha = 0.6;
-    g.fillText(emoji, 3, 4);
-    g.globalAlpha = 1;
-    g.filter = 'grayscale(1) sepia(1) saturate(1.7) hue-rotate(-12deg) brightness(0.95) contrast(1.25)';
-    g.fillText(emoji, 0, 0);
+    if (typeof animal === 'function') {
+      g.save();
+      g.translate(3, 4);
+      animal(g, '#edbc8b');
+      g.restore();
+      animal(g, '#763c23');
+    } else {
+      g.filter = 'grayscale(1) brightness(0.35) sepia(1)';
+      g.globalAlpha = 0.6;
+      g.fillText(animal, 3, 4);
+      g.globalAlpha = 1;
+      g.filter = 'grayscale(1) sepia(1) saturate(1.7) hue-rotate(-12deg) brightness(0.95) contrast(1.25)';
+      g.fillText(animal, 0, 0);
+    }
     g.restore();
     g.filter = 'none';
     // A shine across the top.
@@ -1313,7 +1321,7 @@ export function ledPanel() {
 }
 
 // The machine's step-by-step instructions.
-export function coinSteps() {
+export function coinSteps(chooseDesign = true) {
   return make(512, 384, (g, w, h) => {
     g.fillStyle = '#f4ecd8';
     g.fillRect(0, 0, w, h);
@@ -1324,11 +1332,12 @@ export function coinSteps() {
     g.textAlign = 'center';
     g.fillText('¿CÓMO FUNCIONA?', w / 2, 44);
     const steps = [
-      ['1', 'Elige un animal', 'Choose an animal'],
-      ['2', 'Inserta 2 monedas', 'Insert 2 coins'],
-      ['3', 'Gira la manivela 3 veces', 'Turn the crank 3 times'],
+      ...(chooseDesign ? [['Elige un animal', 'Choose an animal']] : []),
+      ['Inserta 2 monedas', 'Insert 2 coins'],
+      ['Gira la manivela 3 veces', 'Turn the crank 3 times'],
+      ...(!chooseDesign ? [['Recoge tu moneda', 'Take your coin']] : []),
     ];
-    steps.forEach(([n, es, en], i) => {
+    steps.forEach(([es, en], i) => {
       const y = 112 + i * 92;
       g.fillStyle = '#1f5a3a';
       g.beginPath();
@@ -1337,7 +1346,7 @@ export function coinSteps() {
       g.fillStyle = '#f4ecd8';
       g.font = 'bold 34px Georgia, serif';
       g.textAlign = 'center';
-      g.fillText(n, 52, y + 12);
+      g.fillText(String(i + 1), 52, y + 12);
       g.textAlign = 'left';
       g.fillStyle = '#2a2418';
       g.font = 'bold 30px Georgia, serif';

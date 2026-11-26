@@ -5,8 +5,8 @@ import { buildWorld } from './city.js';
 import { buildArena, ARENA_SPAWN } from './arena.js';
 import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
 import { buildPandas, PANDA_SPAWN } from './pandas.js';
-import { buildCoastal, COASTAL_SPAWN } from './coastal.js';
-import { COASTAL_COINS } from './coastal-press.js';
+import { buildCoastal, COASTAL_COINS, COASTAL_SPAWN } from './coastal.js';
+import { buildAxolotls, AXOLOTL_COINS, AXOLOTL_SPAWN } from './axolotls.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS, maskFace, drawPanda } from './textures.js';
@@ -76,6 +76,15 @@ const COASTAL_TASKS = [
   ['coastPhoto', 'Take a penguin photo'],
   ['coastPenguinCoin', 'Press a Penguin coin'],
   ['coastSealCoin', 'Press a Seal coin'],
+];
+
+const AXOLOTL_TASKS = [
+  ['axEnter', 'Enter the axolotl hall'],
+  ['axPink', 'Spot a pink axolotl'],
+  ['axWild', 'Spot a wild-type axolotl'],
+  ['axSign', 'Read about axolotls'],
+  ['axPhoto', 'Take an axolotl photo'],
+  ['axCoin', 'Press an Axolotl coin outside'],
 ];
 
 // ---------- renderer / scene ----------
@@ -349,7 +358,49 @@ const coastal = {
   },
 };
 
-const PLACES = [hotel, arena, aviary, pandas, coastal];
+const axolotlWorld = buildAxolotls({
+  toast,
+  complete,
+  sound,
+  camera,
+  showCoin,
+  souvenir: addSouvenir,
+  sit: (seat) => player.sit(seat),
+  player: () => player,
+});
+scene.add(axolotlWorld.group);
+const axolotlSky = new THREE.Color(0xb9d7e7);
+const axolotlFog = new THREE.Fog(0xb9d7e7, 28, 76);
+const axolotls = {
+  id: 'axolotls',
+  title: 'Ajolotario',
+  sub: 'Zoológico de Chapultepec · Axolotl Exhibit',
+  chip: 'Axolotls',
+  tasksTitle: 'Tank explorer',
+  goLabel: 'Visit axolotls',
+  tasks: AXOLOTL_TASKS,
+  done: new Set(),
+  root: axolotlWorld.group,
+  colliders: axolotlWorld.colliders,
+  floorAt: axolotlWorld.floorAt,
+  limit: axolotlWorld.limit,
+  spawn: AXOLOTL_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    axolotlWorld.group.visible = true;
+    scene.background = axolotlSky;
+    scene.fog = axolotlFog;
+    scene.environmentIntensity = 0.45;
+  },
+  exit() {
+    axolotlWorld.group.visible = false;
+    scene.background = null;
+    scene.fog = null;
+  },
+};
+
+const PLACES = [hotel, arena, aviary, pandas, coastal, axolotls];
 loc = hotel;
 arenaWorld.group.visible = false;
 
@@ -463,7 +514,7 @@ function toggleMask() {
 paintMask();
 
 // ---------- the backpack: souvenirs from every place ----------
-const COIN_DESIGNS = 2 + COASTAL_COINS.length;
+const COIN_DESIGNS = 2 + COASTAL_COINS.length + AXOLOTL_COINS.length;
 const bag = { masks: [], coins: new Map(), plush: 0, photos: [], hinted: false, open: false };
 const bagIcons = {};
 function maskIcon(d) {
@@ -514,7 +565,7 @@ function renderBag() {
     : empty('Buy one at the merch stand in Arena México.');
   const coins = bag.coins.size
     ? `<div class="bag-grid bag-coins">${[...bag.coins.values()].map((c) => `<div class="bag-item"><img src="${c.img}" alt="${esc(c.name)}"><span>${esc(c.name)}</span>${num(c.n)}</div>`).join('')}</div>`
-    : empty('Press one at the zoo’s panda exhibit or coastal zone.');
+    : empty('Find a coin press at the zoo and press a souvenir.');
   const plush = bag.plush
     ? `<div class="bag-grid"><div class="bag-item"><img src="${plushIcon()}" alt="Panda plushie"><span>Panda plushie</span>${num(bag.plush)}</div></div>`
     : empty('Pick one up at the panda exhibit’s souvenir kiosk.');
@@ -613,6 +664,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit3') travel('aviary');
   if (e.code === 'Digit4') travel('pandas');
   if (e.code === 'Digit5') travel('coastal');
+  if (e.code === 'Digit6') travel('axolotls');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
   if (e.code === 'KeyB') toggleBag();
   if (e.code === 'Escape' && bag.open) closeBag(false);
@@ -794,6 +846,11 @@ const DONE_TEXT = {
     title: '¡Hasta pronto!',
     lede: 'You met the Humboldt penguins and California sea lions and brought home both pressed coins.',
   },
+  axolotls: {
+    eyebrow: 'Axolotl explorer',
+    title: '¡Hasta pronto, ajolotes!',
+    lede: 'You explored the axolotl tanks, took a photo, and pressed an Axolotl coin to take home.',
+  },
 };
 function celebrate(place) {
   if (place !== loc) return;
@@ -855,6 +912,12 @@ async function travel(destId) {
     coastal.visited = true;
     setTimeout(() => {
       if (loc === coastal) toast('¡Bienvenidos a la Franja Costera! Penguins are on the left and sea lions on the right.', 5200);
+    }, 500);
+  }
+  if (loc === axolotls && !axolotls.visited) {
+    axolotls.visited = true;
+    setTimeout(() => {
+      if (loc === axolotls) toast('¡Bienvenidos al Ajolotario! The tanks are inside and the coin press is on the plaza.', 5200);
     }, 500);
   }
 }
@@ -1022,6 +1085,9 @@ function frame(dt, draw = true) {
       coastalWorld.dirty = false;
       for (const light of coastalWorld.shadowLights) light.shadow.needsUpdate = true;
     }
+  } else if (loc === axolotls) {
+    axolotlWorld.update(dt);
+    sound.aviary(axolotlWorld.state);
   } else {
     aviaryWorld.update(dt, t);
     sound.aviary(aviaryWorld.state);
@@ -1089,7 +1155,7 @@ function showPolaroid(url, caption) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },

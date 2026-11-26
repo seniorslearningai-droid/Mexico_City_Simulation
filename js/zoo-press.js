@@ -1,19 +1,14 @@
 import * as THREE from 'three';
 import { boardSign, coinSteps, ledPanel, zooCoin } from './textures.js';
 
-export const COASTAL_COINS = [
-  { name: 'Penguin', es: 'Pingüino', stamp: '🐧' },
-  { name: 'Seal', es: 'Lobo marino', stamp: '🦭' },
-];
-
-// Visitor-operated press. The panda exhibit has its own machine and progress.
-export function buildCoastalPress(parent, ctx) {
+// Each machine owns its selection, crank progress and tray.
+export function buildZooPress(parent, ctx, coins, cabinetColor = 0x155572) {
   const machine = new THREE.Group();
   parent.add(machine);
 
   const steel = new THREE.MeshStandardMaterial({ color: 0xb6c7cc, metalness: 0.65, roughness: 0.32 });
   const brass = new THREE.MeshStandardMaterial({ color: 0xd69c48, metalness: 0.55, roughness: 0.35 });
-  const navy = new THREE.MeshStandardMaterial({ color: 0x155572, roughness: 0.55 });
+  const navy = new THREE.MeshStandardMaterial({ color: cabinetColor, roughness: 0.55 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x17282f, roughness: 0.8 });
   const copper = new THREE.MeshStandardMaterial({ color: 0xc78151, metalness: 0.55, roughness: 0.35 });
   const red = new THREE.MeshStandardMaterial({ color: 0xd7503d, roughness: 0.45 });
@@ -47,17 +42,19 @@ export function buildCoastalPress(parent, ctx) {
   let turnStarted = null;
   let dropStarted = null;
   let ready = false;
-  const designs = COASTAL_COINS.map(({ name, es, stamp }) => {
+  const designs = coins.map(({ name, es, stamp, task }) => {
     const texture = zooCoin(stamp, es);
-    return { name, es, texture, image: texture.image.toDataURL() };
+    return { name, es, task, texture, image: texture.image.toDataURL() };
   });
   const coinMaterial = (map) => new THREE.MeshBasicMaterial({ map, alphaTest: 0.5, toneMapped: false });
 
-  const marker = box(brass, 0.42, 0.025, 0.025, -0.26, 1.62, 0.038);
+  const chooseDesign = designs.length > 1;
+  const marker = box(brass, 0.42, 0.025, 0.025, chooseDesign ? -0.26 : 0, 1.62, 0.038);
   designs.forEach((design, index) => {
-    const x = index ? 0.26 : -0.26;
+    const x = chooseDesign ? (index - 0.5) * 0.52 : 0;
     const backing = box(dark, 0.45, 0.27, 0.025, x, 1.78, 0.01);
     const choice = mesh(new THREE.PlaneGeometry(0.39, 0.24), coinMaterial(design.texture), x, 1.78, 0.024);
+    if (!chooseDesign) return;
     interact([backing, choice], () => selected === index ? `${design.name} coin · selected` : `Choose the ${design.name} coin`, () => {
       if (turns || turnStarted !== null) return ctx.toast('Finish pressing this coin before switching designs.');
       selected = index;
@@ -112,7 +109,7 @@ export function buildCoastalPress(parent, ctx) {
     ctx.sound.ratchet();
   });
 
-  panel(coinSteps(), 0.39, 0.293, -0.24, 0.57, 0.006);
+  panel(coinSteps(chooseDesign), 0.39, 0.293, -0.24, 0.57, 0.006);
   const tray = box(dark, 0.42, 0.26, 0.021, 0.25, 0.51, 0.025);
   const lip = box(steel, 0.44, 0.045, 0.21, 0.25, 0.39, 0.09);
   const result = mesh(new THREE.PlaneGeometry(0.15, 0.094), coinMaterial(designs[0].texture), 0.25, 0.46, 0.125);
@@ -120,7 +117,7 @@ export function buildCoastalPress(parent, ctx) {
   result.visible = false;
   interact([tray, lip, result], () => ready ? `Take your ${designs[selected].name} coin` : null, () => {
     if (!ready) return;
-    const { name, es, image } = designs[selected];
+    const { name, es, task, image } = designs[selected];
     ready = false;
     result.visible = false;
     inserted = 0;
@@ -128,7 +125,7 @@ export function buildCoastalPress(parent, ctx) {
     ctx.souvenir('coin', { key: name, name: `${name} coin`, img: image });
     ctx.showCoin(image, `${es} · Chapultepec`);
     ctx.toast(`You added the ${name.toLowerCase()} coin to your backpack!`);
-    ctx.complete(selected ? 'coastSealCoin' : 'coastPenguinCoin');
+    ctx.complete(task);
   });
 
   function update(t) {
