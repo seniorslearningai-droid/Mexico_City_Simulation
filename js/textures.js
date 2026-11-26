@@ -986,3 +986,210 @@ export function birdSign(title, sub, colors) {
     g.strokeRect(4, 4, w - 8, h - 8);
   }, { wrap: false });
 }
+
+// ---------- panda exhibit ----------
+
+// Bamboo culm: green with a pale ring and a dark line at each node (4 nodes per tile, along v).
+export function bamboo() {
+  return make(64, 512, (g, w, h) => {
+    const r = rng(81);
+    const grd = g.createLinearGradient(0, 0, w, 0);
+    grd.addColorStop(0, '#3f6a2a');
+    grd.addColorStop(0.45, '#8ab452');
+    grd.addColorStop(1, '#3f6a2a');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 300; i++) {
+      g.fillStyle = `rgba(30,60,20,${0.15 * r()})`;
+      g.fillRect(r() * w, r() * h, 1, 6 + r() * 20);
+    }
+    for (let k = 0; k < 4; k++) {
+      const y = (k + 0.5) * (h / 4);
+      g.fillStyle = 'rgba(220,230,160,0.55)';
+      g.fillRect(0, y - 7, w, 7);
+      g.fillStyle = 'rgba(40,60,25,0.9)';
+      g.fillRect(0, y, w, 3);
+    }
+  }, { repeat: [1, 3] });
+}
+
+// Glazed green roof tiles: rounded tile columns in rows, 1 m tile.
+export function roofTiles() {
+  return make(256, 256, (g, w, h) => {
+    g.fillStyle = '#1f4d36';
+    g.fillRect(0, 0, w, h);
+    const cols = 6;
+    const cw = w / cols;
+    for (let i = 0; i < cols; i++) {
+      const grd = g.createLinearGradient(i * cw, 0, (i + 1) * cw, 0);
+      grd.addColorStop(0, '#173d2b');
+      grd.addColorStop(0.5, '#4f9a6a');
+      grd.addColorStop(1, '#173d2b');
+      g.fillStyle = grd;
+      g.fillRect(i * cw + 2, 0, cw - 4, h);
+    }
+    for (let y = 0; y < h; y += h / 4) {
+      g.fillStyle = 'rgba(10,30,20,0.6)';
+      g.fillRect(0, y, w, 4);
+      g.fillStyle = 'rgba(200,255,220,0.18)';
+      g.fillRect(0, y + 4, w, 3);
+    }
+  }, { repeat: [1, 1] });
+}
+
+// Stone paving slabs in courses, 2 m tile.
+export function paving() {
+  return make(512, 512, (g, w, h) => {
+    const r = rng(83);
+    g.fillStyle = '#8a857c';
+    g.fillRect(0, 0, w, h);
+    const rows = 8;
+    const rh = h / rows;
+    for (let j = 0; j < rows; j++) {
+      let x = -r() * 60;
+      while (x < w) {
+        const sw = 70 + r() * 90;
+        const l = 62 + r() * 12;
+        g.fillStyle = `hsl(${35 + r() * 10}, ${8 + r() * 8}%, ${l}%)`;
+        g.fillRect(x + 2, j * rh + 2, sw - 4, rh - 4);
+        x += sw;
+      }
+    }
+    speckle(g, w, h, r, 6000, 0.12);
+  }, { repeat: [1 / 2, 1 / 2] });
+}
+
+// A two-line board, e.g. Chinese characters over a Spanish name.
+export function boardSign(top, bottom, { bg = '#1f5a3a', fg = '#f2c14e', w = 1024, h = 256 } = {}) {
+  return make(w, h, (g) => {
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = fg;
+    g.lineWidth = 10;
+    g.strokeRect(14, 14, w - 28, h - 28);
+    g.fillStyle = fg;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 104px "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif';
+    g.fillText(top, w / 2, h * 0.36);
+    g.font = 'bold 60px Georgia, serif';
+    g.fillText(bottom, w / 2, h * 0.76);
+  }, { wrap: false });
+}
+
+// A cartoon giant panda sitting up and munching bamboo.
+export function drawPanda(g, x, y, s) {
+  const W = '#fafaf6';
+  const B = '#1c1b1f';
+  const blob = (cx, cy, rx, ry, col, rot = 0) => {
+    g.fillStyle = col;
+    g.beginPath();
+    g.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2);
+    g.fill();
+  };
+  g.save();
+  g.translate(x, y);
+  g.scale(s, s);
+  g.lineWidth = 3;
+  g.strokeStyle = '#6a6a6a';
+  // Bamboo stalk behind the paws.
+  g.save();
+  g.rotate(-0.5);
+  g.fillStyle = '#6f9e3a';
+  g.fillRect(-6, -110, 12, 190);
+  g.fillStyle = '#3f6a2a';
+  for (let k = -90; k < 80; k += 45) g.fillRect(-7, k, 14, 3);
+  g.fillStyle = '#5f9a3a';
+  for (const [lx, ly, a] of [[8, -100, 0.6], [-8, -90, -0.7], [10, -70, 0.9]]) blob(lx + Math.sin(a) * 18, ly, 26, 7, '#5f9a3a', a);
+  g.restore();
+  // Legs and body.
+  blob(-38, 62, 26, 20, B);
+  blob(38, 62, 26, 20, B);
+  blob(0, 26, 58, 52, W);
+  g.beginPath();
+  g.ellipse(0, 26, 58, 52, 0, 0, Math.PI * 2);
+  g.stroke();
+  // Shoulder band and arms holding the bamboo.
+  blob(0, -6, 52, 18, B);
+  blob(-26, 8, 16, 30, B, 0.6);
+  blob(26, 4, 16, 30, B, -0.8);
+  // Head.
+  blob(-36, -74, 16, 16, B);
+  blob(36, -74, 16, 16, B);
+  blob(0, -46, 46, 40, W);
+  g.beginPath();
+  g.ellipse(0, -46, 46, 40, 0, 0, Math.PI * 2);
+  g.stroke();
+  blob(-18, -50, 11, 15, B, 0.5);
+  blob(18, -50, 11, 15, B, -0.5);
+  blob(-17, -52, 3.5, 3.5, '#ffffff');
+  blob(17, -52, 3.5, 3.5, '#ffffff');
+  blob(0, -32, 8, 5.5, B);
+  g.restore();
+}
+
+export function pandaSign(title, sub) {
+  return make(512, 384, (g, w, h) => {
+    g.fillStyle = '#f4ecd8';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#1f5a3a';
+    g.fillRect(0, 0, w, 70);
+    g.fillStyle = '#f2c14e';
+    g.font = 'bold 34px Georgia, serif';
+    g.textAlign = 'center';
+    g.fillText(title, w / 2, 48);
+    const sky = g.createLinearGradient(0, 90, 0, 300);
+    sky.addColorStop(0, '#cfe8d8');
+    sky.addColorStop(1, '#e8f0d0');
+    g.fillStyle = sky;
+    g.fillRect(30, 88, w - 60, 220);
+    g.fillStyle = '#7aa84a';
+    g.fillRect(30, 280, w - 60, 28);
+    drawPanda(g, w / 2, 205, 0.95);
+    g.fillStyle = '#1f5a3a';
+    g.font = 'italic 26px Georgia, serif';
+    g.fillText(sub, w / 2, 348);
+    g.strokeStyle = '#b8262a';
+    g.lineWidth = 8;
+    g.strokeRect(4, 4, w - 8, h - 8);
+  }, { wrap: false });
+}
+
+// A soft round shadow to sit under animals.
+export function blobShadow() {
+  return make(128, 128, (g, w, h) => {
+    const grd = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+    grd.addColorStop(0, 'rgba(0,0,0,0.55)');
+    grd.addColorStop(0.6, 'rgba(0,0,0,0.25)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, w, h);
+  }, { wrap: false });
+}
+
+// A single letter on a transparent background (for sleepy "z"s).
+export function letter(ch, color = '#ffffff') {
+  return make(128, 128, (g, w, h) => {
+    g.font = 'bold 96px Georgia, serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.lineWidth = 10;
+    g.strokeStyle = 'rgba(40,50,80,0.8)';
+    g.strokeText(ch, w / 2, h / 2);
+    g.fillStyle = color;
+    g.fillText(ch, w / 2, h / 2);
+  }, { wrap: false });
+}
+
+// Falling water: bright streaks that scroll down.
+export function waterfall() {
+  return make(128, 256, (g, w, h) => {
+    const r = rng(87);
+    g.fillStyle = 'rgba(200,230,240,0.55)';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 160; i++) {
+      g.fillStyle = `rgba(255,255,255,${0.3 + r() * 0.6})`;
+      g.fillRect(r() * w, r() * h, 1 + r() * 3, 20 + r() * 60);
+    }
+  }, { repeat: [1, 1] });
+}

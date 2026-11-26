@@ -4,6 +4,7 @@ import { buildRoom } from './room.js';
 import { buildWorld } from './city.js';
 import { buildArena, ARENA_SPAWN } from './arena.js';
 import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
+import { buildPandas, PANDA_SPAWN } from './pandas.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS } from './textures.js';
@@ -51,6 +52,16 @@ const AVIARY_TASKS = [
   ['toucan', 'Spot the wild toucan with binoculars'],
   ['photo', 'Take a photo'],
   ['tape', 'Peek past the caution tape'],
+];
+const PANDA_TASKS = [
+  ['pGate', 'Walk through the panda gate'],
+  ['pSpot', 'Spot Xin Xin the panda'],
+  ['pEat', 'Watch Xin Xin munch bamboo'],
+  ['pNap', 'Catch Xin Xin taking a nap'],
+  ['pKeeper', 'Chat with the keeper'],
+  ['pSign', 'Read a panda sign'],
+  ['pPlush', 'Buy a panda plushie'],
+  ['pPhoto', 'Take a photo of Xin Xin'],
 ];
 
 // ---------- renderer / scene ----------
@@ -233,7 +244,48 @@ const aviary = {
     scene.fog = null;
   },
 };
-const PLACES = [hotel, arena, aviary];
+const pandaWorld = buildPandas({
+  toast,
+  complete,
+  sound,
+  camera,
+  sit: (seat) => player.sit(seat),
+  player: () => player,
+});
+scene.add(pandaWorld.group);
+pandaWorld.group.traverse((o) => {
+  if (!o.isMesh) return;
+  o.castShadow = !!o.userData.cast;
+  o.receiveShadow = !o.isInstancedMesh;
+});
+const pandaFog = new THREE.Fog(0xbfcfc0, 28, 140);
+const pandas = {
+  id: 'pandas',
+  title: 'Pabellón del Panda',
+  sub: 'Zoológico de Chapultepec · Panda exhibit',
+  chip: 'Pandas',
+  tasksTitle: 'Panda watch',
+  goLabel: 'Go to panda exhibit',
+  tasks: PANDA_TASKS,
+  done: new Set(),
+  root: pandaWorld.group,
+  colliders: pandaWorld.colliders,
+  floorAt: pandaWorld.floorAt,
+  limit: pandaWorld.limit,
+  spawn: PANDA_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    pandaWorld.group.visible = true;
+    scene.fog = pandaFog;
+    scene.environmentIntensity = 0.5;
+  },
+  exit() {
+    pandaWorld.group.visible = false;
+    scene.fog = null;
+  },
+};
+const PLACES = [hotel, arena, aviary, pandas];
 loc = hotel;
 arenaWorld.group.visible = false;
 
@@ -387,6 +439,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit1') travel('hotel');
   if (e.code === 'Digit2') travel('arena');
   if (e.code === 'Digit3') travel('aviary');
+  if (e.code === 'Digit4') travel('pandas');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
@@ -541,6 +594,11 @@ const DONE_TEXT = {
     title: 'You’re a true bird spotter!',
     lede: 'You walked the whole trail, fed the emus, rheas and macaws, called to the swans, chatted with a parrot and saw a peacock show off. The birds of Chapultepec say ¡hasta pronto!',
   },
+  pandas: {
+    eyebrow: '¡Qué ternura!',
+    title: 'You’re a true panda pal!',
+    lede: 'You watched Xin Xin munch her bamboo and doze off for a nap, and you took home a plushie to remember her by. ¡Hasta pronto, Xin Xin!',
+  },
 };
 function celebrate(place) {
   if (place !== loc) return;
@@ -594,6 +652,10 @@ async function travel(destId) {
     aviary.visited = true;
     setTimeout(() => toast('¡Bienvenidos! Follow the forest trail past aviaries, paddocks and ponds — peacocks first, on your left.', 5200), 500);
   }
+  if (loc === pandas && !pandas.visited) {
+    pandas.visited = true;
+    setTimeout(() => toast('¡Bienvenidos al Pabellón del Panda! Walk through the red gate to meet Xin Xin, Chapultepec’s giant panda.', 5200), 500);
+  }
 }
 // Swap the world over to another place (while the screen is faded out).
 function arrive(dest) {
@@ -609,6 +671,7 @@ function arrive(dest) {
   syncPlaceUI();
   arenaWorld.dirty = true;
   aviaryWorld.dirty = true;
+  pandaWorld.dirty = true;
   room.dirty = true;
   // Build the new place's shaders while the screen is still dark.
   renderer.compile(scene, camera);
@@ -743,6 +806,13 @@ function frame(dt, draw = true) {
       arenaWorld.dirty = false;
       for (const l of arenaWorld.shadowLights) l.shadow.needsUpdate = true;
     }
+  } else if (loc === pandas) {
+    pandaWorld.update(dt, t);
+    sound.aviary(pandaWorld.state);
+    if (pandaWorld.dirty) {
+      pandaWorld.dirty = false;
+      for (const l of pandaWorld.shadowLights) l.shadow.needsUpdate = true;
+    }
   } else {
     aviaryWorld.update(dt, t);
     sound.aviary(aviaryWorld.state);
@@ -774,9 +844,11 @@ function frame(dt, draw = true) {
 
 // Snap the current view (without the HUD) into a little polaroid.
 function takePhoto() {
+  const seat = player.seat || {};
   renderer.render(scene, camera);
   const url = canvas.toDataURL('image/jpeg', 0.85);
   $('#photoImg').src = url;
+  $('#photoCard figcaption').textContent = seat.caption || 'Aviario · Chapultepec';
   $('#photoCard').classList.remove('show');
   void $('#photoCard').offsetWidth;
   $('#photoCard').classList.add('show');
@@ -784,7 +856,7 @@ function takePhoto() {
   void $('#flash').offsetWidth;
   $('#flash').classList.add('go');
   sound.shutter();
-  complete('photo');
+  complete(seat.task || 'photo');
   clearTimeout(takePhoto.timer);
   takePhoto.timer = setTimeout(() => $('#photoCard').classList.remove('show'), 5500);
 }
@@ -792,7 +864,7 @@ function takePhoto() {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },

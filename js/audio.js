@@ -146,7 +146,8 @@ export class Sound {
     const t = this.ctx.currentTime;
     const arena = id === 'arena';
     this.arenaBus.gain.setTargetAtTime(arena ? 1 : 0, t, 0.3);
-    this.aviaryBus.gain.setTargetAtTime(id === 'aviary' ? 1 : 0, t, 0.3);
+    // The zoo (aviary and pandas) shares the outdoor forest sounds.
+    this.aviaryBus.gain.setTargetAtTime(id === 'aviary' || id === 'pandas' ? 1 : 0, t, 0.3);
     if (id !== 'hotel') {
       this.city.gain.setTargetAtTime(0, t, 0.2);
       this.water.gain.setTargetAtTime(0, t, 0.2);
@@ -159,7 +160,7 @@ export class Sound {
 
   // Aviary: water 0..1 how close the waterfall is, mist 0..1, calm 0..1 (sitting still: more birdsong).
   aviary({ water = 0, mist = 0, calm = 0 }) {
-    if (!this.ctx || this.scene !== 'aviary') return;
+    if (!this.ctx || (this.scene !== 'aviary' && this.scene !== 'pandas')) return;
     const ctx = this.ctx;
     const t = ctx.currentTime;
     this.falls.gain.setTargetAtTime(water * 0.4, t, 0.3);
@@ -394,6 +395,114 @@ export class Sound {
       o.connect(f).connect(g).connect(this.aviaryBus);
       o.start(t);
       o.stop(t + 0.16);
+    }
+  }
+
+  // A short filtered-noise hit on the zoo bus.
+  rustle(t, { type = 'bandpass', freq = 1000, q = 1, gain = 0.1, decay = 0.1, dur = 0.3, rate = 1 } = {}) {
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    src.playbackRate.value = rate * (0.9 + Math.random() * 0.2);
+    const f = ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    f.Q.value = q;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+    src.connect(f).connect(g).connect(this.aviaryBus);
+    src.start(t, Math.random() * 0.5, dur);
+  }
+
+  // Pandas munching bamboo: a couple of woody snaps and crunches.
+  crunch(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const t = this.ctx.currentTime;
+    for (let i = 0; i < 3; i++) this.rustle(t + i * 0.13 + Math.random() * 0.05, { type: 'highpass', freq: 1800 + Math.random() * 1500, q: 0.8, gain: 0.16 * vol, decay: 0.06 });
+    this.rustle(t + 0.02, { freq: 500, q: 2, gain: 0.08 * vol, decay: 0.1 });
+  }
+
+  // A panda's goat-like bleat.
+  bleat(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(420, t);
+    o.frequency.linearRampToValueAtTime(330, t + 0.45);
+    const vib = ctx.createOscillator();
+    const vg = ctx.createGain();
+    vib.frequency.value = 22;
+    vg.gain.value = 18;
+    vib.connect(vg).connect(o.frequency);
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 950;
+    f.Q.value = 2;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.16 * vol, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    o.connect(f).connect(g).connect(this.aviaryBus);
+    o.start(t);
+    vib.start(t);
+    o.stop(t + 0.52);
+    vib.stop(t + 0.52);
+  }
+
+  // A sleepy panda snoring: a slow rumbly in-breath and a sigh.
+  snore(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    src.loop = true;
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = 320;
+    f.Q.value = 6;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.22 * vol, t + 0.9);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+    g.gain.setValueAtTime(0.0001, t + 1.7);
+    g.gain.exponentialRampToValueAtTime(0.07 * vol, t + 2.0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
+    const am = ctx.createOscillator();
+    const amg = ctx.createGain();
+    am.frequency.value = 28;
+    amg.gain.value = 0.5;
+    const trem = ctx.createGain();
+    trem.gain.value = 0.6;
+    am.connect(amg).connect(trem.gain);
+    src.connect(f).connect(trem).connect(g).connect(this.aviaryBus);
+    src.start(t);
+    am.start(t);
+    src.stop(t + 2.9);
+    am.stop(t + 2.9);
+  }
+
+  // A squeaky plush toy.
+  squeak() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    for (let i = 0; i < 2; i++) {
+      const t = ctx.currentTime + i * 0.22;
+      const o = ctx.createOscillator();
+      o.frequency.setValueAtTime(1100, t);
+      o.frequency.exponentialRampToValueAtTime(1900, t + 0.07);
+      o.frequency.exponentialRampToValueAtTime(1200, t + 0.16);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+      o.connect(g).connect(this.master);
+      o.start(t);
+      o.stop(t + 0.18);
     }
   }
 

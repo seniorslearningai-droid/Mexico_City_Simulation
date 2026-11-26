@@ -13,6 +13,8 @@ The buttons at the top left take you to two more places:
 - **Go to aviary** — the **bird trail at Chapultepec Zoo**: a U-shaped forest
   path lined with mini aviaries, emu and rhea paddocks, trumpeter swans, and a
   big pond of black swans, ducks and geese in the middle.
+- **Go to panda exhibit** — the **Pabellón del Panda** at Chapultepec Zoo, home
+  to one giant panda, Xin Xin, who mostly keeps to herself.
 
 ## Play
 
@@ -37,7 +39,7 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1` `2` `3` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium or the aviary |
+| `1` `2` `3` `4` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary or the panda exhibit |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `Esc` | | Pause |
 
@@ -124,13 +126,33 @@ you a polaroid of the mixed aviary.
 
 It has its own fourteen-item bird-spotter checklist.
 
+## Chapultepec Zoo panda exhibit
+
+You walk in through a red Chinese gate (a paifang with green tiled roofs and
+paper lanterns) onto a terrace that looks through a glass wall into the
+panda yard: grass, bamboo groves, a rock cliff with a cave, a pool with a
+little waterfall, a wooden climbing tower and a keepers' bamboo pile.
+
+The yard is home to just one panda, **Xin Xin**, and she keeps to herself.
+She follows her own calm routine: munching bamboo (holding the stalk in her
+paws), pottering about, sitting by the pool and napping sprawled on her
+tummy (with sleepy z's). Look right at her to spot her, and keep watching to
+catch her eating and napping.
+
+Around the terrace and the plaza: a keeper who's happy to chat about pandas,
+signs about Mexico's pandas and about Xin Xin, a souvenir kiosk with plush
+pandas, benches, the panda house where she sleeps at night (keepers only),
+and a photo spot that snaps a polaroid of Xin Xin.
+
+It has its own eight-item panda-watch checklist.
+
 ## How it's built
 
 - [three.js](https://threejs.org) r165 from a CDN — no build step, no installs.
 - Every texture (wood floor, tiles, rug, city windows, the painting) is
   painted on a `<canvas>` in code, so there are no image files.
 - Sounds (city traffic, running water, the crowd, the ring bell, the light
-  show beat, birdsong, squawks, whistles, emu drumming, honks and quacks) are synthesized with the Web
+  show beat, birdsong, squawks, whistles, emu drumming, honks, quacks, crunching bamboo and a snoring panda) are synthesized with the Web
   Audio API.
 
 | File | What it does |
@@ -141,6 +163,7 @@ It has its own fourteen-item bird-spotter checklist.
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
 | `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |
+| `js/pandas.js` | Chapultepec Zoo panda exhibit: gate, terrace, yard, Xin Xin and her daily routine |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |
