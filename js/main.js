@@ -37,10 +37,14 @@ const ARENA_TASKS = [
   ['seat', 'Take a seat in the stands'],
 ];
 const AVIARY_TASKS = [
-  ['all5', 'Visit all five aviaries'],
+  ['all', 'Visit every exhibit on the trail'],
   ['peacock', 'Make a peacock fan its tail'],
+  ['emus', 'Toss feed to the emus'],
   ['parakeets', 'Hold out a seed stick for the parakeets'],
+  ['rheas', 'Feed the rheas (find the albino ones!)'],
   ['macaws', 'Feed the macaws'],
+  ['trumpeters', 'Call to the trumpeter swans'],
+  ['pond', 'Feed the ducks and geese at the big pond'],
   ['parrot', 'Say ¡hola! to a parrot'],
   ['mix', 'Fill the feeder in the mixed aviary'],
   ['sign', 'Read an aviary sign'],
@@ -202,7 +206,7 @@ aviaryWorld.group.traverse((o) => {
   o.castShadow = !!o.userData.cast;
   o.receiveShadow = !o.isInstancedMesh;
 });
-const aviaryFog = new THREE.Fog(0xb7c9b1, 25, 150);
+const aviaryFog = new THREE.Fog(0xb7c9b1, 22, 130);
 const aviary = {
   id: 'aviary',
   title: 'Aviario',
@@ -535,7 +539,7 @@ const DONE_TEXT = {
   aviary: {
     eyebrow: '¡Qué bonito!',
     title: 'You’re a true bird spotter!',
-    lede: 'You walked the whole trail, fed the macaws, chatted with a parrot and saw a peacock show off. The birds of Chapultepec say ¡hasta pronto!',
+    lede: 'You walked the whole trail, fed the emus, rheas and macaws, called to the swans, chatted with a parrot and saw a peacock show off. The birds of Chapultepec say ¡hasta pronto!',
   },
 };
 function celebrate(place) {
@@ -588,7 +592,7 @@ async function travel(destId) {
   }
   if (loc === aviary && !aviary.visited) {
     aviary.visited = true;
-    setTimeout(() => toast('¡Bienvenidos! Follow the forest trail past five aviaries — peacocks first, on your left.', 5200), 500);
+    setTimeout(() => toast('¡Bienvenidos! Follow the forest trail past aviaries, paddocks and ponds — peacocks first, on your left.', 5200), 500);
   }
 }
 // Swap the world over to another place (while the screen is faded out).

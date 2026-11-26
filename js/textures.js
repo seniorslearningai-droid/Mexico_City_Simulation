@@ -867,6 +867,39 @@ export function peacockFan(white = false) {
   }, { wrap: false });
 }
 
+// Gentle ripples for the ponds, as a normal map (3 m tile).
+export function waterNormals() {
+  const size = 256;
+  const hgt = new Float32Array(size * size);
+  const r = rng(71);
+  const waves = Array.from({ length: 9 }, () => [2 + Math.floor(r() * 6), 2 + Math.floor(r() * 6), r() * 6.28]);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      let v = 0;
+      for (const [fx, fy, ph] of waves) v += Math.sin(((x * fx + y * fy) / size) * Math.PI * 2 + ph);
+      hgt[y * size + x] = v;
+    }
+  }
+  return make(size, size, (g) => {
+    const img = g.createImageData(size, size);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const hx = hgt[y * size + ((x + 1) % size)] - hgt[y * size + ((x - 1 + size) % size)];
+        const hy = hgt[((y + 1) % size) * size + x] - hgt[((y - 1 + size) % size) * size + x];
+        const nx = -hx * 0.35;
+        const ny = -hy * 0.35;
+        const l = Math.hypot(nx, ny, 1);
+        const i = (y * size + x) * 4;
+        img.data[i] = ((nx / l) * 0.5 + 0.5) * 255;
+        img.data[i + 1] = ((ny / l) * 0.5 + 0.5) * 255;
+        img.data[i + 2] = ((1 / l) * 0.5 + 0.5) * 255;
+        img.data[i + 3] = 255;
+      }
+    }
+    g.putImageData(img, 0, 0);
+  }, { repeat: [1 / 3, 1 / 3], srgb: false });
+}
+
 // A friendly cartoon bird for the info signs.
 export function drawBird(g, x, y, s, c) {
   g.save();

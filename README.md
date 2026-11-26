@@ -11,8 +11,8 @@ The buttons at the top left take you to two more places:
   luchadores yet: just you, the ring, and (once you open the doors) a few
   thousand fans.
 - **Go to aviary** — the **bird trail at Chapultepec Zoo**: a U-shaped forest
-  path lined with five mini aviaries of peacocks, parakeets, macaws and
-  parrots.
+  path lined with mini aviaries, emu and rhea paddocks, trumpeter swans, and a
+  big pond of black swans, ducks and geese in the middle.
 
 ## Play
 
@@ -81,31 +81,48 @@ The arena has its own ten-item fan checklist.
 
 A dirt trail curves through the forest in a U. Both ends of the U are closed
 off with yellow **"AUTHORIZED ACCESS ONLY"** caution tape, so you walk from
-one end, around the curve, and back down the other side. Five mini aviaries
-line the path, with an aviary's width of forest between neighbours: three
-on the left leg (on your left as you walk) and two on the right leg (on your
-right). The U is big: the legs are 40 m apart and about 50 m long. The
-right leg's tape sits about 7 m farther down than the left one, leaving a
-cleared plot after the mixed aviary for another exhibit.
+one end, around the curve, and back down the other side. The U is wide (the
+legs are 72 m apart) with thick forest and a big pond in between, so you
+can't see across to the other side. The right leg's tape sits about 7 m
+farther down than the left one, leaving a cleared plot for another exhibit.
+Every enclosure is fenced.
+
+On the left leg (on your left as you walk):
 
 1. **Peacocks** — a blue peacock, a white one and a peahen. Whistle and a
    peacock struts over and fans out his tail.
-2. **Parakeets** — a flock of green and blue budgies. Hold out a seed stick
+2. **Emus** — a fenced paddock with a shelter and trough. Toss in some feed
+   and they come striding over, drumming.
+3. **Parakeets** — a flock of green and blue budgies. Hold out a seed stick
    and they line up on the bar in front of you.
-3. **Macaws** — scarlet and military macaws. Feed them and they come down to
+4. **Greater rheas** — five rheas, two of them albino (pure white). Feed
+   them and they trot over to the trough.
+5. **Macaws** — scarlet and military macaws. Feed them and they come down to
    the tray.
-4. **Parrots** — yellow-headed and red-crowned parrots. Say ¡hola! and one
+
+Around the curve:
+
+6. **Trumpeter swans** — on your left, three swans on their own fenced pond.
+   Call to them and they answer and glide over.
+7. **The big pond** — on your right, filling the middle of the U: two black
+   swans, mallards, wood ducks, mandarin ducks, whistling ducks, Canada geese
+   and farm geese, with reeds, lily pads and an island duck house. Toss food
+   from the dispenser and they all race over.
+
+On the right leg (on your right):
+
+8. **Parrots** — yellow-headed and red-crowned parrots. Say ¡hola! and one
    flies over and talks back.
-5. **Mixed aviary** — a peacock, macaws, parrots and parakeets together. Fill
+9. **Mixed aviary** — a peacock, macaws, parrots and parakeets together. Fill
    the feeder and everyone comes to eat.
 
-Along the way: signs about each bird, a bench at the top of the U,
+Along the way: signs about each bird, a bench looking out over the pond,
 binoculars for spotting the wild toucan (it hides in a different treetop
 each visit, off to the side or behind you, so look all around) and the wild
 monk parakeets that fly over the forest, and a photo spot that gives
 you a polaroid of the mixed aviary.
 
-It has its own ten-item bird-spotter checklist.
+It has its own fourteen-item bird-spotter checklist.
 
 ## How it's built
 
@@ -113,7 +130,7 @@ It has its own ten-item bird-spotter checklist.
 - Every texture (wood floor, tiles, rug, city windows, the painting) is
   painted on a `<canvas>` in code, so there are no image files.
 - Sounds (city traffic, running water, the crowd, the ring bell, the light
-  show beat, birdsong, squawks and whistles) are synthesized with the Web
+  show beat, birdsong, squawks, whistles, emu drumming, honks and quacks) are synthesized with the Web
   Audio API.
 
 | File | What it does |
@@ -123,7 +140,7 @@ It has its own ten-item bird-spotter checklist.
 | `js/room.js` | The hotel room: walls, furniture, lights and everything you can use |
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
-| `js/aviary.js` | Chapultepec Zoo bird trail: forest path, five aviaries, birds, binoculars |
+| `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |

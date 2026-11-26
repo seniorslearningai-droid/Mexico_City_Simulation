@@ -1,19 +1,21 @@
-// The bird trail at Chapultepec Zoo: a U-shaped path through the forest with
-// five mini aviaries along it. Both ends of the U are closed off with
-// "AUTHORIZED ACCESS ONLY" caution tape. Everything is in meters; north is -z.
+// The bird trail at Chapultepec Zoo: a big U-shaped path through the forest.
+// Both ends of the U are closed off with "AUTHORIZED ACCESS ONLY" caution
+// tape. Everything is in meters; north is -z.
 //
-//                    .------ curve ------.
-//                  /       binoculars      \
-//      macaws [=] |                         |
-//                 |               [=] parrots
-//   parakeets [=] |      ahuehuete          |
-//                 |               [=] mixed |
-//    peacocks [=] |                         |
-//               ==tape==                ==tape==
-//               you start here
+//                       trumpeter swans
+//                 .---------[====]---------.
+//               /  binoculars    bench       \
+//    macaws [=] |        .-----------.        |
+//     rheas [##]|       (  big pond   )       | [=] parrots
+// parakeets [=] |       (  + island   )       |
+//      emus [##]|        '-----------'        | [=] mixed aviary
+//  peacocks [=] |     ahuehuetes, forest      | [ ] space for an exhibit
+//             ==tape==                     ==tape==
+//             you start here
 //
-// Walking the U from the start, the three aviaries on the left leg are on
-// your left and the two on the right leg are on your right.
+// Walking the U from the start, the exhibits on the left leg are on your
+// left, the trumpeter swans are on your left around the curve with the big
+// pond on your right, and the right leg's aviaries are on your right.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import * as T from './textures.js';
@@ -21,19 +23,28 @@ import { meterUV } from './room.js';
 
 const std = (o) => new THREE.MeshStandardMaterial(o);
 const Y = new THREE.Vector3(0, 1, 0);
+const clamp = THREE.MathUtils.clamp;
+const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
-const LEG = 20; // the legs run along x = -20 and x = +20
-const CZ = -20; // center of the curve; the legs run from here south to the tape
+const LEG = 36; // the legs run along x = -36 and x = +36
+const CZ = -30; // center of the curve; the legs run from here south to the tape
 const HW = 1.8; // half-width of the path
 // Caution tape across each end of the U. The right leg's tape sits farther
-// down, leaving room after the mixed aviary for another exhibit.
-const TAPE_W = 28;
-const TAPE_E = 35;
+// down, leaving room for more exhibits.
+const TAPE_W = 49;
+const TAPE_E = 56;
 const tapeZ = (x) => (x < 0 ? TAPE_W : TAPE_E);
 const PATH_END = TAPE_E + 20; // the path carries on (off-limits) past the tape
-const BINO = { x: 0, z: CZ - LEG - 1.3 }; // at the top of the U, on the outer edge
-const BIG_TREE = { x: -8, z: 4 };
-const LOOKOUT_TREE = { x: 1.8, z: BINO.z - 10.7 }; // the obvious place to look (the toucan isn't there)
+// Binoculars on the outside of the curve, a little west of the top.
+const BINO_DIR = new THREE.Vector3(Math.cos(Math.PI * 1.5 - 0.75), 0, Math.sin(Math.PI * 1.5 - 0.75));
+const BINO = { x: BINO_DIR.x * (LEG + HW - 0.5), z: CZ + BINO_DIR.z * (LEG + HW - 0.5) };
+const LOOKOUT_TREE = { x: BINO.x + BINO_DIR.x * 10.7, z: BINO.z + BINO_DIR.z * 10.7 }; // the obvious place to look (the toucan isn't there)
+const BIG_TREES = [{ x: -8, z: 6 }, { x: -22, z: -16 }];
+// The big pond in the middle of the U. Its north end comes right up to the curve.
+const POND = { x: 0, z: CZ - 6.8, a: 15, b: 23, bank: 3 };
+const ISLAND = { x: POND.x + 6, z: POND.z + 3, r: 3 };
+// The trumpeter swans' enclosure, outside the top of the curve.
+const SWAN_FRONT = CZ - LEG - HW - 0.4;
 
 export const AVIARY_SPAWN = { x: -LEG, z: TAPE_W - 1.6, yaw: 0, pitch: -0.04 };
 // Yaw that makes a forward-facing (-z) model or camera look from (x, z) toward (tx, tz).
@@ -46,78 +57,54 @@ function nearestOnU(x, z, out) {
   const l = Math.hypot(x, dz) || 1;
   return out.set((x / l) * LEG, 0, CZ + (dz / l) * LEG);
 }
+const inPondFence = (x, z, pad = 0) => ((x - POND.x) / (POND.a + POND.bank + pad)) ** 2 + ((z - POND.z) / (POND.b + POND.bank + pad)) ** 2 < 1;
 
 export const BIRDS = {
-  peacock: {
-    name: 'Indian peacock',
-    es: 'Pavo real',
-    fact: 'Only the males have the famous train — about 200 feathers with shimmering “eyes”. They rattle it to show off.',
-  },
-  peacockWhite: {
-    name: 'White peacock',
-    es: 'Pavo real blanco',
-    fact: 'White peacocks aren’t albino — it’s a color variation called leucism.',
-  },
-  peahen: {
-    name: 'Peahen',
-    es: 'Pava real',
-    fact: 'The peahen is the female: brown and speckled, perfect camouflage while she sits on her eggs.',
-  },
+  peacock: { name: 'Indian peacock', es: 'Pavo real', fact: 'Only the males have the famous train — about 200 feathers with shimmering “eyes”. They rattle it to show off.' },
+  peacockWhite: { name: 'White peacock', es: 'Pavo real blanco', fact: 'White peacocks aren’t albino — it’s a color variation called leucism.' },
+  peahen: { name: 'Peahen', es: 'Pava real', fact: 'The peahen is the female: brown and speckled, perfect camouflage while she sits on her eggs.' },
+  emu: { name: 'Emu', es: 'Emú', fact: 'Emus are the second-tallest birds in the world. They can’t fly, but they can sprint at about 50 km/h.' },
+  rhea: { name: 'Greater rhea', es: 'Ñandú', fact: 'Greater rheas come from the grasslands of South America. The dads sit on the eggs and raise the chicks.' },
+  rheaWhite: { name: 'Albino greater rhea', es: 'Ñandú albino', fact: 'Albino rheas have no dark pigment, so their feathers are pure white.' },
   budgie: {
-    name: 'Budgerigar',
-    es: 'Periquito australiano',
-    fact: 'Budgies come from Australia, where wild flocks are always green and yellow.',
-    size: 0.42,
-    body: 0x7cc243, head: 0xf2d13a, beak: 0xe8c8a8, wing: 0x5a9a2a, wingMid: 0x3a6a22, wingTip: 0x1a1a1a, tail: 0x2a5fb0, tailLen: 0.3,
+    name: 'Budgerigar', es: 'Periquito australiano', fact: 'Budgies come from Australia, where wild flocks are always green and yellow.',
+    size: 0.42, body: 0x7cc243, head: 0xf2d13a, beak: 0xe8c8a8, wing: 0x5a9a2a, wingMid: 0x3a6a22, wingTip: 0x1a1a1a, tail: 0x2a5fb0, tailLen: 0.3,
   },
   budgieBlue: {
-    name: 'Blue budgerigar',
-    es: 'Periquito azul',
-    fact: 'Blue budgies come from a color mutation bred in captivity.',
-    size: 0.42,
-    body: 0x4f8ad8, head: 0xf4f1ea, beak: 0xe8c8a8, wing: 0x3a6ab0, wingMid: 0x24467a, wingTip: 0x1a1a1a, tail: 0x1f3d8c, tailLen: 0.3,
+    name: 'Blue budgerigar', es: 'Periquito azul', fact: 'Blue budgies come from a color mutation bred in captivity.',
+    size: 0.42, body: 0x4f8ad8, head: 0xf4f1ea, beak: 0xe8c8a8, wing: 0x3a6ab0, wingMid: 0x24467a, wingTip: 0x1a1a1a, tail: 0x1f3d8c, tailLen: 0.3,
   },
   scarlet: {
-    name: 'Scarlet macaw',
-    es: 'Guacamaya roja',
-    fact: 'Scarlet macaws live in the rainforests of southern Mexico and can live for decades. They mate for life.',
-    size: 1,
-    body: 0xd8262e, face: 0xf4efe6, beak: 0xe9dcc8, wing: 0xd8262e, wingMid: 0xf2c14e, wingTip: 0x2a5fb0, tail: 0xd8262e, tailTip: 0x2a5fb0, tailLen: 0.42,
+    name: 'Scarlet macaw', es: 'Guacamaya roja', fact: 'Scarlet macaws live in the rainforests of southern Mexico and can live for decades. They mate for life.',
+    size: 1, body: 0xd8262e, face: 0xf4efe6, beak: 0xe9dcc8, wing: 0xd8262e, wingMid: 0xf2c14e, wingTip: 0x2a5fb0, tail: 0xd8262e, tailTip: 0x2a5fb0, tailLen: 0.42,
   },
   military: {
-    name: 'Military macaw',
-    es: 'Guacamaya verde',
-    fact: 'The green military macaw nests in Mexico’s canyons and dry forests. It’s a threatened species.',
-    size: 1,
-    body: 0x5e9a3a, face: 0xf4efe6, crest: 0xd8262e, beak: 0x333333, wing: 0x5e9a3a, wingMid: 0x5e9a3a, wingTip: 0x2a5fb0, tail: 0xb8503a, tailTip: 0x2a5fb0, tailLen: 0.4,
+    name: 'Military macaw', es: 'Guacamaya verde', fact: 'The green military macaw nests in Mexico’s canyons and dry forests. It’s a threatened species.',
+    size: 1, body: 0x5e9a3a, face: 0xf4efe6, crest: 0xd8262e, beak: 0x333333, wing: 0x5e9a3a, wingMid: 0x5e9a3a, wingTip: 0x2a5fb0, tail: 0xb8503a, tailTip: 0x2a5fb0, tailLen: 0.4,
   },
+  trumpeter: { name: 'Trumpeter swan', es: 'Cisne trompetero', fact: 'Trumpeter swans are North America’s largest waterfowl, and their call really does sound like a trumpet.' },
+  blackSwan: { name: 'Black swan', es: 'Cisne negro', fact: 'Black swans come from Australia. When they fly you can see the white feathers on their wingtips.' },
+  mallard: { name: 'Mallard', es: 'Pato de collar', fact: 'Male mallards have a shiny green head and a thin white collar; the females are speckled brown.' },
+  woodDuck: { name: 'Wood duck', es: 'Pato arcoíris', fact: 'Wood ducks nest in tree holes. The ducklings jump out the day after they hatch!' },
+  mandarin: { name: 'Mandarin duck', es: 'Pato mandarín', fact: 'Mandarin ducks come from East Asia and are some of the most colorful ducks in the world.' },
+  pijije: { name: 'Black-bellied whistling duck', es: 'Pijije', fact: 'Pijijes whistle instead of quacking — listen for their “pi-ji-ji!” call.' },
+  canadaGoose: { name: 'Canada goose', es: 'Ganso canadiense', fact: 'Canada geese fly in V-shaped flocks, and some spend the winter in northern Mexico.' },
+  whiteGoose: { name: 'Farm goose', es: 'Ganso doméstico', fact: 'Farm geese descend from the wild greylag goose and make loud guards — they honk at strangers!' },
   parrot: {
-    name: 'Yellow-headed parrot',
-    es: 'Loro cabeza amarilla',
-    fact: 'Yellow-headed parrots are famous talkers — and endangered in the wild because of the pet trade.',
-    size: 0.62,
-    body: 0x4fa83a, head: 0xf2d13a, beak: 0xe9dcc8, wing: 0x4fa83a, wingMid: 0xd8262e, wingTip: 0x2a5fb0, tail: 0x4fa83a, tailLen: 0.16,
+    name: 'Yellow-headed parrot', es: 'Loro cabeza amarilla', fact: 'Yellow-headed parrots are famous talkers — and endangered in the wild because of the pet trade.',
+    size: 0.62, body: 0x4fa83a, head: 0xf2d13a, beak: 0xe9dcc8, wing: 0x4fa83a, wingMid: 0xd8262e, wingTip: 0x2a5fb0, tail: 0x4fa83a, tailLen: 0.16,
   },
   redcrown: {
-    name: 'Red-crowned parrot',
-    es: 'Loro tamaulipeco',
-    fact: 'Red-crowned parrots come from northeastern Mexico and are endangered in the wild.',
-    size: 0.6,
-    body: 0x4fa83a, crest: 0xd8263e, beak: 0xe9dcc8, wing: 0x4fa83a, wingMid: 0xd8263e, wingTip: 0x2a5fb0, tail: 0x5ab84a, tailLen: 0.16,
+    name: 'Red-crowned parrot', es: 'Loro tamaulipeco', fact: 'Red-crowned parrots come from northeastern Mexico and are endangered in the wild.',
+    size: 0.6, body: 0x4fa83a, crest: 0xd8263e, beak: 0xe9dcc8, wing: 0x4fa83a, wingMid: 0xd8263e, wingTip: 0x2a5fb0, tail: 0x5ab84a, tailLen: 0.16,
   },
   monk: {
-    name: 'Monk parakeet',
-    es: 'Cotorra argentina',
-    fact: 'Wild monk parakeets live all over Chapultepec forest and build huge shared stick nests.',
-    size: 0.45,
-    body: 0x6fbf4a, belly: 0xbfc6b8, face: 0xbfc6b8, beak: 0xf2b98a, wing: 0x6fbf4a, wingMid: 0x5aa83a, wingTip: 0x2a5fb0, tail: 0x6fbf4a, tailLen: 0.22,
+    name: 'Monk parakeet', es: 'Cotorra argentina', fact: 'Wild monk parakeets live all over Chapultepec forest and build huge shared stick nests.',
+    size: 0.45, body: 0x6fbf4a, belly: 0xbfc6b8, face: 0xbfc6b8, beak: 0xf2b98a, wing: 0x6fbf4a, wingMid: 0x5aa83a, wingTip: 0x2a5fb0, tail: 0x6fbf4a, tailLen: 0.22,
   },
   toucan: {
-    name: 'Keel-billed toucan',
-    es: 'Tucán pico de canoa',
-    fact: 'That rainbow bill is mostly hollow, so it’s surprisingly light. Toucans toss fruit in the air and catch it!',
-    size: 0.75,
-    body: 0x18181b, belly: 0xf2d13a, bill: 'toucan', wing: 0x18181b, tail: 0x18181b, tailLen: 0.22,
+    name: 'Keel-billed toucan', es: 'Tucán pico de canoa', fact: 'That rainbow bill is mostly hollow, so it’s surprisingly light. Toucans toss fruit in the air and catch it!',
+    size: 0.75, body: 0x18181b, belly: 0xf2d13a, bill: 'toucan', wing: 0x18181b, tail: 0x18181b, tailLen: 0.22,
   },
 };
 
@@ -145,13 +132,16 @@ export function buildAviary(ctx) {
   };
 
   // ---------- materials ----------
+  const grassTex = T.grass();
   const M = {
     floor: std({ map: T.forestFloor(), roughness: 1 }),
     path: std({ map: T.gravel(), color: 0xb8a07c, roughness: 1 }),
-    grass: std({ map: T.grass(), roughness: 1 }),
+    grass: std({ map: grassTex, roughness: 1 }),
+    dryGrass: std({ map: grassTex, color: 0xd8c483, roughness: 1 }),
     sand: std({ map: T.gravel(), color: 0xd8c49a, roughness: 1 }),
     wood: std({ map: T.woodGrain(), color: 0x8a6440, roughness: 0.7 }),
     darkWood: std({ map: T.woodGrain(), color: 0x5a3e28, roughness: 0.75 }),
+    fence: std({ map: T.woodGrain(), color: 0x7a5a3a, roughness: 0.8 }),
     frame: std({ color: 0x2f4a32, roughness: 0.55, metalness: 0.35 }),
     roofSheet: std({ color: 0x3f6a42, roughness: 0.6, metalness: 0.2 }),
     bark: std({ map: T.woodGrain(), color: 0x4a3626, roughness: 1 }),
@@ -162,6 +152,8 @@ export function buildAviary(ctx) {
     yellow: std({ color: 0xf2c14e, roughness: 0.5 }),
     stake: std({ color: 0xf6d21a, roughness: 0.5 }),
     stakeBand: std({ color: 0x141414, roughness: 0.5 }),
+    rock: std({ color: 0x6a645a, roughness: 1, flatShading: true }),
+    mud: std({ color: 0x2c3a2e, roughness: 1 }),
     vertex: std({ vertexColors: true, roughness: 0.75 }),
     vertexFlat: std({ vertexColors: true, roughness: 0.9, flatShading: true }),
     leaf: std({ roughness: 0.85, flatShading: true }),
@@ -169,6 +161,8 @@ export function buildAviary(ctx) {
   const meshTex = T.cageMesh();
   meshTex.repeat.set(9, 9);
   const meshMat = new THREE.MeshBasicMaterial({ map: meshTex, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false, color: 0x262826 });
+  const waterTex = T.waterNormals();
+  const waterMat = std({ color: 0x2f6f73, roughness: 0.08, metalness: 0.2, normalMap: waterTex, normalScale: new THREE.Vector2(0.5, 0.5), transparent: true, opacity: 0.9 });
 
   // ---------- helpers ----------
   const add = (p, mesh, x = 0, y = 0, z = 0) => {
@@ -201,6 +195,53 @@ export function buildAviary(ctx) {
   }
   const part = (geo, hex, s = [1, 1, 1], t = [0, 0, 0], r = [0, 0, 0]) =>
     tint(geo.scale(s[0], s[1], s[2]).rotateX(r[0]).rotateY(r[1]).rotateZ(r[2]).translate(t[0], t[1], t[2]), hex);
+  // A flat ellipse lying on the ground, with UVs in meters.
+  function disc(parent, mat, a, b, x, y, z) {
+    const geo = new THREE.CircleGeometry(1, 64).scale(a, b, 1);
+    const uv = geo.attributes.uv;
+    const p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i), p.getY(i));
+    const m = add(parent, new THREE.Mesh(geo, mat), x, y, z);
+    m.rotation.x = -Math.PI / 2;
+    return m;
+  }
+  // Fence posts and rails along a polyline of [x, z] points, merged into one mesh.
+  function fenceMesh(pts, closed, h, rails, mat = M.fence) {
+    const geos = [];
+    const n = pts.length;
+    for (const [x, z] of pts) geos.push(meterUV(new THREE.BoxGeometry(0.1, h, 0.1).translate(x, h / 2, z)));
+    for (let i = 0; i < (closed ? n : n - 1); i++) {
+      const [x0, z0] = pts[i];
+      const [x1, z1] = pts[(i + 1) % n];
+      const len = Math.hypot(x1 - x0, z1 - z0);
+      const ang = Math.atan2(z1 - z0, x1 - x0);
+      for (const y of rails) geos.push(meterUV(new THREE.BoxGeometry(len + 0.05, 0.07, 0.05).rotateY(-ang).translate((x0 + x1) / 2, y, (z0 + z1) / 2)));
+    }
+    return new THREE.Mesh(mergeGeometries(geos), mat);
+  }
+  // Wire mesh panel between two points.
+  function meshPanel(parent, x0, z0, x1, z1, h) {
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    const geo = new THREE.PlaneGeometry(len, h);
+    const uv = geo.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * len, uv.getY(i) * h);
+    const m = add(parent, new THREE.Mesh(geo, meshMat), (x0 + x1) / 2, h / 2 + 0.05, (z0 + z1) / 2);
+    m.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
+    return m;
+  }
+  // Points every ~2 m around a w x d rectangle whose front edge is z = 0.
+  function rectPoints(w, d, step = 2) {
+    const pts = [];
+    const side = (x0, z0, x1, z1) => {
+      const n = Math.max(1, Math.round(Math.hypot(x1 - x0, z1 - z0) / step));
+      for (let i = 0; i < n; i++) pts.push([x0 + ((x1 - x0) * i) / n, z0 + ((z1 - z0) * i) / n]);
+    };
+    side(-w / 2, 0, w / 2, 0);
+    side(w / 2, 0, w / 2, -d);
+    side(w / 2, -d, -w / 2, -d);
+    side(-w / 2, -d, -w / 2, 0);
+    return pts;
+  }
 
   // ---------- where you can walk ----------
   // Stay on the path, and don't cross the tape at either end.
@@ -242,22 +283,29 @@ export function buildAviary(ctx) {
   );
   sky.renderOrder = -1;
   group.add(sky);
+  // The sun's shadow box follows you around the (big) trail.
   const sun = new THREE.DirectionalLight(0xfff0d8, 2.8);
-  sun.target.position.set(-3, 0, -7);
-  sun.position.copy(sunDir).multiplyScalar(100).add(sun.target.position);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 30, far: 200 });
+  Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 30, far: 200 });
   sun.shadow.bias = -0.0006;
   sun.shadow.normalBias = 0.04;
   sun.shadow.autoUpdate = false;
   sun.shadow.needsUpdate = true;
   group.add(sun, sun.target);
   shadowLights.push(sun);
+  const shadowCenter = new THREE.Vector3(1e9, 0, 0);
+  function centerShadows(x, z) {
+    shadowCenter.set(x, 0, z);
+    sun.target.position.set(x, 0, z);
+    sun.position.copy(sunDir).multiplyScalar(100).add(sun.target.position);
+    sun.target.updateMatrixWorld();
+    api.dirty = true;
+  }
+  centerShadows(AVIARY_SPAWN.x, AVIARY_SPAWN.z);
   group.add(new THREE.HemisphereLight(0xd2e4ff, 0x3a4a2a, 0.8));
-
   {
-    const g = new THREE.PlaneGeometry(600, 600);
+    const g = new THREE.PlaneGeometry(800, 800);
     const uv = g.attributes.uv;
     const p = g.attributes.position;
     for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i), p.getY(i));
@@ -269,8 +317,9 @@ export function buildAviary(ctx) {
   // ---------- the U-shaped path ----------
   const center = [];
   for (let z = PATH_END; z > CZ; z -= 1) center.push([-LEG, z]);
-  for (let i = 0; i <= 56; i++) {
-    const th = Math.PI + (i / 56) * Math.PI;
+  const curveSteps = 96;
+  for (let i = 0; i <= curveSteps; i++) {
+    const th = Math.PI + (i / curveSteps) * Math.PI;
     center.push([Math.cos(th) * LEG, CZ + Math.sin(th) * LEG]);
   }
   for (let z = CZ + 1; z <= PATH_END; z += 1) center.push([LEG, z]);
@@ -322,7 +371,7 @@ export function buildAviary(ctx) {
       const nz = (x - px) / l;
       for (const s of [1, -1]) if (rand() < 0.8) spots.push([x + nx * (HW + 0.25) * s, z + nz * (HW + 0.25) * s, 0.09 + rand() * 0.1]);
     });
-    const stones = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), std({ color: 0x6a645a, roughness: 1, flatShading: true }), spots.length);
+    const stones = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), M.rock, spots.length);
     spots.forEach(([x, z, s], i) => stones.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(x, s * 0.3, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rand(), rand() * 6, rand())), new THREE.Vector3(s * 1.3, s, s * 1.1))));
     group.add(stones);
     noRay(stones);
@@ -336,22 +385,22 @@ export function buildAviary(ctx) {
   const tapeParts = [];
   const span = 2 * (HW + 0.4);
   for (const x0 of [-LEG, LEG]) {
-    const TAPE_Z = tapeZ(x0);
+    const tz = tapeZ(x0);
     for (const s of [-1, 1]) {
       const sx = x0 + s * (HW + 0.4);
-      const pole = cyl(group, M.stake, 0.05, 0.05, 1.3, sx, 0.65, TAPE_Z, 10);
+      const pole = cyl(group, M.stake, 0.05, 0.05, 1.3, sx, 0.65, tz, 10);
       tapeParts.push(pole);
-      for (const y of [0.25, 0.6, 0.95]) tapeParts.push(cyl(group, M.stakeBand, 0.052, 0.052, 0.12, sx, y, TAPE_Z, 10));
+      for (const y of [0.25, 0.6, 0.95]) tapeParts.push(cyl(group, M.stakeBand, 0.052, 0.052, 0.12, sx, y, tz, 10));
       cast(pole);
     }
     for (const [y, sag] of [[1.15, 0.14], [0.68, 0.1]]) {
       const geo = new THREE.PlaneGeometry(span, 0.08, 30, 1);
-      const m = add(group, new THREE.Mesh(geo, tapeMat), x0, y, TAPE_Z);
+      const m = add(group, new THREE.Mesh(geo, tapeMat), x0, y, tz);
       m.rotation.y = Math.PI; // readable from inside the trail
       tapes.push({ m, base: Float32Array.from(geo.attributes.position.array), sag, phase: rand() * 6 });
       tapeParts.push(m);
     }
-    const board = add(group, new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.28), new THREE.MeshStandardMaterial({ map: T.sign('AUTHORIZED ACCESS ONLY', { bg: '#f6d21a', fg: '#141414', w: 1024, h: 200, font: 'bold 62px Arial, sans-serif' }), side: THREE.DoubleSide, roughness: 0.5 })), x0, 0.88, TAPE_Z - 0.01);
+    const board = add(group, new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.28), new THREE.MeshStandardMaterial({ map: T.sign('AUTHORIZED ACCESS ONLY', { bg: '#f6d21a', fg: '#141414', w: 1024, h: 200, font: 'bold 62px Arial, sans-serif' }), side: THREE.DoubleSide, roughness: 0.5 })), x0, 0.88, tz - 0.01);
     board.rotation.y = Math.PI;
     tapeParts.push(board);
   }
@@ -363,7 +412,7 @@ export function buildAviary(ctx) {
     },
   });
 
-  // ---------- birds (shared builders) ----------
+  // ---------- perching birds ----------
   function birdGeos(sp) {
     const parts = [part(new THREE.SphereGeometry(0.12, 12, 9), sp.body, [1, 1, 1.7])];
     if (sp.belly) parts.push(part(new THREE.SphereGeometry(0.1, 10, 8), sp.belly, [0.95, 0.9, 1.2], [0, -0.03, 0.08]));
@@ -424,7 +473,7 @@ export function buildAviary(ctx) {
     wings(b, 0.1 + preen * 0.6, 1.35 - preen * 0.5);
   }
 
-  // Peacocks walk on the ground and, when they feel like it, fan their tails.
+  // ---------- peacocks ----------
   const fanMat = std({ map: T.peacockFan(), side: THREE.DoubleSide, roughness: 0.45, metalness: 0.1, alphaTest: 0.2 });
   const fanWhiteMat = std({ map: T.peacockFan(true), side: THREE.DoubleSide, roughness: 0.6, alphaTest: 0.2 });
   function makePeacock(kind) {
@@ -451,7 +500,6 @@ export function buildAviary(ctx) {
       birdMat,
     );
     root.add(body);
-    // Neck + head on a pivot, so the bird can peck.
     const neck = node(root, 0, 0.72, 0.16);
     const crest = [];
     for (let i = -2; i <= 2; i++) {
@@ -481,25 +529,202 @@ export function buildAviary(ctx) {
     return { root, neck, fan, body, male, kind, heading: rand() * 6, pos: new THREE.Vector3(), target: new THREE.Vector3(), pauseUntil: 0, displayUntil: 0, nextShow: 20 + rand() * 40, fanK: 0, phase: rand() * 6 };
   }
 
-  // ---------- the five mini aviaries ----------
+  // ---------- emus and rheas: tall birds that walk around their paddock ----------
+  function makeRunner(kind) {
+    const emu = kind === 'emu';
+    const white = kind === 'rheaWhite';
+    const body = emu ? 0x5a4a3a : white ? 0xf2f0ea : 0x8f8678;
+    const back = emu ? 0x46382a : white ? 0xe6e3db : 0x766d60;
+    const neckC = emu ? 0x7d8a9a : white ? 0xf0eee8 : 0x9a9284;
+    const legC = emu ? 0x7a6e5e : white ? 0xd8cfc4 : 0x8a8478;
+    const root = new THREE.Group();
+    const bodyGeo = [
+      part(new THREE.SphereGeometry(0.5, 14, 10), body, [0.72, 0.68, 1.0], [0, 1.05, 0]),
+      part(new THREE.SphereGeometry(0.42, 12, 9), back, [0.7, 0.55, 0.95], [0, 1.2, -0.12]),
+    ];
+    // Shaggy tufts.
+    for (let i = 0; i < 7; i++) bodyGeo.push(part(new THREE.SphereGeometry(0.16, 6, 4), i % 2 ? back : body, [1, 0.8, 1.3], [(rand() - 0.5) * 0.5, 1.0 + rand() * 0.3, -0.25 - rand() * 0.25]));
+    if (!emu && !white) bodyGeo.push(part(new THREE.CylinderGeometry(0.11, 0.12, 0.12, 10), 0x2a2622, [1, 1, 1], [0, 1.38, 0.33], [0.4, 0, 0]));
+    root.add(new THREE.Mesh(mergeGeometries(bodyGeo), birdMat));
+    // Neck and head on a pivot (pecking).
+    const neck = node(root, 0, 1.3, 0.35);
+    neck.add(
+      new THREE.Mesh(
+        mergeGeometries([
+          part(new THREE.CylinderGeometry(0.05, 0.08, 0.62, 10), neckC, [1, 1, 1], [0, 0.28, 0.06], [0.22, 0, 0]),
+          part(new THREE.SphereGeometry(0.085, 10, 8), emu ? 0x3a3a3c : neckC, [0.95, 0.9, 1.2], [0, 0.6, 0.15]),
+          part(new THREE.ConeGeometry(0.035, 0.12, 6), emu ? 0x2a2a2a : 0x8a8070, [1, 0.6, 1], [0, 0.58, 0.28], [Math.PI / 2 + 0.2, 0, 0]),
+          part(new THREE.SphereGeometry(0.018, 6, 5), white ? 0x8fb4d8 : 0x1a1a1a, [1, 1, 1], [0.06, 0.63, 0.2]),
+          part(new THREE.SphereGeometry(0.018, 6, 5), white ? 0x8fb4d8 : 0x1a1a1a, [1, 1, 1], [-0.06, 0.63, 0.2]),
+        ]),
+        birdMat,
+      ),
+    );
+    // Legs on hip pivots (walking).
+    const legs = [-1, 1].map((sx) => {
+      const hip = node(root, sx * 0.14, 1.0, 0.02);
+      hip.add(
+        new THREE.Mesh(
+          mergeGeometries([
+            part(new THREE.CylinderGeometry(0.04, 0.06, 1.0, 8), legC, [1, 1, 1], [0, -0.5, 0]),
+            part(new THREE.BoxGeometry(0.12, 0.04, 0.2), legC, [1, 1, 1], [0, -0.99, 0.06]),
+          ]),
+          birdMat,
+        ),
+      );
+      return hip;
+    });
+    root.scale.setScalar(emu ? 1 : 0.9);
+    root.traverse((o) => (o.userData.species = kind));
+    birdsGroup.add(root);
+    return { root, neck, legs, pos: new THREE.Vector3(), target: new THREE.Vector3(), heading: rand() * 6, pauseUntil: 0, stride: 0, phase: rand() * 6, walk: emu ? 0.7 : 0.6, run: emu ? 1.8 : 1.6 };
+  }
+
+  // ---------- swans, ducks and geese ----------
+  const SWIMMERS = {
+    trumpeter: { body: 0xf6f6f2, wing: 0xeeeeea, neck: 0xf6f6f2, head: 0xf6f6f2, bill: 0x141414, size: 1.25, neckLen: 1 },
+    blackSwan: { body: 0x1a1a1e, wing: 0x26262a, neck: 0x1a1a1e, head: 0x1a1a1e, bill: 0xc8262e, billTip: 0xf4f4f0, tips: 0xf4f4f0, size: 1.1, neckLen: 1 },
+    mallard: { body: 0xb8b4ac, breast: 0x6a3a2a, neck: 0x1f6a3a, head: 0x1f6a3a, collar: 0xf4f4f0, bill: 0xe8c83a, tail: 0x1a1a1a, size: 0.42 },
+    mallardHen: { body: 0x8a6a4a, breast: 0x7a5a3a, neck: 0x8a6a4a, head: 0x7a5a3a, bill: 0xd88a3a, size: 0.4, species: 'mallard' },
+    woodDuck: { body: 0xc8a878, breast: 0x7a3a2a, neck: 0x2a5a4a, head: 0x2a4a6a, cheek: 0xf4f4f0, crest: 0x2a5a4a, bill: 0xd8403a, size: 0.4 },
+    mandarin: { body: 0xd8783a, breast: 0x5a2a4a, neck: 0xd8783a, head: 0x3a5a3a, cheek: 0xf4f4f0, crest: 0xd8783a, bill: 0xd8403a, size: 0.38 },
+    pijije: { body: 0xa0522d, breast: 0xa0522d, belly: 0x18181b, neck: 0x8a7a6a, head: 0x8a7a6a, bill: 0xff4a6a, size: 0.44 },
+    canadaGoose: { body: 0x8a7a68, breast: 0xc8bfae, neck: 0x141414, head: 0x141414, cheek: 0xf4f4f0, bill: 0x141414, tail: 0x141414, size: 0.75, neckLen: 0.7 },
+    whiteGoose: { body: 0xf4f4f0, breast: 0xf4f4f0, neck: 0xf4f4f0, head: 0xf4f4f0, bill: 0xf28a2a, size: 0.75, neckLen: 0.65 },
+  };
+  // Built facing +z at unit size, floating (water line at y = 0).
+  function swimmerGeo(sp) {
+    const swan = !!sp.neckLen && sp.neckLen >= 1;
+    const goose = !!sp.neckLen && sp.neckLen < 1;
+    const parts = [
+      part(new THREE.SphereGeometry(0.32, 14, 10), sp.body, [0.8, 0.55, 1.3], [0, 0.1, 0]),
+      part(new THREE.SphereGeometry(0.26, 12, 9), sp.breast || sp.body, [0.8, 0.6, 0.8], [0, 0.12, 0.2]),
+      part(new THREE.SphereGeometry(0.2, 10, 8), sp.wing || sp.body, [0.55, 0.45, 1.2], [0.15, 0.17, -0.06]),
+      part(new THREE.SphereGeometry(0.2, 10, 8), sp.wing || sp.body, [0.55, 0.45, 1.2], [-0.15, 0.17, -0.06]),
+      part(new THREE.ConeGeometry(0.12, 0.22, 8), sp.tail || sp.body, [1, 0.5, 1], [0, 0.16, -0.42], [-Math.PI / 2 + 0.35, 0, 0]),
+    ];
+    if (sp.belly) parts.push(part(new THREE.SphereGeometry(0.3, 12, 8), sp.belly, [0.78, 0.4, 1.2], [0, 0.0, 0.02]));
+    if (sp.tips) for (const s of [-1, 1]) parts.push(part(new THREE.BoxGeometry(0.06, 0.03, 0.16), sp.tips, [1, 1, 1], [s * 0.17, 0.2, -0.32]));
+    let headAt;
+    if (swan) {
+      parts.push(part(new THREE.CylinderGeometry(0.05, 0.075, 0.42, 10), sp.neck, [1, 1, 1], [0, 0.32, 0.36], [0.55, 0, 0]));
+      parts.push(part(new THREE.CylinderGeometry(0.045, 0.05, 0.38, 10), sp.neck, [1, 1, 1], [0, 0.68, 0.45], [-0.12, 0, 0]));
+      headAt = [0, 0.88, 0.47];
+    } else if (goose) {
+      parts.push(part(new THREE.CylinderGeometry(0.05, 0.07, 0.38, 10), sp.neck, [1, 1, 1], [0, 0.36, 0.3], [0.25, 0, 0]));
+      headAt = [0, 0.56, 0.36];
+    } else {
+      parts.push(part(new THREE.CylinderGeometry(0.06, 0.08, 0.16, 10), sp.neck, [1, 1, 1], [0, 0.26, 0.28], [0.3, 0, 0]));
+      headAt = [0, 0.37, 0.32];
+    }
+    const [hx, hy, hz] = headAt;
+    parts.push(part(new THREE.SphereGeometry(0.085, 12, 9), sp.head, [0.9, 0.95, 1.15], [hx, hy, hz]));
+    parts.push(part(new THREE.BoxGeometry(0.06, 0.035, 0.13), sp.bill, [1, 1, 1], [hx, hy - 0.02, hz + 0.12], [0.15, 0, 0]));
+    if (sp.billTip) parts.push(part(new THREE.BoxGeometry(0.062, 0.037, 0.03), sp.billTip, [1, 1, 1], [hx, hy - 0.03, hz + 0.17], [0.15, 0, 0]));
+    if (sp.collar) parts.push(part(new THREE.TorusGeometry(0.075, 0.012, 6, 16), sp.collar, [1, 1, 1], [0, 0.24, 0.27], [Math.PI / 2 - 0.3, 0, 0]));
+    if (sp.cheek) for (const s of [-1, 1]) parts.push(part(new THREE.SphereGeometry(0.04, 8, 6), sp.cheek, [0.4, 0.8, 1.4], [hx + s * 0.07, hy - 0.01, hz - 0.01]));
+    if (sp.crest) parts.push(part(new THREE.SphereGeometry(0.06, 8, 6), sp.crest, [0.6, 0.8, 1.5], [hx, hy + 0.04, hz - 0.1]));
+    for (const s of [-1, 1]) parts.push(part(new THREE.SphereGeometry(0.013, 6, 5), 0x111111, [1, 1, 1], [hx + s * 0.075, hy + 0.02, hz + 0.04]));
+    return mergeGeometries(parts);
+  }
+  const swimGeos = {};
+  for (const k of Object.keys(SWIMMERS)) swimGeos[k] = swimmerGeo(SWIMMERS[k]);
+  const swimList = [];
+  function makeSwimmer(kind, pond) {
+    const sp = SWIMMERS[kind];
+    const root = new THREE.Group();
+    const m = new THREE.Mesh(swimGeos[kind], birdMat);
+    m.scale.setScalar(sp.size);
+    m.userData.species = sp.species || kind;
+    root.add(m);
+    birdsGroup.add(root);
+    const a = rand() * 6.28;
+    const rr = Math.sqrt(rand()) * 0.7;
+    const s = { root, mesh: m, pond, pos: new THREE.Vector3(pond.x + Math.cos(a) * pond.a * rr, 0, pond.z + Math.sin(a) * pond.b * rr), target: new THREE.Vector3(), heading: rand() * 6, phase: rand() * 6, speed: sp.size > 0.7 ? 0.32 : 0.4 };
+    newSwimTarget(s);
+    swimList.push(s);
+    return s;
+  }
+  function newSwimTarget(s) {
+    const P = s.pond;
+    for (let k = 0; k < 10; k++) {
+      const a = rand() * 6.28;
+      const rr = Math.sqrt(rand()) * 0.82;
+      s.target.set(P.x + Math.cos(a) * P.a * rr, 0, P.z + Math.sin(a) * P.b * rr);
+      if (!P.island || Math.hypot(s.target.x - P.island.x, s.target.z - P.island.z) > P.island.r + 1) return;
+    }
+  }
+  function updateSwimmer(s, t, dt) {
+    const P = s.pond;
+    const feeding = t < P.feedUntil;
+    if (feeding && !s.fed) {
+      s.fed = true;
+      s.target.set(P.feed.x + (rand() - 0.5) * P.spread, 0, P.feed.z + (rand() - 0.5) * P.spread * 0.5);
+    }
+    if (!feeding) s.fed = false;
+    tmp.subVectors(s.target, s.pos);
+    tmp.y = 0;
+    const dist = tmp.length();
+    if (!feeding && dist < 0.3) newSwimTarget(s);
+    const diff = wrapAngle(Math.atan2(tmp.x, tmp.z) - s.heading);
+    s.heading += clamp(diff, -dt * 1.4, dt * 1.4);
+    const sp = dist > 0.5 ? (feeding ? s.speed * 2.2 : s.speed) : 0;
+    s.pos.x += Math.sin(s.heading) * sp * dt;
+    s.pos.z += Math.cos(s.heading) * sp * dt;
+    const k = ((s.pos.x - P.x) / (P.a - 0.5)) ** 2 + ((s.pos.z - P.z) / (P.b - 0.5)) ** 2;
+    if (k > 1) {
+      s.pos.x = P.x + (s.pos.x - P.x) / Math.sqrt(k);
+      s.pos.z = P.z + (s.pos.z - P.z) / Math.sqrt(k);
+    }
+    if (P.island) {
+      const ix = s.pos.x - P.island.x;
+      const iz = s.pos.z - P.island.z;
+      const d = Math.hypot(ix, iz) || 1;
+      if (d < P.island.r + 0.6) {
+        s.pos.x = P.island.x + (ix / d) * (P.island.r + 0.6);
+        s.pos.z = P.island.z + (iz / d) * (P.island.r + 0.6);
+      }
+    }
+    s.root.position.set(s.pos.x, P.y + Math.sin(t * 2 + s.phase) * 0.01, s.pos.z);
+    s.root.rotation.y = s.heading;
+    const dabble = (feeding && dist < 1.2) || Math.sin(t * 0.4 + s.phase * 3) > 0.92;
+    s.root.rotation.x = dabble ? Math.max(0, Math.sin(t * 4 + s.phase)) * 0.7 : 0;
+  }
+
+  // ---------- exhibits ----------
+  const exhibits = []; // everything you can visit: { name, frontPt, sound }
   const cages = [];
-  const cageRects = [];
+  const rects = []; // keep trees out of these
+  const footprint = (toWorld, w, d) => {
+    const c = [toWorld(-w / 2, 0, 0), toWorld(w / 2, 0, 0), toWorld(-w / 2, 0, -d), toWorld(w / 2, 0, -d)];
+    rects.push({ x0: Math.min(...c.map((v) => v.x)), x1: Math.max(...c.map((v) => v.x)), z0: Math.min(...c.map((v) => v.z)), z1: Math.max(...c.map((v) => v.z)) });
+  };
+  function signPost(parent, x, z, title, sub, colors, fact) {
+    const sg = node(parent, x, 0, z);
+    for (const dx of [-0.42, 0.42]) box(sg, M.darkWood, 0.06, 1.0, 0.06, dx, 0.5, -0.02);
+    const board = add(sg, new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.75), std({ map: T.birdSign(title, sub, colors), roughness: 0.7 })), 0, 1.18, 0.02);
+    board.rotation.x = -0.2;
+    box(sg, M.darkWood, 1.08, 0.83, 0.04, 0, 1.18, -0.01).rotation.x = -0.2;
+    cast(sg);
+    interact(sg, {
+      label: () => 'Read the sign',
+      act: () => {
+        ctx.toast(fact, 5600);
+        ctx.complete('sign');
+      },
+    });
+    return sg;
+  }
+
+  // Mini aviaries: wire-mesh cages with perches.
   function makeCage(def) {
     const { x, z, w, d, h = 3.4, yaw = Math.PI / 2 } = def;
     const g = node(group, x, 0, z, yaw);
     const origin = new THREE.Vector3(x, 0, z);
     const toWorld = (lx, ly, lz) => new THREE.Vector3(lx, ly, lz).applyAxisAngle(Y, yaw).add(origin);
-    const corners = [toWorld(-w / 2, 0, 0), toWorld(w / 2, 0, 0), toWorld(-w / 2, 0, -d), toWorld(w / 2, 0, -d)];
-    cageRects.push({
-      x0: Math.min(...corners.map((c) => c.x)),
-      x1: Math.max(...corners.map((c) => c.x)),
-      z0: Math.min(...corners.map((c) => c.z)),
-      z1: Math.max(...corners.map((c) => c.z)),
-    });
-    const cage = { def, g, yaw, w, d, h, toWorld, perches: [], birds: [], peacocks: [], frontPt: toWorld(0, 0, 1.2), visited: false };
+    footprint(toWorld, w, d);
+    const cage = { def, g, yaw, w, d, h, toWorld, perches: [], birds: [], peacocks: [], frontPt: toWorld(0, 0, 1.2) };
     const solidParts = [];
-
-    // Floor, kick boards, frame and the wire mesh.
     add(g, new THREE.Mesh(meterUV(new THREE.BoxGeometry(w - 0.08, 0.04, d - 0.08)), def.floor || M.sand), 0, 0.02, -d / 2);
     const kb = 0.45;
     solidParts.push(box(g, M.darkWood, w, kb, 0.06, 0, kb / 2, 0), box(g, M.darkWood, w, kb, 0.06, 0, kb / 2, -d));
@@ -531,13 +756,11 @@ export function buildAviary(ctx) {
     }
     solidParts.push(box(g, M.frame, w, 0.08, 0.08, 0, h, 0), box(g, M.frame, w, 0.08, 0.08, 0, h, -d));
     solidParts.push(box(g, M.frame, 0.08, 0.08, d, -w / 2, h, -d / 2), box(g, M.frame, 0.08, 0.08, d, w / 2, h, -d / 2));
-    // A keeper's door on the side (shut).
     solidParts.push(box(g, M.frame, 0.06, 2.0, 0.9, w / 2 + 0.04, 1.0, -d + 0.9));
-    // Name plate over the front.
     solidParts.push(box(g, M.darkWood, 3.0, 0.65, 0.06, 0, h + 0.42, 0.02));
     const plate = add(g, new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.52), new THREE.MeshBasicMaterial({ map: T.sign(def.title, { bg: '#2f5d3a', w: 1024, h: 190, font: 'bold 92px Georgia, serif' }), toneMapped: false })), 0, h + 0.42, 0.06);
 
-    // Inside: a dead tree, nest boxes, water, and a feeding tray at the front.
+    // Inside: a dead tree, nest boxes, water and a feeding tray.
     const tx = w * 0.3;
     const tz = -d * 0.62;
     const tree = [new THREE.CylinderGeometry(0.08, 0.14, h - 0.3, 8).translate(tx, (h - 0.3) / 2, tz)];
@@ -561,7 +784,6 @@ export function buildAviary(ctx) {
     seeds.forEach((s) => (s.visible = false));
     cage.showSeeds = (on) => seeds.forEach((s) => (s.visible = on));
 
-    // Perch bars, with posts holding them up.
     if (def.spacing) {
       const bar = (lz, y, len, isFront) => {
         const c = cyl(g, M.bark, 0.035, 0.035, len, 0, y, lz, 8);
@@ -577,39 +799,123 @@ export function buildAviary(ctx) {
       bar(-0.32, 1.5, (w - 1.2) * 0.75, true);
     }
     cast(...solidParts, ...trayParts);
-    interact([front, plate, ...trayParts, ...solidParts], {
-      label: () => def.action,
-      act: () => def.onAct(cage),
-    });
-
-    // The sign in front.
-    const sg = node(g, -w / 2 + 0.7, 0, 0.25);
-    for (const dx of [-0.42, 0.42]) box(sg, M.darkWood, 0.06, 1.0, 0.06, dx, 0.5, -0.02);
-    const board = add(sg, new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.75), std({ map: T.birdSign(def.signTitle || def.title, def.sub, def.colors), roughness: 0.7 })), 0, 1.18, 0.02);
-    board.rotation.x = -0.2;
-    box(sg, M.darkWood, 1.08, 0.83, 0.04, 0, 1.18, -0.01).rotation.x = -0.2;
-    cast(sg);
-    interact(sg, {
-      label: () => 'Read the sign',
-      act: () => {
-        ctx.toast(def.fact, 5600);
-        ctx.complete('sign');
-      },
-    });
+    interact([front, plate, ...trayParts, ...solidParts], { label: () => def.action, act: () => def.onAct(cage) });
+    signPost(g, -w / 2 + 0.7, 0.25, def.signTitle || def.title, def.sub, def.colors, def.fact);
     cages.push(cage);
+    exhibits.push({ name: def.name, frontPt: cage.frontPt, sound: def.sound });
     return cage;
   }
 
+  // Fenced enclosures: the paddocks and the trumpeter swans.
+  function makeEnclosure(def) {
+    const { x, z, w, d, yaw = Math.PI / 2, h = 1.8, rails = [0.3, 1.0, 1.75], mesh = true } = def;
+    const g = node(group, x, 0, z, yaw);
+    const origin = new THREE.Vector3(x, 0, z);
+    const toWorld = (lx, ly, lz) => new THREE.Vector3(lx, ly, lz).applyAxisAngle(Y, yaw).add(origin);
+    footprint(toWorld, w, d);
+    const enc = { def, g, yaw, w, d, toWorld, animals: [], feedUntil: 0, frontPt: toWorld(0, 0, 1.2) };
+    add(g, new THREE.Mesh(meterUV(new THREE.BoxGeometry(w - 0.1, 0.03, d - 0.1)), def.floor || M.dryGrass), 0, 0.015, -d / 2);
+    const fence = add(g, fenceMesh(rectPoints(w, d), true, h, rails));
+    const parts = [fence];
+    if (mesh) {
+      parts.push(meshPanel(g, -w / 2, 0, w / 2, 0, h - 0.1));
+      meshPanel(g, w / 2, 0, w / 2, -d, h - 0.1);
+      meshPanel(g, w / 2, -d, -w / 2, -d, h - 0.1);
+      meshPanel(g, -w / 2, -d, -w / 2, 0, h - 0.1);
+    }
+    cast(fence);
+    interact(parts, { label: () => def.action, act: () => def.onAct(enc) });
+    signPost(g, -w / 2 + 1.0, 0.3, def.signTitle, def.sub, def.colors, def.fact);
+    exhibits.push({ name: def.name, frontPt: enc.frontPt, sound: def.sound });
+    return enc;
+  }
+  // A shelter, troughs and some rocks for a paddock.
+  function furnishPaddock(enc) {
+    const { g, w, d } = enc;
+    const hut = new THREE.Group();
+    g.add(hut);
+    box(hut, M.darkWood, 3.2, 0.1, 2.6, w / 2 - 2.0, 2.1, -d + 1.6).rotation.x = 0.18;
+    for (const [px, pz] of [[w / 2 - 3.5, -d + 0.4], [w / 2 - 0.5, -d + 0.4], [w / 2 - 3.5, -d + 2.8], [w / 2 - 0.5, -d + 2.8]]) {
+      const tall = pz < -d + 1;
+      box(hut, M.darkWood, 0.12, tall ? 2.3 : 1.8, 0.12, px, tall ? 1.15 : 0.9, pz);
+    }
+    box(hut, M.sand, 2.9, 0.05, 2.3, w / 2 - 2.0, 0.04, -d + 1.6);
+    cast(hut);
+    box(g, M.wood, 1.6, 0.35, 0.45, 1.2, 0.18, -0.75);
+    const feed = add(g, new THREE.Mesh(meterUV(new THREE.BoxGeometry(1.5, 0.04, 0.36)), M.seed), 1.2, 0.36, -0.75);
+    feed.visible = false;
+    enc.feed = feed;
+    box(g, M.iron, 1.2, 0.3, 0.5, -w / 2 + 2.5, 0.15, -d + 1.2);
+    add(g, new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.4), M.water), -w / 2 + 2.5, 0.31, -d + 1.2).rotation.x = -Math.PI / 2;
+    for (let i = 0; i < 4; i++) {
+      const r = add(g, new THREE.Mesh(new THREE.DodecahedronGeometry(0.3 + rand() * 0.3, 0), M.rock), (rand() - 0.5) * (w - 3), 0.15, -d * (0.3 + rand() * 0.5));
+      r.scale.y = 0.6;
+      cast(r);
+    }
+  }
+  const randomInside = (enc) => enc.toWorld((rand() - 0.5) * (enc.w - 2.2), 0, -1.2 - rand() * (enc.d - 2.6));
+  const nearTrough = (enc) => enc.toWorld(1.2 + (rand() - 0.5) * 2.6, 0, -1.4 - rand() * 0.5);
+  function addRunner(enc, kind) {
+    const a = makeRunner(kind);
+    a.enc = enc;
+    a.pos.copy(randomInside(enc));
+    a.target.copy(randomInside(enc));
+    enc.animals.push(a);
+    return a;
+  }
+  function updateRunner(a, t, dt) {
+    const e = a.enc;
+    const feeding = t < e.feedUntil;
+    if (feeding && !a.fed) {
+      a.fed = true;
+      a.target.copy(nearTrough(e));
+      a.pauseUntil = 0;
+    }
+    if (!feeding) a.fed = false;
+    const dx = a.target.x - a.pos.x;
+    const dz = a.target.z - a.pos.z;
+    const dist = Math.hypot(dx, dz);
+    let moving = false;
+    let pecking = false;
+    if (t < a.pauseUntil) pecking = true;
+    else if (dist > 0.25) {
+      const diff = wrapAngle(Math.atan2(dx, dz) - a.heading);
+      a.heading += clamp(diff, -dt * 1.8, dt * 1.8);
+      const sp = (feeding ? a.run : a.walk) * Math.max(0, Math.cos(diff));
+      a.pos.x += Math.sin(a.heading) * sp * dt;
+      a.pos.z += Math.cos(a.heading) * sp * dt;
+      a.stride += sp * dt * 3.4;
+      moving = sp > 0.05;
+    } else {
+      a.pauseUntil = t + (feeding ? 1.2 + rand() : 2 + rand() * 5);
+      a.target.copy(feeding ? nearTrough(e) : randomInside(e));
+    }
+    // Don't walk through each other.
+    for (const o of e.animals) {
+      if (o === a) continue;
+      const ox = a.pos.x - o.pos.x;
+      const oz = a.pos.z - o.pos.z;
+      const od = Math.hypot(ox, oz);
+      if (od > 0.001 && od < 0.85) {
+        a.pos.x += (ox / od) * (0.85 - od) * 0.5;
+        a.pos.z += (oz / od) * (0.85 - od) * 0.5;
+      }
+    }
+    a.root.position.set(a.pos.x, moving ? Math.abs(Math.sin(a.stride)) * 0.05 : 0, a.pos.z);
+    a.root.rotation.y = a.heading;
+    a.legs[0].rotation.x = moving ? Math.sin(a.stride) * 0.6 : 0;
+    a.legs[1].rotation.x = moving ? -Math.sin(a.stride) * 0.6 : 0;
+    a.neck.rotation.x = pecking ? Math.max(0, Math.sin(t * 2.5 + a.phase)) * 1.3 : Math.sin(t * 1.5 + a.phase) * 0.08;
+  }
+
+  // ---------- birds in cages: hopping between perches ----------
   let time = 0;
-  // Birds hop between perch slots; "front" slots are on the bar right by the mesh.
   function claim(b, slot) {
     if (b.slot) b.slot.who = null;
     b.slot = slot;
     slot.who = b;
   }
-  function freeSlots(cage, front) {
-    return cage.perches.filter((s) => !s.who && s.front === front);
-  }
+  const freeSlots = (cage, front) => cage.perches.filter((s) => !s.who && s.front === front);
   function hopTo(b, slot, t, delay = 0) {
     claim(b, slot);
     b.mode = 'travel';
@@ -659,7 +965,6 @@ export function buildAviary(ctx) {
       }
     }
   }
-  // Call some of a cage's birds down to the front bar, nearest the middle first.
   function summon(cage, count, filter) {
     const t = time;
     const slots = freeSlots(cage, true).sort((a, b) => Math.abs(a.lx) - Math.abs(b.lx));
@@ -671,13 +976,12 @@ export function buildAviary(ctx) {
       b.holdUntil = t + 14;
       sent.push(b);
     });
-    // Birds already at the front stay a while longer too.
     cage.birds.forEach((b) => {
       if (b.slot && b.slot.front) b.holdUntil = t + 14;
     });
     return sent;
   }
-
+  const randomFloorPoint = (cage) => cage.toWorld((rand() - 0.5) * (cage.w - 1.8), 0, -0.9 - rand() * (cage.d - 1.8));
   function addPeacock(cage, kind) {
     const p = makePeacock(kind);
     p.cage = cage;
@@ -685,9 +989,6 @@ export function buildAviary(ctx) {
     p.target.copy(randomFloorPoint(cage));
     cage.peacocks.push(p);
     return p;
-  }
-  function randomFloorPoint(cage) {
-    return cage.toWorld((rand() - 0.5) * (cage.w - 1.8), 0, -0.9 - rand() * (cage.d - 1.8));
   }
   function updatePeacock(p, t, dt) {
     const c = p.cage;
@@ -697,9 +998,8 @@ export function buildAviary(ctx) {
     }
     const showing = t < p.displayUntil && !p.walkFront;
     const goal = showing ? c.yaw : Math.atan2(p.target.x - p.pos.x, p.target.z - p.pos.z);
-    let diff = goal - p.heading;
-    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-    p.heading += THREE.MathUtils.clamp(diff, -dt * 1.6, dt * 1.6);
+    const diff = wrapAngle(goal - p.heading);
+    p.heading += clamp(diff, -dt * 1.6, dt * 1.6);
     const dist = Math.hypot(p.target.x - p.pos.x, p.target.z - p.pos.z);
     let pecking = false;
     if (!showing) {
@@ -724,7 +1024,7 @@ export function buildAviary(ctx) {
     p.root.rotation.y = p.heading;
     p.neck.rotation.x = pecking ? Math.max(0, Math.sin(t * 3 + p.phase)) * 1.0 : Math.sin(t * 2 + p.phase) * 0.05;
     if (p.fan) {
-      p.fanK = THREE.MathUtils.clamp(p.fanK + (showing ? dt * 1.6 : -dt * 1.2), 0, 1);
+      p.fanK = clamp(p.fanK + (showing ? dt * 1.6 : -dt * 1.2), 0, 1);
       const e = p.fanK * p.fanK * (3 - 2 * p.fanK);
       p.fan.visible = e > 0.02;
       p.fan.scale.setScalar(0.25 + 0.75 * e);
@@ -747,33 +1047,45 @@ export function buildAviary(ctx) {
     return p;
   }
 
+  // ---------- lay out the trail ----------
   const westFront = -LEG - HW - 0.3;
   const eastFront = LEG - HW - 0.3;
-  // Space the aviaries out along each leg: the gap between neighbours is
-  // one aviary wide (the average of the two widths).
-  function spread(start, dir, widths) {
-    const centers = [];
-    let edge = start;
-    widths.forEach((w, i) => {
-      centers.push(edge + (dir * w) / 2);
-      edge += dir * (w + (i < widths.length - 1 ? (w + widths[i + 1]) / 2 : 0));
-    });
-    return centers;
+  // Left leg, from the tape heading north: each exhibit followed by a strip of forest.
+  const GAP = 4.5;
+  const westZ = [];
+  {
+    let edge = TAPE_W - 4;
+    for (const w of [7.4, 14, 6.4, 14, 7.2]) {
+      westZ.push(edge - w / 2);
+      edge -= w + GAP;
+    }
   }
-  // Left leg: starting right by the tape and heading north.
-  const westZ = spread(TAPE_W - 4, -1, [7.4, 6.4, 7.2]);
-  // Right leg: starting a little after the curve and heading south.
-  const eastZ = spread(CZ + 10.8, 1, [6.4, 9]);
+  // Right leg: the parrots just after the curve, a reserved plot just before
+  // the tape, and the mixed aviary halfway between (room for more either side).
+  const parrotZ = CZ + 8 + 3.2;
+  const plotZ = TAPE_E - 4 - 4.5;
+  const mixedZ = (parrotZ + 3.2 + plotZ - 4.5) / 2;
+  rects.push({ x0: eastFront - 6, x1: eastFront, z0: plotZ - 4.5, z1: plotZ + 4.5 });
+
   const SIGN = {
     peacock: { body: '#1f4fb8', head: '#1f4fb8', wing: '#b89a6a', tail: '#2f7a5a', tailLen: 110, beak: '#9a8a7a' },
     budgie: { body: '#7cc243', head: '#f2d13a', wing: '#5a9a2a', wingTip: '#1a1a1a', tail: '#2a5fb0', tailLen: 70, beak: '#e8c8a8' },
     macaw: { body: '#d8262e', wing: '#f2c14e', wingTip: '#2a5fb0', tail: '#d8262e', face: '#f4efe6', beak: '#e9dcc8', tailLen: 80 },
     parrot: { body: '#4fa83a', head: '#f2d13a', wing: '#4fa83a', wingTip: '#d8263e', tail: '#4fa83a', beak: '#e9dcc8', tailLen: 40 },
+    emu: { body: '#5a4a3a', head: '#3a3a3c', wing: '#46382a', tail: '#5a4a3a', beak: '#2a2a2a', tailLen: 20 },
+    rhea: { body: '#8f8678', head: '#9a9284', wing: '#f2f0ea', tail: '#8f8678', beak: '#8a8070', tailLen: 20 },
+    swan: { body: '#f6f6f2', head: '#f6f6f2', wing: '#eeeeea', tail: '#f6f6f2', beak: '#141414', tailLen: 20 },
+    duck: { body: '#b8b4ac', head: '#1f6a3a', belly: '#6a3a2a', wing: '#8a8478', beak: '#e8c83a', tailLen: 20 },
+  };
+  const seedTimers = [];
+  const showSeedsFor = (c) => {
+    c.showSeeds(true);
+    seedTimers.push([c, time + 14]);
   };
 
   // 1. Peacocks (left).
   const peacockCage = makeCage({
-    x: westFront, z: westZ[0], w: 7.4, d: 6, floor: M.grass, tray: false,
+    x: westFront, z: westZ[0], w: 7.4, d: 6, floor: M.grass, tray: false, name: 'Pavos reales (peacocks)', sound: 'peacock',
     title: 'PAVOS REALES', sub: 'Peacocks · Pavo cristatus', colors: SIGN.peacock,
     fact: `${BIRDS.peacock.fact} ${BIRDS.peacockWhite.fact}`,
     action: 'Whistle to the peacocks',
@@ -788,16 +1100,31 @@ export function buildAviary(ctx) {
   addPeacock(peacockCage, 'white');
   addPeacock(peacockCage, 'hen');
 
+  // Emus (left), between the peacocks and the parakeets.
+  const emuPen = makeEnclosure({
+    x: westFront, z: westZ[1], w: 14, d: 10, name: 'Emús (emus)', sound: 'drum',
+    signTitle: 'EMÚS', sub: 'Emus · Dromaius novaehollandiae', colors: SIGN.emu, fact: BIRDS.emu.fact,
+    action: 'Toss feed to the emus',
+    onAct: (e) => {
+      e.feedUntil = time + 14;
+      e.feed.visible = true;
+      ctx.sound.drum(1);
+      ctx.complete('emus');
+      ctx.toast('Thud-thud-thud… the emus come striding over, booming, to gobble up the pellets.');
+    },
+  });
+  furnishPaddock(emuPen);
+  for (let i = 0; i < 3; i++) addRunner(emuPen, 'emu');
+
   // 2. Parakeets (left).
   const parakeetCage = makeCage({
-    x: westFront, z: westZ[1], w: 6.4, d: 5, spacing: 0.36,
+    x: westFront, z: westZ[2], w: 6.4, d: 5, spacing: 0.36, name: 'Periquitos (parakeets)', sound: 'chatter',
     title: 'PERIQUITOS', sub: 'Parakeets · Budgies', colors: SIGN.budgie,
     fact: `${BIRDS.budgie.fact} ${BIRDS.budgieBlue.fact}`,
     action: 'Hold out a seed stick',
     onAct: (c) => {
       summon(c, 6);
-      c.showSeeds(true);
-      seedTimers.push([c, time + 14]);
+      showSeedsFor(c);
       ctx.sound.chatter(1);
       ctx.complete('parakeets');
       ctx.toast('Chirp chirp chirp! A little flock of parakeets lands on the bar to nibble the millet.');
@@ -805,16 +1132,31 @@ export function buildAviary(ctx) {
   });
   for (let i = 0; i < 10; i++) addCageBird(parakeetCage, i < 6 ? 'budgie' : 'budgieBlue');
 
+  // Greater rheas (left), between the parakeets and the macaws — two of them albino.
+  const rheaPen = makeEnclosure({
+    x: westFront, z: westZ[3], w: 14, d: 10, name: 'Ñandús (greater rheas)', sound: 'drum',
+    signTitle: 'ÑANDÚS', sub: 'Greater rheas · Rhea americana', colors: SIGN.rhea, fact: `${BIRDS.rhea.fact} ${BIRDS.rheaWhite.fact}`,
+    action: 'Toss feed to the rheas',
+    onAct: (e) => {
+      e.feedUntil = time + 14;
+      e.feed.visible = true;
+      ctx.sound.drum(0.7);
+      ctx.complete('rheas');
+      ctx.toast('The rheas trot over to the trough — the two white ones are albino!');
+    },
+  });
+  furnishPaddock(rheaPen);
+  ['rhea', 'rheaWhite', 'rhea', 'rheaWhite', 'rhea'].forEach((k) => addRunner(rheaPen, k));
+
   // 3. Macaws (left).
   const macawCage = makeCage({
-    x: westFront, z: westZ[2], w: 7.2, d: 5.5, h: 3.8, spacing: 0.75,
+    x: westFront, z: westZ[4], w: 7.2, d: 5.5, h: 3.8, spacing: 0.75, name: 'Guacamayas (macaws)', sound: 'squawk',
     title: 'GUACAMAYAS', sub: 'Macaws · Ara', colors: SIGN.macaw,
     fact: `${BIRDS.scarlet.fact} ${BIRDS.military.fact}`,
     action: 'Feed the macaws',
     onAct: (c) => {
       summon(c, 3);
-      c.showSeeds(true);
-      seedTimers.push([c, time + 14]);
+      showSeedsFor(c);
       ctx.sound.squawk(1);
       ctx.complete('macaws');
       ctx.toast('You pour sunflower seeds into the tray… the macaws swoop down to crack them open.');
@@ -822,9 +1164,102 @@ export function buildAviary(ctx) {
   });
   ['scarlet', 'scarlet', 'military', 'military'].forEach((k) => addCageBird(macawCage, k));
 
+  // Trumpeter swans (outside the top of the curve), with their own pond.
+  const swanPond = { x: 0, z: SWAN_FRONT - 6.6, a: 7.5, b: 4, y: 0.04, feedUntil: 0, spread: 3 };
+  swanPond.feed = { x: 0, z: swanPond.z + swanPond.b - 1.0 };
+  makeEnclosure({
+    x: 0, z: SWAN_FRONT, w: 20, d: 12, yaw: 0, h: 1.1, rails: [0.5, 1.05], floor: M.grass, name: 'Cisnes trompeteros (trumpeter swans)', sound: 'trumpeter',
+    signTitle: 'CISNES', sub: 'Trumpeter swans · Cygnus buccinator', colors: SIGN.swan, fact: BIRDS.trumpeter.fact,
+    action: 'Call to the trumpeter swans',
+    onAct: () => {
+      swanPond.feedUntil = time + 14;
+      ctx.sound.honk('trumpeter', 1);
+      ctx.complete('trumpeters');
+      ctx.toast('Hoo-hoo! The trumpeter swans answer like a brass band and glide over to you.');
+    },
+  });
+  disc(group, M.mud, swanPond.a + 0.3, swanPond.b + 0.3, swanPond.x, 0.035, swanPond.z);
+  disc(group, waterMat, swanPond.a, swanPond.b, swanPond.x, swanPond.y, swanPond.z);
+  for (let i = 0; i < 3; i++) makeSwimmer('trumpeter', swanPond);
+
+  // The big pond in the middle of the U: black swans, ducks and geese.
+  const bigPond = { x: POND.x, z: POND.z, a: POND.a, b: POND.b, y: 0.05, island: ISLAND, feedUntil: 0, spread: 5 };
+  bigPond.feed = { x: 0, z: POND.z - POND.b + 1.8 };
+  {
+    const fa = POND.a + POND.bank;
+    const fb = POND.b + POND.bank;
+    disc(group, M.grass, fa, fb, POND.x, 0.02, POND.z);
+    disc(group, M.mud, POND.a + 0.3, POND.b + 0.3, POND.x, 0.03, POND.z);
+    disc(group, waterMat, POND.a, POND.b, POND.x, bigPond.y, POND.z);
+    // A low post-and-rail fence all the way round.
+    const pts = [];
+    const n = 80;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      pts.push([POND.x + Math.cos(a) * fa, POND.z + Math.sin(a) * fb]);
+    }
+    const pondFence = add(group, fenceMesh(pts, true, 1.0, [0.45, 0.92]));
+    cast(pondFence);
+    // Reeds and lily pads (leaving the viewing spot open).
+    const reedSpots = [];
+    const padSpots = [];
+    for (let i = 0; i < 260; i++) {
+      const a = rand() * Math.PI * 2;
+      const k = 0.96 + rand() * 0.1;
+      const x = POND.x + Math.cos(a) * POND.a * k;
+      const z = POND.z + Math.sin(a) * POND.b * k;
+      if (Math.abs(x - bigPond.feed.x) < 4 && z < POND.z) continue;
+      reedSpots.push([x, z, 0.8 + rand() * 0.8]);
+    }
+    for (let i = 0; i < 70; i++) {
+      const a = rand() * Math.PI * 2;
+      const k = 0.55 + rand() * 0.35;
+      padSpots.push([POND.x + Math.cos(a) * POND.a * k, POND.z + Math.sin(a) * POND.b * k, 0.25 + rand() * 0.3]);
+    }
+    const reeds = new THREE.InstancedMesh(
+      mergeGeometries([part(new THREE.CylinderGeometry(0.012, 0.018, 1, 4).translate(0, 0.5, 0), 0x5a7a3a), part(new THREE.CylinderGeometry(0.035, 0.035, 0.2, 6).translate(0, 0.85, 0), 0x5a3a22)]),
+      M.vertex,
+      reedSpots.length,
+    );
+    reedSpots.forEach(([x, z, h], i) => reeds.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(x, 0, z), new THREE.Quaternion().setFromEuler(new THREE.Euler((rand() - 0.5) * 0.2, 0, (rand() - 0.5) * 0.2)), new THREE.Vector3(1, h, 1))));
+    const pads = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 12, 0.3, Math.PI * 2 - 0.6).rotateX(-Math.PI / 2), std({ color: 0x3f7a3a, roughness: 0.6, side: THREE.DoubleSide }), padSpots.length);
+    padSpots.forEach(([x, z, s], i) => pads.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(x, bigPond.y + 0.01, z), new THREE.Quaternion().setFromAxisAngle(Y, rand() * 6), new THREE.Vector3(s, 1, s))));
+    group.add(reeds, pads);
+    noRay(reeds, pads);
+    // An island with a little duck house.
+    const isl = add(group, new THREE.Mesh(new THREE.SphereGeometry(1, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2), std({ map: grassTex, roughness: 1 })), ISLAND.x, -0.05, ISLAND.z);
+    isl.scale.set(ISLAND.r, 0.35, ISLAND.r);
+    const house = node(group, ISLAND.x, 0.25, ISLAND.z, 0.6);
+    box(house, M.wood, 1.2, 0.8, 1.0, 0, 0.4, 0);
+    box(house, M.darkWood, 1.4, 0.06, 0.65, 0, 0.95, 0.25).rotation.x = 0.6;
+    box(house, M.darkWood, 1.4, 0.06, 0.65, 0, 0.95, -0.25).rotation.x = -0.6;
+    add(house, new THREE.Mesh(new THREE.CircleGeometry(0.22, 16), std({ color: 0x120c08 })), 0, 0.35, 0.51);
+    cast(house);
+    // Feeding spot at the top of the U, where the pond comes up to the path.
+    const dz = CZ - LEG + HW - 0.35;
+    const disp = node(group, 2.2, 0, dz, Math.PI);
+    const dispParts = [cyl(disp, M.iron, 0.05, 0.05, 1.0, 0, 0.5, 0, 8), box(disp, std({ color: 0x2f8a88, roughness: 0.5 }), 0.32, 0.4, 0.26, 0, 1.15, 0), box(disp, M.yellow, 0.12, 0.08, 0.04, 0, 1.08, 0.14)];
+    cast(disp);
+    post(2.2, dz, 0.22);
+    interact([pondFence, ...dispParts], {
+      label: () => 'Toss food into the pond',
+      act: () => {
+        bigPond.feedUntil = time + 14;
+        ctx.sound.quack(1);
+        ctx.sound.honk('goose', 0.8);
+        setTimeout(() => ctx.sound.honk('black', 0.7), 700);
+        ctx.complete('pond');
+        ctx.toast('Splash! Ducks, geese and the two black swans race over for a snack.');
+      },
+    });
+    signPost(group, -0.9, dz - 0.05, 'ESTANQUE', 'Black swans, ducks & geese', SIGN.duck, `${BIRDS.blackSwan.fact} ${BIRDS.mandarin.fact}`).rotation.y = Math.PI;
+    exhibits.push({ name: 'El estanque (the big pond)', frontPt: new THREE.Vector3(0, 0, CZ - LEG + 0.5), sound: 'pond' });
+  }
+  for (const k of ['blackSwan', 'blackSwan', 'mallard', 'mallard', 'mallardHen', 'woodDuck', 'woodDuck', 'mandarin', 'mandarin', 'pijije', 'pijije', 'pijije', 'canadaGoose', 'canadaGoose', 'whiteGoose', 'whiteGoose']) makeSwimmer(k, bigPond);
+
   // 4. Parrots (right).
-  const parrotCage = makeCage({
-    x: eastFront, z: eastZ[0], w: 6.4, d: 5, spacing: 0.6,
+  makeCage({
+    x: eastFront, z: parrotZ, w: 6.4, d: 5, spacing: 0.6, name: 'Loros (parrots)', sound: 'squawk',
     title: 'LOROS', sub: 'Parrots · Amazona', colors: SIGN.parrot,
     fact: `${BIRDS.parrot.fact} ${BIRDS.redcrown.fact}`,
     action: 'Say ¡hola! to the parrots',
@@ -841,19 +1276,18 @@ export function buildAviary(ctx) {
       ctx.complete('parrot');
     },
   });
-  ['parrot', 'parrot', 'redcrown', 'redcrown'].forEach((k) => addCageBird(parrotCage, k));
+  ['parrot', 'parrot', 'redcrown', 'redcrown'].forEach((k) => addCageBird(cages[cages.length - 1], k));
 
   // 5. A mix of all of them (right).
   const mixedCage = makeCage({
-    x: eastFront, z: eastZ[1], w: 9, d: 6, h: 3.8, spacing: 0.55, floor: M.grass,
+    x: eastFront, z: mixedZ, w: 9, d: 6, h: 3.8, spacing: 0.55, floor: M.grass, name: 'Aviario mixto (a bit of everything)', sound: 'squawk',
     title: 'AVIARIO MIXTO', sub: 'Peacocks, macaws, parrots & parakeets', colors: SIGN.parrot,
     fact: 'In the mixed aviary, peacocks share their home with macaws, parrots and parakeets — just like a busy forest.',
     action: 'Fill the feeder',
     onAct: (c) => {
       summon(c, 8);
       callPeacock(c, false);
-      c.showSeeds(true);
-      seedTimers.push([c, time + 14]);
+      showSeedsFor(c);
       ctx.sound.squawk(0.8);
       ctx.sound.chatter(0.8);
       ctx.complete('mix');
@@ -862,12 +1296,6 @@ export function buildAviary(ctx) {
   });
   ['scarlet', 'military', 'parrot', 'redcrown', 'budgie', 'budgie', 'budgieBlue', 'budgieBlue'].forEach((k) => addCageBird(mixedCage, k));
   addPeacock(mixedCage, 'blue');
-  // Space for another exhibit, after the mixed aviary on the right leg.
-  {
-    const end = eastZ[1] + 9 / 2;
-    cageRects.push({ x0: eastFront - 6, x1: eastFront, z0: end + 7.7, z1: end + 7.7 + 9 });
-  }
-  const seedTimers = [];
 
   // ---------- big ahuehuete trees ----------
   function ahuehuete(x, z) {
@@ -910,26 +1338,56 @@ export function buildAviary(ctx) {
     cast(tg);
     return { at };
   }
-  ahuehuete(BIG_TREE.x, BIG_TREE.z);
+  for (const b of BIG_TREES) ahuehuete(b.x, b.z);
   const lookoutTree = ahuehuete(LOOKOUT_TREE.x, LOOKOUT_TREE.z);
 
   // ---------- the forest ----------
+  // Distance from (x, z) to the binoculars' view line (kept clear of trees).
+  const viewLine = (x, z) => {
+    const vx = LOOKOUT_TREE.x - BINO.x;
+    const vz = LOOKOUT_TREE.z - BINO.z;
+    const k = clamp(((x - BINO.x) * vx + (z - BINO.z) * vz) / (vx * vx + vz * vz), 0, 0.85);
+    return Math.hypot(x - (BINO.x + vx * k), z - (BINO.z + vz * k));
+  };
   function treeOK(x, z, r) {
     nearestOnU(x, z, tmpN);
     if (Math.hypot(x - tmpN.x, z - tmpN.z) < HW + 0.9 + r) return false;
-    if (cageRects.some((c) => x > c.x0 - 1.2 - r && x < c.x1 + 1.2 + r && z > c.z0 - 1.2 - r && z < c.z1 + 1.2 + r)) return false;
-    if (x > BINO.x - 3.5 && x < BINO.x + 6.5 && z > LOOKOUT_TREE.z + 2 && z < BINO.z + 0.3) return false; // the binoculars' view
-    if (Math.hypot(x - BIG_TREE.x, z - BIG_TREE.z) < 5 || Math.hypot(x - LOOKOUT_TREE.x, z - LOOKOUT_TREE.z) < 4.5) return false;
+    if (rects.some((c) => x > c.x0 - 1.2 - r && x < c.x1 + 1.2 + r && z > c.z0 - 1.2 - r && z < c.z1 + 1.2 + r)) return false;
+    if (inPondFence(x, z, 1.5 + r)) return false;
+    if (viewLine(x, z) < 3.5) return false;
+    if ([...BIG_TREES, LOOKOUT_TREE].some((b) => Math.hypot(x - b.x, z - b.z) < 5)) return false;
     return true;
   }
   const trees = [];
-  for (let tries = 0; tries < 9000 && trees.length < 650; tries++) {
-    const x = -62 + rand() * 124;
-    const z = CZ - LEG - 36 + rand() * (PATH_END - (CZ - LEG - 36));
+  const grid = new Map();
+  const X0 = -LEG - 30;
+  const X1 = LEG + 30;
+  const Z0 = CZ - LEG - 30;
+  const Z1 = PATH_END;
+  for (let tries = 0; tries < 30000 && trees.length < 1100; tries++) {
+    const x = X0 + rand() * (X1 - X0);
+    const z = Z0 + rand() * (Z1 - Z0);
     const r = 0.22 + rand() * 0.35;
     if (!treeOK(x, z, r)) continue;
-    if (trees.some((t) => Math.hypot(x - t.x, z - t.z) < 2.6 + (r + t.r) * 2)) continue;
-    trees.push({ x, z, r, pine: rand() < 0.3, h: 8 + rand() * 8 });
+    const cx = Math.floor(x / 6);
+    const cz = Math.floor(z / 6);
+    let close = false;
+    for (let i = -1; i <= 1 && !close; i++) {
+      for (let j = -1; j <= 1 && !close; j++) {
+        for (const t of grid.get(`${cx + i},${cz + j}`) || []) {
+          if (Math.hypot(x - t.x, z - t.z) < 2.6 + (r + t.r) * 2) {
+            close = true;
+            break;
+          }
+        }
+      }
+    }
+    if (close) continue;
+    const t = { x, z, r, pine: rand() < 0.3, h: 8 + rand() * 8 };
+    trees.push(t);
+    const key = `${cx},${cz}`;
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push(t);
   }
   const broad = trees.filter((t) => !t.pine);
   const pines = trees.filter((t) => t.pine);
@@ -951,23 +1409,18 @@ export function buildAviary(ctx) {
     const m4 = new THREE.Matrix4();
     const q = new THREE.Quaternion();
     const c = new THREE.Color();
-    trees.forEach((t, i) => {
-      trunks.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, 0, t.z), q.identity(), new THREE.Vector3(t.r, t.h * (t.pine ? 0.55 : 0.75), t.r)));
-    });
+    trees.forEach((t, i) => trunks.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, 0, t.z), q.identity(), new THREE.Vector3(t.r, t.h * (t.pine ? 0.55 : 0.75), t.r))));
     broad.forEach((t, i) => {
-      const s = 2.4 + rand() * 1.8;
-      const a = rand() * 6;
-      t.s = s;
-      t.cy = t.h * 0.75 + s * 0.5;
-      t.cyaw = a;
-      crowns.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, t.cy, t.z), q.setFromAxisAngle(Y, a), new THREE.Vector3(s, s * 0.8, s)));
+      t.s = 2.4 + rand() * 1.8;
+      t.cy = t.h * 0.75 + t.s * 0.5;
+      t.cyaw = rand() * 6;
+      crowns.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, t.cy, t.z), q.setFromAxisAngle(Y, t.cyaw), new THREE.Vector3(t.s, t.s * 0.8, t.s)));
       crowns.setColorAt(i, c.setHSL(0.26 + rand() * 0.07, 0.55, 0.08 + rand() * 0.08));
     });
     pines.forEach((t, i) => {
-      const s = 1.8 + rand() * 1.0;
-      t.s = s;
+      t.s = 1.8 + rand() * 1.0;
       t.top = t.h * 1.16;
-      pineTops.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, t.h * 0.35, t.z), q.setFromAxisAngle(Y, rand() * 6), new THREE.Vector3(s, t.h * 0.33, s)));
+      pineTops.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, t.h * 0.35, t.z), q.setFromAxisAngle(Y, rand() * 6), new THREE.Vector3(t.s, t.h * 0.33, t.s)));
       pineTops.setColorAt(i, c.setHSL(0.33 + rand() * 0.04, 0.45, 0.05 + rand() * 0.05));
     });
   }
@@ -975,7 +1428,7 @@ export function buildAviary(ctx) {
   cast(trunks, crowns, pineTops);
   noRay(trunks, crowns, pineTops);
 
-  // Ferns and bushes along the trail, plus some fallen logs.
+  // Ferns along the trail.
   const fernGeo = (() => {
     const fronds = [];
     for (let i = 0; i < 8; i++) {
@@ -985,13 +1438,15 @@ export function buildAviary(ctx) {
     return mergeGeometries(fronds);
   })();
   const fernSpots = [];
-  for (let tries = 0; tries < 9000 && fernSpots.length < 900; tries++) {
-    const x = -LEG - 12 + rand() * (2 * LEG + 24);
+  for (let tries = 0; tries < 20000 && fernSpots.length < 1500; tries++) {
+    const x = -LEG - 10 + rand() * (2 * LEG + 20);
     const z = CZ - LEG - 10 + rand() * (TAPE_E + 10 - (CZ - LEG - 10));
     nearestOnU(x, z, tmpN);
     const d = Math.hypot(x - tmpN.x, z - tmpN.z);
-    if (d < HW + 0.45 || (d > HW + 4 && rand() < 0.7)) continue;
-    if (cageRects.some((c) => x > c.x0 - 0.2 && x < c.x1 + 0.2 && z > c.z0 - 0.2 && z < c.z1 + 0.2)) continue;
+    if (d < HW + 0.45 || (d > HW + 4 && rand() < 0.85)) continue;
+    if (rects.some((c) => x > c.x0 - 0.2 && x < c.x1 + 0.2 && z > c.z0 - 0.2 && z < c.z1 + 0.2)) continue;
+    if (inPondFence(x, z, 0.3)) continue;
+    if (z < CZ - LEG + HW + 3 && Math.abs(x) < 9) continue; // keep the view over the pond clear
     if (Math.abs(z - tapeZ(x)) < 0.8 && Math.abs(Math.abs(x) - LEG) < HW + 1) continue;
     fernSpots.push([x, z, 0.6 + rand() * 0.7]);
   }
@@ -1003,7 +1458,7 @@ export function buildAviary(ctx) {
   group.add(ferns);
   noRay(ferns);
   const logGeo = new THREE.CylinderGeometry(0.28, 0.32, 1, 10);
-  for (const [x, z, len, a] of [[-24.6, 32.5, 4, 0.3], [6, -28, 3.6, 1.1], [-8, -27, 3.2, 2.2], [24.5, 2.0, 3.8, 0.1], [-25.5, -22, 3.4, 0.7], [-6, 14, 3.6, 1.6], [7, 20, 3.2, 0.4]]) {
+  for (const [x, z, len, a] of [[-LEG - 4.6, TAPE_W + 4.5, 4, 0.3], [LEG + 4.5, 0, 3.8, 0.1], [-LEG - 6, CZ - 4, 3.4, 0.7], [-20, 30, 3.6, 1.6], [20, 36, 3.2, 0.4], [-22, -44, 3.4, 2.2], [24, -40, 3.6, 1.1], [8, 4, 3.4, 0.9]]) {
     const log = add(group, new THREE.Mesh(logGeo, M.bark), x, 0.28, z);
     log.scale.y = len;
     log.rotation.set(0, a, Math.PI / 2);
@@ -1013,8 +1468,8 @@ export function buildAviary(ctx) {
     mossy.rotation.y = a;
   }
 
-  // ---------- binoculars at the top of the U ----------
-  const bino = node(group, BINO.x, 0, BINO.z);
+  // ---------- binoculars on the outside of the curve ----------
+  const bino = node(group, BINO.x, 0, BINO.z, Math.atan2(-BINO_DIR.x, -BINO_DIR.z));
   const binoParts = [cyl(bino, M.iron, 0.06, 0.09, 1.1, 0, 0.55, 0, 10), box(bino, M.yellow, 0.34, 0.2, 0.26, 0, 1.22, 0)];
   for (const dx of [-0.08, 0.08]) {
     const tube = cyl(bino, M.iron, 0.055, 0.055, 0.22, dx, 1.24, -0.2, 12);
@@ -1023,7 +1478,7 @@ export function buildAviary(ctx) {
   }
   cast(bino);
   post(BINO.x, BINO.z, 0.25);
-  const binoEye = new THREE.Vector3(BINO.x, 1.58, BINO.z + 0.5);
+  const binoEye = new THREE.Vector3(BINO.x - BINO_DIR.x * 0.5, 1.58, BINO.z - BINO_DIR.z * 0.5);
   interact(binoParts, {
     label: () => 'Look through the binoculars',
     act: () => {
@@ -1033,11 +1488,11 @@ export function buildAviary(ctx) {
     },
   });
 
-  // A bench at the top of the U, facing the forest.
+  // A bench at the top of the U, looking out over the big pond.
   {
-    const x = 0;
-    const z = CZ - LEG + 1.25; // just inside the top of the U
-    const yaw = 0;
+    const x = -3.4;
+    const z = CZ - LEG + 1.25;
+    const yaw = Math.PI;
     const bg = node(group, x, 0, z, yaw);
     for (let i = 0; i < 4; i++) box(bg, M.wood, 1.7, 0.04, 0.1, 0, 0.45, -0.18 + i * 0.12);
     for (let i = 0; i < 3; i++) box(bg, M.wood, 1.7, 0.1, 0.035, 0, 0.62 + i * 0.13, 0.24);
@@ -1049,17 +1504,16 @@ export function buildAviary(ctx) {
     post(x - 0.5, z, 0.4);
     post(x + 0.5, z, 0.4);
     interact(bg, {
-      label: () => 'Sit and listen to the birds',
+      label: () => 'Sit and watch the pond',
       act: () => {
-        ctx.sit({ eye: new THREE.Vector3(x, 1.15, z + 0.08), yaw, pitch: 0.12, calm: true });
-        ctx.complete('bench');
-        ctx.toast('You sit and listen: parakeets chattering, macaws squawking, wind in the trees.');
+        ctx.sit({ eye: new THREE.Vector3(x, 1.15, z - 0.08), yaw, pitch: -0.05, calm: true });
+        ctx.toast('You sit and watch the ducks paddle about. The trumpeter swans call from behind you.');
       },
     });
   }
 
   // ---------- photo spot, facing the mixed aviary ----------
-  const PHOTO = { x: LEG + HW + 0.35, z: mixedCage.def.z + 2 };
+  const PHOTO = { x: LEG + HW + 0.35, z: mixedZ + 2 };
   const ps = node(group, PHOTO.x, 0, PHOTO.z, -Math.PI / 2);
   const photoParts = [cyl(ps, M.darkWood, 0.06, 0.06, 1.5, 0, 0.75, 0, 8)];
   photoParts.push(add(ps, new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.46), new THREE.MeshBasicMaterial({ map: T.sign('📷 FOTO', { bg: '#d9447a', font: 'bold 56px sans-serif' }), toneMapped: false, side: THREE.DoubleSide })), 0, 1.6, -0.07));
@@ -1068,18 +1522,18 @@ export function buildAviary(ctx) {
   interact(photoParts, {
     label: () => 'Take a photo',
     act: () => {
-      const eye = new THREE.Vector3(LEG + 0.9, 1.62, mixedCage.def.z);
+      const eye = new THREE.Vector3(LEG + 0.9, 1.62, mixedZ);
       const look = mixedCage.toWorld(0, 0, -mixedCage.d / 2);
       ctx.sit({ eye, yaw: lookYaw(eye.x, eye.z, look.x, look.z), pitch: 0.02, photo: true });
     },
   });
 
-  // ---------- wild birds: monk parakeets overhead, a toucan in the trees ----------
+  // ---------- wild birds: monk parakeets overhead, a hidden toucan ----------
   const flyers = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     const b = makeBird('monk');
     b.mode = 'loop';
-    b.loop = { a: LEG + 2 + rand() * 5, b: 30 + rand() * 6, cx: (rand() - 0.5) * 4, cz: -6 + (rand() - 0.5) * 6, h: 10 + rand() * 3, w: (0.22 + rand() * 0.08) * (i % 2 ? 1 : -1), p: rand() * 6.28, q: rand() * 6.28 };
+    b.loop = { a: LEG + 2 + rand() * 6, b: (TAPE_W - (CZ - LEG)) / 2 + rand() * 6, cx: (rand() - 0.5) * 6, cz: (TAPE_W + CZ - LEG) / 2 + (rand() - 0.5) * 8, h: 11 + rand() * 3, w: (0.14 + rand() * 0.05) * (i % 2 ? 1 : -1), p: rand() * 6.28, q: rand() * 6.28 };
     flyers.push(b);
   }
   const loopPos = (b, t, out) => {
@@ -1089,33 +1543,34 @@ export function buildAviary(ctx) {
   const toucan = makeBird('toucan');
   hideToucan();
 
-  // Each visit the toucan picks a different treetop around the binoculars:
-  // at the edge of the leaves, off to the side or behind you, turned side-on.
+  // Each visit the toucan picks a different treetop around the binoculars: at
+  // the edge of the leaves, off to the side or behind you, turned side-on.
   // It's always in clear sight of the binoculars — no trunk or crown in the way.
   function hideToucan() {
     const eye = binoEye;
     const lumps = [[0, 0, 0, 1], [0.7, -0.25, 0.3, 0.75], [-0.6, -0.2, -0.4, 0.7]];
     const spheres = [];
     for (const t of broad) {
+      if (Math.hypot(t.x - eye.x, t.z - eye.z) > 40) continue;
       for (const [lx, ly, lz, lr] of lumps) {
         const off = new THREE.Vector3(lx * t.s, ly * t.s * 0.8, lz * t.s).applyAxisAngle(Y, t.cyaw);
         spheres.push({ c: new THREE.Vector3(t.x + off.x, t.cy + off.y, t.z + off.z), r: lr * t.s * 0.8, t, main: lr === 1 });
       }
     }
-    for (const b of [BIG_TREE, LOOKOUT_TREE]) spheres.push({ c: new THREE.Vector3(b.x, 8.5, b.z), r: 5 });
-    const posts = trees.map((t) => ({ x: t.x, z: t.z, r: t.pine ? t.s * 0.7 : t.r * 1.2, top: t.pine ? t.top : t.cy, t }));
+    for (const b of [...BIG_TREES, LOOKOUT_TREE]) spheres.push({ c: new THREE.Vector3(b.x, 8.5, b.z), r: 5 });
+    const posts = trees.filter((t) => Math.hypot(t.x - eye.x, t.z - eye.z) < 40).map((t) => ({ x: t.x, z: t.z, r: t.pine ? t.s * 0.7 : t.r * 1.2, top: t.pine ? t.top : t.cy, t }));
     const blocked = (p, host) => {
       const ab = p.clone().sub(eye);
       const len2 = ab.lengthSq();
       const flat2 = ab.x * ab.x + ab.z * ab.z;
       const q = new THREE.Vector3();
       for (const sp of spheres) {
-        const k = THREE.MathUtils.clamp(sp.c.clone().sub(eye).dot(ab) / len2, 0, 0.96);
+        const k = clamp(sp.c.clone().sub(eye).dot(ab) / len2, 0, 0.96);
         if (q.copy(eye).addScaledVector(ab, k).distanceTo(sp.c) < sp.r) return true;
       }
       for (const c of posts) {
         if (c.t === host) continue;
-        const k = THREE.MathUtils.clamp(((c.x - eye.x) * ab.x + (c.z - eye.z) * ab.z) / flat2, 0, 1);
+        const k = clamp(((c.x - eye.x) * ab.x + (c.z - eye.z) * ab.z) / flat2, 0, 1);
         if (Math.hypot(eye.x + ab.x * k - c.x, eye.z + ab.z * k - c.z) < c.r && eye.y + ab.y * k < c.top) return true;
       }
       return false;
@@ -1125,12 +1580,13 @@ export function buildAviary(ctx) {
       const dx = t.x - eye.x;
       const dz = t.z - eye.z;
       const d = Math.hypot(dx, dz);
-      if (d < 12 || d > 26) continue;
+      if (d < 10 || d > 30) continue;
       const p = new THREE.Vector3(t.x - (dx / d) * t.s * 0.97, t.cy - 0.3 * t.s, t.z - (dz / d) * t.s * 0.97);
       if (p.y < 4) continue;
-      // Off to the side or behind: well away from where the binoculars start (north).
+      // Off to the side or behind: well away from where the binoculars start.
+      const vx = p.x - eye.x;
       const vz = p.z - eye.z;
-      if (-vz / Math.hypot(p.x - eye.x, vz) > 0.35) continue;
+      if ((vx * BINO_DIR.x + vz * BINO_DIR.z) / Math.hypot(vx, vz) > 0.35) continue;
       if (spheres.some((sp) => sp.t === t && !sp.main && p.distanceTo(sp.c) < sp.r)) continue;
       if (blocked(p, t)) continue;
       spots.push(p);
@@ -1152,14 +1608,25 @@ export function buildAviary(ctx) {
   }
 
   // ---------- per frame ----------
-  const names = ['Pavos reales (peacocks)', 'Periquitos (parakeets)', 'Guacamayas (macaws)', 'Loros (parrots)', 'Aviario mixto (a bit of everything)'];
+  const runners = [...emuPen.animals, ...rheaPen.animals];
   let nextAmbient = 3;
+  const playSound = (kind, vol) => {
+    if (kind === 'peacock') return rand() < 0.4 && ctx.sound.peacock(vol * 0.8);
+    if (kind === 'chatter') return ctx.sound.chatter(vol * 0.6);
+    if (kind === 'drum') return rand() < 0.5 && ctx.sound.drum(vol * 0.7);
+    if (kind === 'trumpeter') return rand() < 0.5 && ctx.sound.honk('trumpeter', vol * 0.7);
+    if (kind === 'pond') return rand() < 0.5 ? ctx.sound.quack(vol * 0.6) : ctx.sound.honk('goose', vol * 0.5);
+    return ctx.sound.squawk(vol * 0.5);
+  };
   function update(dt, t) {
     time = t;
     for (const c of cages) {
       for (const b of c.birds) updateCageBird(b, t);
       for (const p of c.peacocks) updatePeacock(p, t, dt);
     }
+    for (const a of runners) updateRunner(a, t, dt);
+    for (const s of swimList) updateSwimmer(s, t, dt);
+    for (const e of [emuPen, rheaPen]) if (e.feed.visible && t > e.feedUntil) e.feed.visible = false;
     for (const b of flyers) {
       b.prev.copy(b.pos);
       loopPos(b, t, b.pos);
@@ -1177,6 +1644,7 @@ export function buildAviary(ctx) {
         seedTimers.splice(i, 1);
       }
     }
+    waterTex.offset.set(t * 0.015, t * 0.011);
 
     // Caution tape flutters in the breeze.
     for (const tp of tapes) {
@@ -1184,35 +1652,32 @@ export function buildAviary(ctx) {
       for (let i = 0; i < pos.count; i++) {
         const bx = tp.base[i * 3];
         const u = bx / (span / 2);
-        const sagY = -tp.sag * (1 - u * u);
-        pos.setY(i, tp.base[i * 3 + 1] + sagY + Math.sin(t * 4 + bx * 3 + tp.phase) * 0.015 * (1 - u * u));
+        pos.setY(i, tp.base[i * 3 + 1] - tp.sag * (1 - u * u) + Math.sin(t * 4 + bx * 3 + tp.phase) * 0.015 * (1 - u * u));
         pos.setZ(i, Math.sin(t * 3 + bx * 2 + tp.phase) * 0.05 * (1 - u * u));
       }
       pos.needsUpdate = true;
     }
 
-    // Visiting the aviaries.
+    // Visiting the exhibits.
     const pl = ctx.player();
     const pp = pl.pos;
-    cages.forEach((c, i) => {
-      if (c.visited || Math.hypot(pp.x - c.frontPt.x, pp.z - c.frontPt.z) > 3.4) return;
-      c.visited = true;
-      const n = cages.filter((k) => k.visited).length;
-      ctx.toast(`Aviary ${n} of 5 · ${names[i]}`, 2600);
-      if (n === cages.length) ctx.complete('all5');
+    exhibits.forEach((e) => {
+      if (e.visited || Math.hypot(pp.x - e.frontPt.x, pp.z - e.frontPt.z) > 3.6) return;
+      e.visited = true;
+      const n = exhibits.filter((k) => k.visited).length;
+      ctx.toast(`Exhibit ${n} of ${exhibits.length} · ${e.name}`, 2600);
+      if (n === exhibits.length) ctx.complete('all');
     });
 
-    // Now and then a bird nearby makes itself heard.
+    // The sun's shadows follow you down the trail.
+    if (Math.hypot(pp.x - shadowCenter.x, pp.z - shadowCenter.z) > 14) centerShadows(pp.x, pp.z);
+
+    // Now and then an animal nearby makes itself heard.
     if (t > nextAmbient) {
       nextAmbient = t + 2.5 + rand() * 5;
-      const c = cages[Math.floor(rand() * cages.length)];
-      const dist = Math.hypot(pp.x - c.frontPt.x, pp.z - c.frontPt.z);
-      const vol = Math.max(0, 1 - dist / 22);
-      if (vol > 0.05) {
-        if (c === peacockCage) rand() < 0.4 && ctx.sound.peacock(vol * 0.8);
-        else if (c === parakeetCage) ctx.sound.chatter(vol * 0.6);
-        else ctx.sound.squawk(vol * 0.5);
-      }
+      const e = exhibits[Math.floor(rand() * exhibits.length)];
+      const vol = Math.max(0, 1 - Math.hypot(pp.x - e.frontPt.x, pp.z - e.frontPt.z) / 24);
+      if (vol > 0.05) playSound(e.sound, vol);
     }
     api.state.calm = pl.seat && pl.seat.calm ? 1 : 0;
   }

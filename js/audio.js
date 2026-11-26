@@ -324,6 +324,79 @@ export class Sound {
     }
   }
 
+  // Emus and rheas: a deep, hollow drumming boom.
+  drum(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    for (let i = 0; i < 4; i++) {
+      const t = ctx.currentTime + i * 0.32;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.frequency.setValueAtTime(95, t);
+      o.frequency.exponentialRampToValueAtTime(58, t + 0.25);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.32 * vol, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+      o.connect(g).connect(this.aviaryBus);
+      o.start(t);
+      o.stop(t + 0.32);
+    }
+  }
+
+  // Swans and geese. kind: 'trumpeter' (a horn-like "hoo-hoo"), 'goose' (honk), 'black' (a high bugle).
+  honk(kind = 'goose', vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    const [f0, f1, formant, len, n] = {
+      trumpeter: [330, 290, 900, 0.32, 3],
+      goose: [420, 340, 1300, 0.22, 3],
+      black: [700, 620, 1800, 0.35, 2],
+    }[kind];
+    for (let i = 0; i < n; i++) {
+      const t = ctx.currentTime + i * (len + 0.12) + Math.random() * 0.05;
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(f0, t);
+      o.frequency.linearRampToValueAtTime(f1, t + len);
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = formant;
+      f.Q.value = 2.5;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.22 * vol, t + 0.03);
+      g.gain.setValueAtTime(0.22 * vol, t + len - 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(f).connect(g).connect(this.aviaryBus);
+      o.start(t);
+      o.stop(t + len + 0.02);
+    }
+  }
+
+  // Ducks: a few nasal quacks.
+  quack(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    for (let i = 0; i < 4; i++) {
+      const t = ctx.currentTime + i * 0.2 + Math.random() * 0.08;
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(260, t);
+      o.frequency.exponentialRampToValueAtTime(190, t + 0.14);
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = 1100;
+      f.Q.value = 3;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25 * vol, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+      o.connect(f).connect(g).connect(this.aviaryBus);
+      o.start(t);
+      o.stop(t + 0.16);
+    }
+  }
+
   // Camera shutter.
   shutter() {
     if (!this.ctx || this.muted) return;
