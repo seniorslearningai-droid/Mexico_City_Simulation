@@ -79,11 +79,11 @@ export function buildWorld(scene) {
 
   // ---------- lights ----------
   const sun = new THREE.DirectionalLight(0xfff0d6, 3);
-  sun.position.copy(SUN_DIR).multiplyScalar(40).add(new THREE.Vector3(0, 0, -1.5));
-  sun.target.position.set(0, 0, -1.5);
+  sun.position.copy(SUN_DIR).multiplyScalar(40).add(new THREE.Vector3(-2.8, 0, -1.5));
+  sun.target.position.set(-2.8, 0, -1.5);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10, near: 1, far: 90 });
+  Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 90 });
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.02;
   sun.shadow.autoUpdate = false;
@@ -259,11 +259,12 @@ export function buildWorld(scene) {
     m.position.set(cx, cy, cz);
     group.add(m);
   }
-  facadeBox(-26, GROUND, HOTEL_FRONT, -3.65, 17, 30);
-  facadeBox(3.65, GROUND, HOTEL_FRONT, 26, 17, 30);
-  facadeBox(-3.65, GROUND, HOTEL_FRONT, 3.65, -0.26, 30);
-  facadeBox(-3.65, 2.95, HOTEL_FRONT, 3.65, 17, 30);
-  facadeBox(-3.65, -0.26, 4.15, 3.65, 2.95, 30);
+  // A hole in the building for our suite (x -10.75 .. 5.15, z to 9.15).
+  facadeBox(-26, GROUND, HOTEL_FRONT, -10.75, 17, 30);
+  facadeBox(5.15, GROUND, HOTEL_FRONT, 26, 17, 30);
+  facadeBox(-10.75, GROUND, HOTEL_FRONT, 5.15, -0.26, 30);
+  facadeBox(-10.75, 2.95, HOTEL_FRONT, 5.15, 17, 30);
+  facadeBox(-10.75, -0.26, 9.15, 5.15, 2.95, 30);
   // Neighbouring balconies above, below and beside ours.
   const balc = [];
   for (let k = -12; k <= 4; k++) {

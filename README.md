@@ -1,8 +1,8 @@
 # Mexico City Simulation — Hotel Jacaranda
 
-A 3D first-person game in the browser. You've just checked into room 1207 at
+A 3D first-person game in the browser. You've just checked into suite 1207 at
 the (fictional) Hotel Jacaranda, twelve floors above Paseo de la Reforma in
-Mexico City. Walk around the room, open things up, step out onto the balcony,
+Mexico City. Explore the suite, open things up, step out onto the balcony,
 and watch the city light up at night.
 
 The buttons at the top left take you to four more places:
@@ -46,22 +46,33 @@ the `main` branch and the root folder.
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
 
-## What's in the room
+## What's in the suite
 
-- **Bedroom** — king bed with a sarape runner, two talavera lamps, a painting
-  of the volcanoes, a Zapotec-style rug, a TV with a little local channel,
-  a desk, an armchair and floor lamp, and an organ pipe cactus.
-- **Balcony** — slide the glass door open (after opening the curtains) and
-  step out. Below: Reforma's traffic (pink-and-white taxis included),
-  jacaranda trees, and the Ángel de la Independencia. On the horizon:
-  Popocatépetl and Iztaccíhuatl.
-- **Bathroom** — blue-and-white talavera tiles, a hand-painted vessel sink,
-  a walk-in rain shower, and a sunburst mirror with a real reflection.
-- **Entry** — wardrobe, minibar with a mini fridge and coffee, your suitcase,
-  the light switch, and the front door (lock it).
+Suite 1207 is a whole apartment. Walk in through the front door and:
 
-You can sit in the chairs and lie on the bed. A checklist of ten things to do
-tracks your progress as you settle in.
+- **Kitchen** (on your right) — teal cabinets and talavera tiles, a fridge
+  that opens, a stove whose burners glow, a sink, a coffee machine (make a
+  café de olla), and an island with three stools.
+- **Dining room** (straight ahead) — a small room with a round table, four
+  chairs, a pendant lamp, a sideboard and a serving hatch to the kitchen.
+- **Living room** (beyond the dining room) — a big sectional couch facing a
+  TV with a little local channel, an armchair, a coffee table, a painting of
+  the volcanoes, a window and the sliding door to the **balcony**. Below:
+  Reforma's traffic (pink-and-white taxis included), jacaranda trees and the
+  Ángel de la Independencia; on the horizon, Popocatépetl and Iztaccíhuatl.
+- **Hallway** (to the left of the dining room) — it runs across, so from the
+  dining room you only see the bathroom door opposite. Inside it:
+  - straight ahead, the **bathroom**: talavera tiles, a hand-painted vessel
+    sink, a sunburst mirror with a real reflection and a walk-in rain shower;
+  - on the left, a **bedroom** with a queen bed, a desk and a wardrobe;
+  - on the right, a **walk-in closet** (clothes, shelves and a safe) and then
+    the **master bedroom** with a king bed, two talavera lamps and a window
+    onto the city.
+  - Inside the closet is a **second bathroom** with a bathtub you can fill.
+
+The interior doors open and close, and you can sit on the couch, the chairs
+and the stools and lie on the beds. A thirteen-item checklist tracks your
+progress as you settle in.
 
 ## Arena México
 
@@ -200,7 +211,7 @@ counts them, and the button bounces whenever you pick something up.
 | --- | --- |
 | `index.html`, `css/style.css` | Page, HUD and menus |
 | `js/main.js` | Renderer, input, checklist, game loop |
-| `js/room.js` | The hotel room: walls, furniture, lights and everything you can use |
+| `js/room.js` | The hotel suite: every room's walls, doors, furniture, lights and everything you can use |
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
 | `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |

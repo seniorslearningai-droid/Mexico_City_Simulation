@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { buildRoom } from './room.js';
+import { buildRoom, SUITE_SPAWN } from './room.js';
 import { buildWorld } from './city.js';
 import { buildArena, ARENA_SPAWN } from './arena.js';
 import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
@@ -16,13 +16,16 @@ const touch = matchMedia('(pointer: coarse)').matches;
 document.body.classList.toggle('touch', touch);
 
 const HOTEL_TASKS = [
-  ['curtains', 'Open the curtains'],
+  ['curtains', 'Open the living room curtains'],
   ['balcony', 'Step out onto the balcony'],
   ['tv', 'Turn on the TV'],
+  ['couch', 'Relax on the big couch'],
+  ['dine', 'Sit at the dining table'],
+  ['coffee', 'Make a coffee in the kitchen'],
+  ['fridge', 'Check the fridge'],
   ['lamp', 'Switch on a bedside lamp'],
-  ['bed', 'Lie down on the bed'],
-  ['wardrobe', 'Open the wardrobe'],
-  ['minibar', 'Check the mini fridge'],
+  ['bed', 'Lie down on a bed'],
+  ['closet', 'Find the bathroom inside the closet'],
   ['sink', 'Wash your hands'],
   ['lock', 'Lock the front door'],
   ['night', 'See the city at night'],
@@ -142,7 +145,7 @@ function complete(id) {
 
 // ---------- the two places ----------
 const world = buildWorld(scene);
-const room = buildRoom({ toast, complete, sit: (seat) => player.sit(seat) });
+const room = buildRoom({ toast, complete, sit: (seat) => player.sit(seat), player: () => player });
 scene.add(room.group);
 room.group.traverse((o) => {
   if (!o.isMesh) return;
@@ -172,8 +175,8 @@ arenaWorld.group.traverse((o) => {
 const hotel = {
   id: 'hotel',
   title: 'Hotel Jacaranda',
-  sub: 'Room 1207 · Paseo de la Reforma',
-  chip: 'Room 1207',
+  sub: 'Suite 1207 · Paseo de la Reforma',
+  chip: 'Suite 1207',
   tasksTitle: 'Settle in',
   goLabel: 'Back to hotel',
   tasks: HOTEL_TASKS,
@@ -181,12 +184,12 @@ const hotel = {
   root: room.group,
   colliders: room.colliders,
   floorAt: () => 0,
-  spawn: { x: 1.7, z: 3.2, yaw: 0.2, pitch: -0.04 },
+  spawn: SUITE_SPAWN,
   saved: null,
   enter() {
     room.group.visible = true;
     world.setActive(true);
-    scene.environmentIntensity = 0.4;
+    scene.environmentIntensity = 0.55;
   },
   exit() {
     room.group.visible = false;
@@ -354,6 +357,7 @@ loc = hotel;
 arenaWorld.group.visible = false;
 
 player = new Player(camera, room.colliders);
+player.place(hotel.spawn);
 
 // ---------- avatar (only seen in the bathroom mirror, layer 1) ----------
 const avatar = makeAvatar();
@@ -951,8 +955,6 @@ let idleT = 0;
 let simT = 0;
 renderer.setAnimationLoop(() => frame(Math.min(clock.getDelta(), 0.05)));
 
-const tapSpot = new THREE.Vector3(-3.2, 1, 1.9);
-const showerSpot = new THREE.Vector3(-3, 1.2, 3.4);
 function frame(dt, draw = true) {
   simT += dt;
   const t = simT;
@@ -968,7 +970,7 @@ function frame(dt, draw = true) {
     if (!state.started) {
       // Gentle look-around behind the title card.
       idleT += dt;
-      player.yaw = 0.2 + Math.sin(idleT * 0.15) * 0.35;
+      player.yaw = hotel.spawn.yaw + Math.sin(idleT * 0.15) * 0.35;
       player.pitch = -0.04 + Math.sin(idleT * 0.11) * 0.05;
     }
   }
@@ -990,9 +992,7 @@ function frame(dt, draw = true) {
     sound.set({
       open: st.balconyDoor.k,
       outside: THREE.MathUtils.clamp((-5 - camera.position.z) / 1.4, 0, 1),
-      water:
-        (st.tap.on ? 0.4 : 0) * Math.max(0, 1 - camera.position.distanceTo(tapSpot) / 4) +
-        (st.shower.on ? 1 : 0) * Math.max(0, 1 - camera.position.distanceTo(showerSpot) / 5),
+      water: st.water.reduce((a, w) => a + (w.on() ? w.gain * Math.max(0, 1 - camera.position.distanceTo(w.pos) / w.range) : 0), 0),
       night,
     });
     // Shadows are baked on demand: only when a door or curtain moves.
@@ -1104,5 +1104,5 @@ if (new URLSearchParams(location.search).has('debug')) {
 
 syncPlaceUI();
 $('#startBtn').disabled = false;
-$('#startBtn').textContent = 'Enter room 1207';
+$('#startBtn').textContent = 'Enter suite 1207';
 document.body.classList.add('ready');
