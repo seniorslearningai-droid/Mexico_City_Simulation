@@ -41,6 +41,7 @@ the `main` branch and the root folder.
 | `T` | Tap the checklist | Show / hide the checklist |
 | `1` `2` `3` `4` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary or the panda exhibit |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
+| `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
 
 ## What's in the room
@@ -153,6 +154,15 @@ long with your animal pressed into it, drops into the tray. Take it to see
 it up close, and try to collect all eight designs.
 
 It has its own nine-item panda-watch checklist.
+
+## Your backpack
+
+The backpack button in the top right corner (or `B`) opens your souvenirs
+from every place: the luchador masks you bought at Arena México (click one
+to wear it), your souvenir coins from the panda exhibit's coin machine (how
+many of the 8 designs you have), panda plushies, and the photos you took at
+the photo spots (click one to see it again). A little badge counts them and
+the button bounces whenever you pick something up.
 
 ## How it's built
 

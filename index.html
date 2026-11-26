@@ -98,6 +98,7 @@
       <button id="maskBtn" class="pill icon" type="button" aria-label="Put the mask on or off" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c5 0 7.5 3.5 7.5 9 0 6-3.5 10-7.5 10s-7.5-4-7.5-10c0-5.5 2.5-9 7.5-9z"/><path d="M6.5 11c1.5-1.5 3.5-1.5 4.5 0.5-1.5 1.5-3.5 1-4.5-0.5zM17.5 11c-1.5-1.5-3.5-1.5-4.5 0.5 1.5 1.5 3.5 1 4.5-0.5z" class="eyes"/><path d="M10 17h4"/></svg>
       </button>
+      <button id="bagBtn" class="pill icon" type="button" aria-label="Open your backpack of souvenirs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6.5V5a3 3 0 0 1 6 0v1.5"/><rect x="4.5" y="6.5" width="15" height="14.5" rx="4"/><path d="M8.5 13.5h7v4.5h-7z"/><path d="M8.5 10h7"/></svg><span id="bagCount" class="badge"></span></button>
       <button id="muteBtn" class="pill icon" type="button" data-muted="0" aria-label="Mute sound">
         <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
         <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>
@@ -106,6 +107,19 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
       </button>
     </div>
+
+    <aside id="bag" class="hidden" aria-label="Your backpack">
+      <header class="bag-head">
+        <span class="bag-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6.5V5a3 3 0 0 1 6 0v1.5"/><rect x="4.5" y="6.5" width="15" height="14.5" rx="4"/><path d="M8.5 13.5h7v4.5h-7z"/><path d="M8.5 10h7"/></svg></span>
+        <div>
+          <p class="eyebrow">Mi mochila · My backpack</p>
+          <h3 id="bagTotal">0 souvenirs</h3>
+        </div>
+        <button id="bagClose" type="button" aria-label="Close the backpack">×</button>
+      </header>
+      <div id="bagBody"></div>
+      <p class="bag-hint desktop-only">Press <kbd>B</kbd> to close · click a mask to wear it</p>
+    </aside>
 
     <div id="joy" aria-hidden="true"><div class="knob"></div></div>
     <button id="useBtn" type="button">Use</button>
@@ -127,7 +141,7 @@
         <div><dt><kbd>Shift</kbd></dt><dd>Walk faster</dd></div>
         <div><dt><kbd>N</kbd></dt><dd>Day / night</dd></div>
         <div><dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Hotel · stadium · aviary · pandas</dd></div>
-        <div><dt><kbd>K</kbd></dt><dd>Wear your mask</dd></div>
+        <div><dt><kbd>K</kbd> <kbd>B</kbd></dt><dd>Mask · backpack</dd></div>
         <div><dt><kbd>Esc</kbd></dt><dd>Pause</dd></div>
       </dl>
       <dl class="keys touch-only">

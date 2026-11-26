@@ -961,6 +961,7 @@ export function buildPandas(ctx) {
         plushes++;
         ctx.sound.squeak();
         ctx.complete('pPlush');
+        if (ctx.souvenir) ctx.souvenir('plush');
         ctx.toast(plushes === 1 ? 'You bought a fluffy panda plushie. ¡Qué suave! *squeak*' : `Another one? That’s ${plushes} plush pandas in your backpack!`);
       },
     });
@@ -1156,7 +1157,9 @@ export function buildPandas(ctx) {
       cmState.turns = 0;
       trayCoin.visible = false;
       cmState.collected.add(cmState.sel);
-      if (ctx.showCoin) ctx.showCoin(coinTex[cmState.sel].image.toDataURL(), `${c.es} · Chapultepec`);
+      const img = coinTex[cmState.sel].image.toDataURL();
+      if (ctx.showCoin) ctx.showCoin(img, `${c.es} · Chapultepec`);
+      if (ctx.souvenir) ctx.souvenir('coin', { key: c.name, name: `${c.name} coin`, img });
       const n = cmState.collected.size;
       ctx.toast(n === COINS.length ? `You got the ${c.name} coin — that’s every design! ¡Felicidades, coin collector!` : `You got the ${c.name} coin! You’ve collected ${n} of ${COINS.length} designs.`, 4500);
       if (c.name === 'Panda') ctx.complete('pCoin');

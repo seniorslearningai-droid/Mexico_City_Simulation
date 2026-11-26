@@ -328,7 +328,7 @@ export function buildArena(ctx) {
   let maskDesign = 0;
   let boughtMask = false;
   interact(merchParts, {
-    label: () => (boughtMask ? 'Swap for a different mask' : 'Buy a luchador mask'),
+    label: () => (boughtMask ? 'Buy another luchador mask' : 'Buy a luchador mask'),
     act: () => {
       const design = maskDesign++ % T.MASKS.length;
       ctx.buyMask(design, !boughtMask);

@@ -7,7 +7,7 @@ import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
 import { buildPandas, PANDA_SPAWN } from './pandas.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
-import { MASKS } from './textures.js';
+import { MASKS, maskFace, drawPanda } from './textures.js';
 
 const $ = (s) => document.querySelector(s);
 const touch = matchMedia('(pointer: coarse)').matches;
@@ -251,6 +251,7 @@ const pandaWorld = buildPandas({
   sound,
   camera,
   showCoin,
+  souvenir: (kind, data) => addSouvenir(kind, data),
   sit: (seat) => player.sit(seat),
   player: () => player,
 });
@@ -368,15 +369,19 @@ function paintMask() {
   am.trim.color.set(trim);
 }
 function buyMask(design, first) {
+  const isNew = !bag.masks.includes(design);
   maskState.owned = true;
   maskState.design = design;
   paintMask();
   $('#maskBtn').hidden = false;
   complete('mask');
+  addSouvenir('mask', { design });
   toast(
     first
       ? `You bought a máscara! Press ${touch ? 'the mask button' : 'K'} to put it on.`
-      : 'Swapped it for another design. ¡Qué bonita!',
+      : isNew
+        ? 'Another máscara for your backpack! ¡Qué bonita!'
+        : 'You already have that one — it’s in your backpack.',
   );
 }
 function toggleMask() {
@@ -392,8 +397,112 @@ function toggleMask() {
     complete('wear');
     toast('Mask on. You are now a luchador incógnito.');
   }
+  if (bag.open) renderBag();
 }
 paintMask();
+
+// ---------- the backpack: souvenirs from every place ----------
+const COIN_DESIGNS = 8;
+const bag = { masks: [], coins: new Map(), plush: 0, photos: [], hinted: false, open: false };
+const bagIcons = {};
+function maskIcon(d) {
+  if (!bagIcons['mask' + d]) bagIcons['mask' + d] = maskFace(d).image.toDataURL();
+  return bagIcons['mask' + d];
+}
+function plushIcon() {
+  if (!bagIcons.plush) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    drawPanda(c.getContext('2d'), 128, 150, 1.05);
+    bagIcons.plush = c.toDataURL();
+  }
+  return bagIcons.plush;
+}
+const bagCount = () => bag.masks.length + [...bag.coins.values()].reduce((n, c) => n + c.n, 0) + bag.plush + bag.photos.length;
+function addSouvenir(kind, data = {}) {
+  if (kind === 'mask') {
+    if (!bag.masks.includes(data.design)) bag.masks.push(data.design);
+  } else if (kind === 'coin') {
+    const c = bag.coins.get(data.key) || { name: data.name, img: data.img, n: 0 };
+    c.n++;
+    bag.coins.set(data.key, c);
+  } else if (kind === 'plush') bag.plush++;
+  else if (kind === 'photo') {
+    bag.photos.unshift({ url: data.url, caption: data.caption });
+    if (bag.photos.length > 12) bag.photos.pop();
+  }
+  const btn = $('#bagBtn');
+  btn.classList.remove('bump');
+  void btn.offsetWidth;
+  btn.classList.add('bump');
+  $('#bagCount').textContent = bagCount();
+  if (bag.open) renderBag();
+  if (!bag.hinted) {
+    bag.hinted = true;
+    setTimeout(() => toast(`🎒 Saved in your backpack — open it from the top right${touch ? '' : ' or press B'}.`, 4200), 4600);
+  }
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+function renderBag() {
+  const sec = (title, count, body) => `<section class="bag-sec"><h4><span>${title}</span><span class="c">${count}</span></h4>${body}</section>`;
+  const empty = (msg) => `<p class="bag-empty">${msg}</p>`;
+  const num = (n) => (n > 1 ? `<b class="n">×${n}</b>` : '');
+  const worn = (d) => maskState.on && maskState.design === d;
+  const masks = bag.masks.length
+    ? `<div class="bag-grid">${bag.masks.map((d) => `<button type="button" class="bag-item${worn(d) ? ' on' : ''}" data-mask="${d}" title="${worn(d) ? 'Take it off' : 'Put it on'}"><img src="${maskIcon(d)}" alt="Luchador mask"><span>${worn(d) ? 'Wearing' : 'Wear it'}</span></button>`).join('')}</div>`
+    : empty('Buy one at the merch stand in Arena México.');
+  const coins = bag.coins.size
+    ? `<div class="bag-grid bag-coins">${[...bag.coins.values()].map((c) => `<div class="bag-item"><img src="${c.img}" alt="${esc(c.name)}"><span>${esc(c.name)}</span>${num(c.n)}</div>`).join('')}</div>`
+    : empty('Press one at the coin machine by the panda exhibit.');
+  const plush = bag.plush
+    ? `<div class="bag-grid"><div class="bag-item"><img src="${plushIcon()}" alt="Panda plushie"><span>Panda plushie</span>${num(bag.plush)}</div></div>`
+    : empty('Pick one up at the panda exhibit’s souvenir kiosk.');
+  const photos = bag.photos.length
+    ? `<div class="bag-grid bag-photos">${bag.photos.map((p, i) => `<button type="button" class="bag-photo" data-photo="${i}" title="${esc(p.caption)}"><img src="${p.url}" alt="${esc(p.caption)}"></button>`).join('')}</div>`
+    : empty('Snap one at a 📷 FOTO sign at the aviary or the pandas.');
+  $('#bagTotal').textContent = bagCount() === 1 ? '1 souvenir' : `${bagCount()} souvenirs`;
+  $('#bagBody').innerHTML =
+    sec('Máscaras · Masks', bag.masks.length, masks) +
+    sec('Monedas · Coins', `${bag.coins.size}/${COIN_DESIGNS}`, coins) +
+    sec('Peluches · Plushies', bag.plush, plush) +
+    sec('Fotos · Photos', bag.photos.length, photos);
+}
+function wearMask(d) {
+  if (maskState.on && maskState.design === d) toggleMask();
+  else {
+    maskState.design = d;
+    paintMask();
+    if (maskState.on) toast('Mask swapped. ¡Qué bonita!');
+    else toggleMask();
+  }
+  renderBag();
+}
+// Re-lock the mouse without falling back to drag mode if the browser says no.
+function relock() {
+  if (state.dragMode) return;
+  try {
+    const p = canvas.requestPointerLock();
+    if (p && p.catch) p.catch(() => {});
+  } catch {}
+}
+function openBag() {
+  if (bag.open || !state.started) return;
+  bag.open = true;
+  renderBag();
+  $('#bag').classList.remove('hidden');
+  $('#bagBtn').classList.add('active');
+  state.modal = true;
+  if (document.pointerLockElement) document.exitPointerLock();
+}
+function closeBag(lockAgain = true) {
+  if (!bag.open) return;
+  bag.open = false;
+  $('#bag').classList.add('hidden');
+  $('#bagBtn').classList.remove('active');
+  state.modal = false;
+  if (lockAgain && state.playing) relock();
+}
+const toggleBag = () => (bag.open ? closeBag() : openBag());
 
 // ---------- input ----------
 const state = { started: false, playing: false, locked: false, dragMode: touch, modal: false, traveling: false };
@@ -443,6 +552,8 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit3') travel('aviary');
   if (e.code === 'Digit4') travel('pandas');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
+  if (e.code === 'KeyB') toggleBag();
+  if (e.code === 'Escape' && bag.open) closeBag(false);
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
 window.addEventListener('blur', () => keys.clear());
@@ -457,6 +568,7 @@ function lock() {
   }
 }
 document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === canvas && bag.open) closeBag(false);
   state.locked = document.pointerLockElement === canvas;
   document.body.classList.toggle('locked', state.locked);
   if (!state.locked && state.playing && !state.dragMode && !state.modal) pause();
@@ -542,6 +654,20 @@ function toggleMute() {
 }
 $('#muteBtn').addEventListener('click', toggleMute);
 $('#maskBtn').addEventListener('click', toggleMask);
+$('#bagBtn').addEventListener('click', toggleBag);
+$('#bagClose').addEventListener('click', () => closeBag());
+$('#bagBody').addEventListener('click', (e) => {
+  const m = e.target.closest('[data-mask]');
+  if (m) {
+    wearMask(+m.dataset.mask);
+    sound.click();
+  }
+  const p = e.target.closest('[data-photo]');
+  if (p) {
+    const ph = bag.photos[+p.dataset.photo];
+    if (ph) showPolaroid(ph.url, ph.caption);
+  }
+});
 document.querySelectorAll('#destBtns .dest').forEach((b) => b.addEventListener('click', () => travel(b.dataset.place)));
 $('#tasksToggle').addEventListener('click', () => $('#tasks').classList.toggle('collapsed'));
 if (touch || window.innerWidth < 700) $('#tasks').classList.add('collapsed');
@@ -860,24 +986,29 @@ function takePhoto() {
   const seat = player.seat || {};
   renderer.render(scene, camera);
   const url = canvas.toDataURL('image/jpeg', 0.85);
-  $('#photoImg').src = url;
-  $('#photoCard figcaption').textContent = seat.caption || 'Aviario · Chapultepec';
-  $('#photoCard').classList.remove('show');
-  void $('#photoCard').offsetWidth;
-  $('#photoCard').classList.add('show');
+  const caption = seat.caption || 'Aviario · Chapultepec';
+  showPolaroid(url, caption);
   $('#flash').classList.remove('go');
   void $('#flash').offsetWidth;
   $('#flash').classList.add('go');
   sound.shutter();
   complete(seat.task || 'photo');
-  clearTimeout(takePhoto.timer);
-  takePhoto.timer = setTimeout(() => $('#photoCard').classList.remove('show'), 5500);
+  addSouvenir('photo', { url, caption });
+}
+function showPolaroid(url, caption) {
+  $('#photoImg').src = url;
+  $('#photoCard figcaption').textContent = caption;
+  $('#photoCard').classList.remove('show');
+  void $('#photoCard').offsetWidth;
+  $('#photoCard').classList.add('show');
+  clearTimeout(showPolaroid.timer);
+  showPolaroid.timer = setTimeout(() => $('#photoCard').classList.remove('show'), 5500);
 }
 
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },
