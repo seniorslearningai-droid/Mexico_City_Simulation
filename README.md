@@ -100,8 +100,9 @@ cleared plot after the mixed aviary for another exhibit.
    the feeder and everyone comes to eat.
 
 Along the way: signs about each bird, a bench at the top of the U,
-binoculars for spotting the wild toucan in an old ahuehuete tree (and the
-wild monk parakeets that fly over the forest), and a photo spot that gives
+binoculars for spotting the wild toucan (it hides in a different treetop
+each visit, off to the side or behind you, so look all around) and the wild
+monk parakeets that fly over the forest, and a photo spot that gives
 you a polaroid of the mixed aviary.
 
 It has its own ten-item bird-spotter checklist.

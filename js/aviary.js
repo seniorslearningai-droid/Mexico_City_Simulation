@@ -33,7 +33,7 @@ const tapeZ = (x) => (x < 0 ? TAPE_W : TAPE_E);
 const PATH_END = TAPE_E + 20; // the path carries on (off-limits) past the tape
 const BINO = { x: 0, z: CZ - LEG - 1.3 }; // at the top of the U, on the outer edge
 const BIG_TREE = { x: -8, z: 4 };
-const TOUCAN_TREE = { x: 1.8, z: BINO.z - 10.7 };
+const LOOKOUT_TREE = { x: 1.8, z: BINO.z - 10.7 }; // the obvious place to look (the toucan isn't there)
 
 export const AVIARY_SPAWN = { x: -LEG, z: TAPE_W - 1.6, yaw: 0, pitch: -0.04 };
 // Yaw that makes a forward-facing (-z) model or camera look from (x, z) toward (tx, tz).
@@ -911,15 +911,15 @@ export function buildAviary(ctx) {
     return { at };
   }
   ahuehuete(BIG_TREE.x, BIG_TREE.z);
-  const toucanTree = ahuehuete(TOUCAN_TREE.x, TOUCAN_TREE.z);
+  const lookoutTree = ahuehuete(LOOKOUT_TREE.x, LOOKOUT_TREE.z);
 
   // ---------- the forest ----------
   function treeOK(x, z, r) {
     nearestOnU(x, z, tmpN);
     if (Math.hypot(x - tmpN.x, z - tmpN.z) < HW + 0.9 + r) return false;
     if (cageRects.some((c) => x > c.x0 - 1.2 - r && x < c.x1 + 1.2 + r && z > c.z0 - 1.2 - r && z < c.z1 + 1.2 + r)) return false;
-    if (x > BINO.x - 3.5 && x < BINO.x + 6.5 && z > TOUCAN_TREE.z + 2 && z < BINO.z + 0.3) return false; // the binoculars' view
-    if (Math.hypot(x - BIG_TREE.x, z - BIG_TREE.z) < 5 || Math.hypot(x - TOUCAN_TREE.x, z - TOUCAN_TREE.z) < 4.5) return false;
+    if (x > BINO.x - 3.5 && x < BINO.x + 6.5 && z > LOOKOUT_TREE.z + 2 && z < BINO.z + 0.3) return false; // the binoculars' view
+    if (Math.hypot(x - BIG_TREE.x, z - BIG_TREE.z) < 5 || Math.hypot(x - LOOKOUT_TREE.x, z - LOOKOUT_TREE.z) < 4.5) return false;
     return true;
   }
   const trees = [];
@@ -956,11 +956,17 @@ export function buildAviary(ctx) {
     });
     broad.forEach((t, i) => {
       const s = 2.4 + rand() * 1.8;
-      crowns.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, t.h * 0.75 + s * 0.5, t.z), q.setFromAxisAngle(Y, rand() * 6), new THREE.Vector3(s, s * 0.8, s)));
+      const a = rand() * 6;
+      t.s = s;
+      t.cy = t.h * 0.75 + s * 0.5;
+      t.cyaw = a;
+      crowns.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, t.cy, t.z), q.setFromAxisAngle(Y, a), new THREE.Vector3(s, s * 0.8, s)));
       crowns.setColorAt(i, c.setHSL(0.26 + rand() * 0.07, 0.55, 0.08 + rand() * 0.08));
     });
     pines.forEach((t, i) => {
       const s = 1.8 + rand() * 1.0;
+      t.s = s;
+      t.top = t.h * 1.16;
       pineTops.setMatrixAt(i, m4.compose(new THREE.Vector3(t.x, t.h * 0.35, t.z), q.setFromAxisAngle(Y, rand() * 6), new THREE.Vector3(s, t.h * 0.33, s)));
       pineTops.setColorAt(i, c.setHSL(0.33 + rand() * 0.04, 0.45, 0.05 + rand() * 0.05));
     });
@@ -1017,16 +1023,13 @@ export function buildAviary(ctx) {
   }
   cast(bino);
   post(BINO.x, BINO.z, 0.25);
-  const toucanPerch = toucanTree.at[4](0.42).add(new THREE.Vector3(0, 0.16, 0));
+  const binoEye = new THREE.Vector3(BINO.x, 1.58, BINO.z + 0.5);
   interact(binoParts, {
     label: () => 'Look through the binoculars',
     act: () => {
-      const eye = new THREE.Vector3(BINO.x, 1.58, BINO.z + 0.5);
-      const dx = toucanPerch.x - eye.x;
-      const dz = toucanPerch.z - eye.z;
-      ctx.sit({ eye, yaw: lookYaw(eye.x, eye.z, toucanPerch.x + 2.5, toucanPerch.z), pitch: Math.atan2(toucanPerch.y - 1.58, Math.hypot(dx, dz)) - 0.05, binoculars: true });
+      ctx.sit({ eye: binoEye.clone(), yaw: lookYaw(binoEye.x, binoEye.z, LOOKOUT_TREE.x, LOOKOUT_TREE.z), pitch: 0.35, binoculars: true });
       ctx.complete('binoculars');
-      ctx.toast('Look up into the trees — can you spot the wild toucan? Point at a bird and press E to identify it.', 5200);
+      ctx.toast('A wild toucan is hiding somewhere in the treetops around you — its black feathers blend into the leaves. Look all around! Press E on a bird to identify it.', 6500);
     },
   });
 
@@ -1084,8 +1087,59 @@ export function buildAviary(ctx) {
     return out.set(L.cx + L.a * Math.cos(L.w * t + L.p), L.h + 1.2 * Math.sin(2 * L.w * t + L.q), L.cz + L.b * Math.sin(L.w * t + L.p));
   };
   const toucan = makeBird('toucan');
-  toucan.pos.copy(toucanPerch);
-  toucan.faceYaw = Math.atan2(BINO.x - toucanPerch.x, BINO.z - toucanPerch.z);
+  hideToucan();
+
+  // Each visit the toucan picks a different treetop around the binoculars:
+  // at the edge of the leaves, off to the side or behind you, turned side-on.
+  // It's always in clear sight of the binoculars — no trunk or crown in the way.
+  function hideToucan() {
+    const eye = binoEye;
+    const lumps = [[0, 0, 0, 1], [0.7, -0.25, 0.3, 0.75], [-0.6, -0.2, -0.4, 0.7]];
+    const spheres = [];
+    for (const t of broad) {
+      for (const [lx, ly, lz, lr] of lumps) {
+        const off = new THREE.Vector3(lx * t.s, ly * t.s * 0.8, lz * t.s).applyAxisAngle(Y, t.cyaw);
+        spheres.push({ c: new THREE.Vector3(t.x + off.x, t.cy + off.y, t.z + off.z), r: lr * t.s * 0.8, t, main: lr === 1 });
+      }
+    }
+    for (const b of [BIG_TREE, LOOKOUT_TREE]) spheres.push({ c: new THREE.Vector3(b.x, 8.5, b.z), r: 5 });
+    const posts = trees.map((t) => ({ x: t.x, z: t.z, r: t.pine ? t.s * 0.7 : t.r * 1.2, top: t.pine ? t.top : t.cy, t }));
+    const blocked = (p, host) => {
+      const ab = p.clone().sub(eye);
+      const len2 = ab.lengthSq();
+      const flat2 = ab.x * ab.x + ab.z * ab.z;
+      const q = new THREE.Vector3();
+      for (const sp of spheres) {
+        const k = THREE.MathUtils.clamp(sp.c.clone().sub(eye).dot(ab) / len2, 0, 0.96);
+        if (q.copy(eye).addScaledVector(ab, k).distanceTo(sp.c) < sp.r) return true;
+      }
+      for (const c of posts) {
+        if (c.t === host) continue;
+        const k = THREE.MathUtils.clamp(((c.x - eye.x) * ab.x + (c.z - eye.z) * ab.z) / flat2, 0, 1);
+        if (Math.hypot(eye.x + ab.x * k - c.x, eye.z + ab.z * k - c.z) < c.r && eye.y + ab.y * k < c.top) return true;
+      }
+      return false;
+    };
+    const spots = [];
+    for (const t of broad) {
+      const dx = t.x - eye.x;
+      const dz = t.z - eye.z;
+      const d = Math.hypot(dx, dz);
+      if (d < 12 || d > 26) continue;
+      const p = new THREE.Vector3(t.x - (dx / d) * t.s * 0.97, t.cy - 0.3 * t.s, t.z - (dz / d) * t.s * 0.97);
+      if (p.y < 4) continue;
+      // Off to the side or behind: well away from where the binoculars start (north).
+      const vz = p.z - eye.z;
+      if (-vz / Math.hypot(p.x - eye.x, vz) > 0.35) continue;
+      if (spheres.some((sp) => sp.t === t && !sp.main && p.distanceTo(sp.c) < sp.r)) continue;
+      if (blocked(p, t)) continue;
+      spots.push(p);
+    }
+    const p = spots.length ? spots[Math.floor(Math.random() * spots.length)] : lookoutTree.at[4](0.42).add(new THREE.Vector3(0, 0.16, 0));
+    toucan.pos.copy(p);
+    toucan.faceYaw = Math.atan2(eye.x - p.x, eye.z - p.z) + (Math.random() < 0.5 ? 1 : -1) * (Math.PI / 2);
+    api.toucanSpots = spots.length;
+  }
 
   // ---------- binocular identification ----------
   const seen = new Set();
