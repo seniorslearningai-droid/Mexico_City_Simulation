@@ -84,7 +84,9 @@ off with yellow **"AUTHORIZED ACCESS ONLY"** caution tape, so you walk from
 one end, around the curve, and back down the other side. Five mini aviaries
 line the path, with an aviary's width of forest between neighbours: three
 on the left leg (on your left as you walk) and two on the right leg (on your
-right). The U is big: the legs are 40 m apart and about 50 m long.
+right). The U is big: the legs are 40 m apart and about 50 m long. The
+right leg's tape sits about 7 m farther down than the left one, leaving a
+cleared plot after the mixed aviary for another exhibit.
 
 1. **Peacocks** — a blue peacock, a white one and a peahen. Whistle and a
    peacock struts over and fans out his tail.

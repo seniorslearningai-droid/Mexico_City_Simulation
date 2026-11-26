@@ -25,13 +25,17 @@ const Y = new THREE.Vector3(0, 1, 0);
 const LEG = 20; // the legs run along x = -20 and x = +20
 const CZ = -20; // center of the curve; the legs run from here south to the tape
 const HW = 1.8; // half-width of the path
-const TAPE_Z = 28;
-const PATH_END = TAPE_Z + 20; // the path carries on (off-limits) past the tape
+// Caution tape across each end of the U. The right leg's tape sits farther
+// down, leaving room after the mixed aviary for another exhibit.
+const TAPE_W = 28;
+const TAPE_E = 35;
+const tapeZ = (x) => (x < 0 ? TAPE_W : TAPE_E);
+const PATH_END = TAPE_E + 20; // the path carries on (off-limits) past the tape
 const BINO = { x: 0, z: CZ - LEG - 1.3 }; // at the top of the U, on the outer edge
 const BIG_TREE = { x: -8, z: 4 };
 const TOUCAN_TREE = { x: 1.8, z: BINO.z - 10.7 };
 
-export const AVIARY_SPAWN = { x: -LEG, z: TAPE_Z - 1.6, yaw: 0, pitch: -0.04 };
+export const AVIARY_SPAWN = { x: -LEG, z: TAPE_W - 1.6, yaw: 0, pitch: -0.04 };
 // Yaw that makes a forward-facing (-z) model or camera look from (x, z) toward (tx, tz).
 const lookYaw = (x, z, tx, tz) => Math.atan2(x - tx, z - tz);
 
@@ -210,7 +214,7 @@ export function buildAviary(ctx) {
       p.x = tmpN.x + (dx / d) * max;
       p.z = tmpN.z + (dz / d) * max;
     }
-    p.z = Math.min(p.z, TAPE_Z - r - 0.15);
+    p.z = Math.min(p.z, tapeZ(p.x) - r - 0.15);
   }
 
   // ---------- sky, sun, ground ----------
@@ -332,6 +336,7 @@ export function buildAviary(ctx) {
   const tapeParts = [];
   const span = 2 * (HW + 0.4);
   for (const x0 of [-LEG, LEG]) {
+    const TAPE_Z = tapeZ(x0);
     for (const s of [-1, 1]) {
       const sx = x0 + s * (HW + 0.4);
       const pole = cyl(group, M.stake, 0.05, 0.05, 1.3, sx, 0.65, TAPE_Z, 10);
@@ -756,7 +761,7 @@ export function buildAviary(ctx) {
     return centers;
   }
   // Left leg: starting right by the tape and heading north.
-  const westZ = spread(TAPE_Z - 4, -1, [7.4, 6.4, 7.2]);
+  const westZ = spread(TAPE_W - 4, -1, [7.4, 6.4, 7.2]);
   // Right leg: starting a little after the curve and heading south.
   const eastZ = spread(CZ + 10.8, 1, [6.4, 9]);
   const SIGN = {
@@ -857,6 +862,11 @@ export function buildAviary(ctx) {
   });
   ['scarlet', 'military', 'parrot', 'redcrown', 'budgie', 'budgie', 'budgieBlue', 'budgieBlue'].forEach((k) => addCageBird(mixedCage, k));
   addPeacock(mixedCage, 'blue');
+  // Space for another exhibit, after the mixed aviary on the right leg.
+  {
+    const end = eastZ[1] + 9 / 2;
+    cageRects.push({ x0: eastFront - 6, x1: eastFront, z0: end + 7.7, z1: end + 7.7 + 9 });
+  }
   const seedTimers = [];
 
   // ---------- big ahuehuete trees ----------
@@ -971,12 +981,12 @@ export function buildAviary(ctx) {
   const fernSpots = [];
   for (let tries = 0; tries < 9000 && fernSpots.length < 900; tries++) {
     const x = -LEG - 12 + rand() * (2 * LEG + 24);
-    const z = CZ - LEG - 10 + rand() * (TAPE_Z + 10 - (CZ - LEG - 10));
+    const z = CZ - LEG - 10 + rand() * (TAPE_E + 10 - (CZ - LEG - 10));
     nearestOnU(x, z, tmpN);
     const d = Math.hypot(x - tmpN.x, z - tmpN.z);
     if (d < HW + 0.45 || (d > HW + 4 && rand() < 0.7)) continue;
     if (cageRects.some((c) => x > c.x0 - 0.2 && x < c.x1 + 0.2 && z > c.z0 - 0.2 && z < c.z1 + 0.2)) continue;
-    if (Math.abs(z - TAPE_Z) < 0.8 && Math.abs(Math.abs(x) - LEG) < HW + 1) continue;
+    if (Math.abs(z - tapeZ(x)) < 0.8 && Math.abs(Math.abs(x) - LEG) < HW + 1) continue;
     fernSpots.push([x, z, 0.6 + rand() * 0.7]);
   }
   const ferns = new THREE.InstancedMesh(fernGeo, M.leaf, fernSpots.length);
