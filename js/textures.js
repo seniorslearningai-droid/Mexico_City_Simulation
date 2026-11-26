@@ -1351,3 +1351,324 @@ export function coinSteps() {
     g.strokeRect(4, 4, w - 8, h - 8);
   }, { wrap: false });
 }
+
+// ---------- the panda family tree mural ----------
+
+// A panda portrait: black shoulders, a round white face, patches, ears and a nose.
+function drawPandaFace(g, x, y, s, tilt = 0) {
+  const B = '#1c1b1f';
+  const blob = (cx, cy, rx, ry, col, rot = 0) => {
+    g.fillStyle = col;
+    g.beginPath();
+    g.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2);
+    g.fill();
+  };
+  blob(x, y + s * 1.05, s * 0.95, s * 0.5, B);
+  g.save();
+  g.translate(x, y);
+  g.rotate(tilt);
+  blob(-s * 0.6, -s * 0.5, s * 0.26, s * 0.26, B);
+  blob(s * 0.6, -s * 0.5, s * 0.26, s * 0.26, B);
+  blob(0, s * 0.08, s * 0.78, s * 0.68, '#fafaf6');
+  blob(-s * 0.3, s * 0.02, s * 0.17, s * 0.25, B, 0.55);
+  blob(s * 0.3, s * 0.02, s * 0.17, s * 0.25, B, -0.55);
+  blob(-s * 0.28, -s * 0.01, s * 0.05, s * 0.05, '#ffffff');
+  blob(s * 0.28, -s * 0.01, s * 0.05, s * 0.05, '#ffffff');
+  blob(0, s * 0.3, s * 0.13, s * 0.09, B);
+  g.strokeStyle = B;
+  g.lineWidth = Math.max(2, s * 0.035);
+  g.beginPath();
+  g.moveTo(-s * 0.1, s * 0.44);
+  g.quadraticCurveTo(0, s * 0.52, s * 0.1, s * 0.44);
+  g.stroke();
+  g.restore();
+}
+// A tiny pink newborn cub, curled up asleep.
+function drawCub(g, x, y, s) {
+  const blob = (cx, cy, rx, ry, col, rot = 0) => {
+    g.fillStyle = col;
+    g.beginPath();
+    g.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2);
+    g.fill();
+  };
+  blob(x + s * 0.12, y + s * 0.15, s * 0.62, s * 0.42, '#eea39c', -0.2);
+  blob(x - s * 0.42, y - s * 0.12, s * 0.34, s * 0.3, '#f2b0a8');
+  blob(x - s * 0.6, y - s * 0.36, s * 0.09, s * 0.08, '#d8867f');
+  blob(x + s * 0.6, y + s * 0.35, s * 0.18, s * 0.1, '#e0928a', 0.4);
+  g.strokeStyle = '#a05a54';
+  g.lineWidth = Math.max(2, s * 0.05);
+  g.beginPath();
+  g.moveTo(x - s * 0.5, y - s * 0.12);
+  g.lineTo(x - s * 0.36, y - s * 0.1);
+  g.stroke();
+}
+
+// Chapultepec's giant panda family, as painted on the wall by the panda yard.
+export function pandaFamilyTree() {
+  return make(2048, 1400, (g, w, h) => {
+    const r = rng(1975);
+    const MALE = '#2f86d6';
+    const FEMALE = '#8c48b6';
+    g.fillStyle = '#a7b898';
+    g.fillRect(0, 0, w, h);
+    const vg = g.createRadialGradient(w / 2, h * 0.45, 200, w / 2, h / 2, w * 0.72);
+    vg.addColorStop(0, 'rgba(255,255,235,0.22)');
+    vg.addColorStop(1, 'rgba(40,60,30,0.28)');
+    g.fillStyle = vg;
+    g.fillRect(0, 0, w, h);
+    speckle(g, w, h, r, 5000, 0.05);
+    // Title.
+    g.textAlign = 'center';
+    g.textBaseline = 'alphabetic';
+    g.fillStyle = '#2b4426';
+    g.font = 'bold 66px Georgia, serif';
+    g.fillText('ÁRBOL GENEALÓGICO', w / 2, 92);
+    g.font = 'italic 34px Georgia, serif';
+    g.fillText('Los pandas gigantes de Chapultepec · The Chapultepec giant panda family', w / 2, 140);
+
+    // Bamboo poles join the family, tied with twine.
+    const pole = (x0, y0, x1, y1) => {
+      const len = Math.hypot(x1 - x0, y1 - y0);
+      g.save();
+      g.translate(x0, y0);
+      g.rotate(Math.atan2(y1 - y0, x1 - x0));
+      const gr = g.createLinearGradient(0, -10, 0, 10);
+      gr.addColorStop(0, '#e2c48a');
+      gr.addColorStop(0.5, '#c79c5c');
+      gr.addColorStop(1, '#8e6a38');
+      g.fillStyle = gr;
+      g.fillRect(-4, -10, len + 8, 20);
+      for (let d = 40; d < len; d += 78) {
+        g.fillStyle = 'rgba(90,60,25,0.75)';
+        g.fillRect(d, -11, 5, 22);
+        g.fillStyle = 'rgba(255,240,200,0.5)';
+        g.fillRect(d + 5, -10, 3, 20);
+      }
+      g.restore();
+    };
+    const tie = (x, y) => {
+      g.strokeStyle = '#6a4424';
+      g.lineWidth = 6;
+      g.beginPath();
+      g.moveTo(x - 14, y - 14);
+      g.lineTo(x + 14, y + 14);
+      g.moveTo(x + 14, y - 14);
+      g.lineTo(x - 14, y + 14);
+      g.stroke();
+    };
+    const plaque = (x, y, name, years) => {
+      const pw = 252;
+      const ph = 88;
+      g.save();
+      g.translate(x, y);
+      g.rotate((r() - 0.5) * 0.04);
+      g.fillStyle = 'rgba(0,0,0,0.22)';
+      g.fillRect(-pw / 2 + 6, -ph / 2 + 7, pw, ph);
+      g.fillStyle = '#f6efdc';
+      g.fillRect(-pw / 2, -ph / 2, pw, ph);
+      g.strokeStyle = '#d8ccae';
+      g.lineWidth = 3;
+      g.strokeRect(-pw / 2 + 6, -ph / 2 + 6, pw - 12, ph - 12);
+      g.fillStyle = '#1e1a14';
+      g.textAlign = 'center';
+      g.font = `bold italic ${name.length > 10 ? 36 : 42}px Georgia, serif`;
+      g.fillText(name, 0, -2);
+      g.font = '26px Georgia, serif';
+      g.fillText(years, 0, 32);
+      g.restore();
+    };
+    const sexSign = (x, y, male, size = 58) => {
+      g.save();
+      g.strokeStyle = male ? MALE : FEMALE;
+      g.lineWidth = size * 0.13;
+      g.lineCap = 'round';
+      const rr = size * 0.3;
+      g.beginPath();
+      g.arc(x, y, rr, 0, Math.PI * 2);
+      g.stroke();
+      g.beginPath();
+      if (male) {
+        const a = -Math.PI / 4;
+        const ex = x + Math.cos(a) * rr * 2.2;
+        const ey = y + Math.sin(a) * rr * 2.2;
+        g.moveTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+        g.lineTo(ex, ey);
+        g.moveTo(ex - rr * 0.75, ey);
+        g.lineTo(ex, ey);
+        g.lineTo(ex, ey + rr * 0.75);
+      } else {
+        g.moveTo(x, y + rr);
+        g.lineTo(x, y + rr * 2.3);
+        g.moveTo(x - rr * 0.6, y + rr * 1.7);
+        g.lineTo(x + rr * 0.6, y + rr * 1.7);
+      }
+      g.stroke();
+      g.restore();
+    };
+    const portrait = (x, y, rad, male, cub = false, glow = false) => {
+      if (glow) {
+        const gl = g.createRadialGradient(x, y, rad, x, y, rad + 60);
+        gl.addColorStop(0, 'rgba(255,214,90,0.9)');
+        gl.addColorStop(1, 'rgba(255,214,90,0)');
+        g.fillStyle = gl;
+        g.beginPath();
+        g.arc(x, y, rad + 60, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.fillStyle = 'rgba(0,0,0,0.25)';
+      g.beginPath();
+      g.arc(x + 6, y + 8, rad + 12, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = male ? MALE : FEMALE;
+      g.beginPath();
+      g.arc(x, y, rad + 12, 0, Math.PI * 2);
+      g.fill();
+      g.save();
+      g.beginPath();
+      g.arc(x, y, rad, 0, Math.PI * 2);
+      g.clip();
+      const bg = g.createLinearGradient(0, y - rad, 0, y + rad);
+      bg.addColorStop(0, cub ? '#f4e4dc' : '#cfe6f0');
+      bg.addColorStop(1, cub ? '#e8cfc4' : '#9cc6a0');
+      g.fillStyle = bg;
+      g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+      if (cub) drawCub(g, x, y, rad * 0.75);
+      else drawPandaFace(g, x, y - rad * 0.08, rad * 0.62, (r() - 0.5) * 0.35);
+      g.restore();
+    };
+    const ribbon = (x, y) => {
+      g.save();
+      g.translate(x, y);
+      g.fillStyle = '#111111';
+      g.beginPath();
+      g.moveTo(0, 0);
+      g.bezierCurveTo(-34, -40, -10, -70, 0, -38);
+      g.bezierCurveTo(10, -70, 34, -40, 0, 0);
+      g.fill();
+      g.beginPath();
+      g.moveTo(-3, -6);
+      g.lineTo(-26, 42);
+      g.lineTo(-12, 46);
+      g.lineTo(2, 6);
+      g.moveTo(3, -6);
+      g.lineTo(26, 42);
+      g.lineTo(12, 46);
+      g.lineTo(-2, 6);
+      g.fill();
+      g.restore();
+    };
+
+    // Pe Pe and Ying Ying, who came from China in 1975.
+    const top = 290;
+    pole(820, top, 1230, top);
+    pole(1025, top, 1025, 440);
+    tie(1025, top);
+    portrait(820, top, 84, true);
+    portrait(1230, top, 84, false);
+    plaque(570, top - 18, 'Pe Pe', '1974 – 1988');
+    plaque(1480, top - 18, 'Ying Ying', '1976 – 1989');
+    sexSign(820 + 92, top - 92, true);
+    sexSign(1230, top + 112, false, 52);
+
+    // Their seven cubs, all born at Chapultepec.
+    const kids = [
+      ['Xen Li', '1980 – 1980', false, true],
+      ['Tohui', '1981 – 1993', false, false],
+      ['Liang Liang', '1983 – 1999', true, false],
+      ['———', '1985 – 1985', true, true],
+      ['Xiu Hua', '1985 – 2013', false, false],
+      ['Ping Ping', '1987 – 1987', true, true],
+      ['Shuan Shuan', '1987 – Presente', false, false],
+    ];
+    const bar = 440;
+    const xs = kids.map((_, i) => 175 + i * 283);
+    pole(xs[0], bar, xs[6], bar);
+    kids.forEach(([name, years, male, cub], i) => {
+      const x = xs[i];
+      pole(x, bar, x, 470);
+      tie(x, bar);
+      plaque(x, 515, name, years);
+      const py = cub ? 640 : 660;
+      const pr = cub ? 54 : 72;
+      portrait(x, py, pr, male, cub);
+      sexSign(x, py + pr + 40, male, cub ? 44 : 52);
+    });
+    ribbon(xs[6] + 100, 596);
+
+    // Tohui and Chia Chia, the parents of Xin Xin.
+    const low = 950;
+    pole(xs[1], 830, xs[1], low);
+    pole(xs[1], low, 900, low);
+    tie(xs[1], low);
+    portrait(900, low, 72, true);
+    plaque(1150, low, 'Chia Chia', '1972 – 1991');
+    sexSign(900 + 82, low - 82, true, 50);
+    const mid = (xs[1] + 900) / 2;
+    pole(mid, low, mid, 1010);
+    tie(mid, low);
+    plaque(mid, 1055, 'Xin Xin', '1990 – Presente');
+    portrait(mid, 1205, 84, false, false, true);
+    sexSign(mid + 120, 1205, false, 52);
+    g.fillStyle = '#b02428';
+    g.font = 'bold 34px Georgia, serif';
+    g.textAlign = 'left';
+    g.fillText('★ ¡Vive aquí!', mid + 160, 1170);
+    g.font = 'italic 28px Georgia, serif';
+    g.fillText('She lives right here.', mid + 160, 1210);
+
+    // Legend.
+    const lx = 1400;
+    const ly = 1080;
+    g.fillStyle = 'rgba(246,239,220,0.92)';
+    g.fillRect(lx, ly, 560, 250);
+    g.strokeStyle = '#8e6a38';
+    g.lineWidth = 4;
+    g.strokeRect(lx + 8, ly + 8, 544, 234);
+    g.fillStyle = '#1e1a14';
+    g.font = 'bold 30px Georgia, serif';
+    g.textAlign = 'left';
+    g.fillText('Leyenda · Key', lx + 30, ly + 52);
+    g.font = '27px Georgia, serif';
+    sexSign(lx + 55, ly + 98, true, 40);
+    g.fillText('Macho · Male', lx + 100, ly + 108);
+    sexSign(lx + 55, ly + 145, false, 40);
+    g.fillText('Hembra · Female', lx + 100, ly + 162);
+    g.save();
+    g.translate(lx + 55, ly + 205);
+    g.scale(0.55, 0.55);
+    ribbon(0, 0);
+    g.restore();
+    g.fillText('En memoria · In memory', lx + 100, ly + 214);
+  }, { wrap: false });
+}
+
+// A zoo sign with a big animal picture (an emoji), title and subtitle.
+export function zooSign(title, sub, emoji, { head = '#c8406a', ink = '#5a1a2e', sky = ['#ffe4ea', '#f6f0d8'] } = {}) {
+  return make(512, 384, (g, w, h) => {
+    g.fillStyle = '#f4ecd8';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = head;
+    g.fillRect(0, 0, w, 70);
+    g.fillStyle = '#fff6ea';
+    g.font = 'bold 34px Georgia, serif';
+    g.textAlign = 'center';
+    g.fillText(title, w / 2, 48);
+    const gr = g.createLinearGradient(0, 90, 0, 300);
+    gr.addColorStop(0, sky[0]);
+    gr.addColorStop(1, sky[1]);
+    g.fillStyle = gr;
+    g.fillRect(30, 88, w - 60, 220);
+    g.fillStyle = '#7fb8c8';
+    g.fillRect(30, 270, w - 60, 38);
+    g.font = `170px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif`;
+    g.textBaseline = 'middle';
+    g.fillText(emoji, w / 2, 196);
+    g.textBaseline = 'alphabetic';
+    g.fillStyle = ink;
+    g.font = 'italic 25px Georgia, serif';
+    g.fillText(sub, w / 2, 348);
+    g.strokeStyle = head;
+    g.lineWidth = 8;
+    g.strokeRect(4, 4, w - 8, h - 8);
+  }, { wrap: false });
+}

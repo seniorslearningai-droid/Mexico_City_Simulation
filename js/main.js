@@ -54,15 +54,16 @@ const AVIARY_TASKS = [
   ['tape', 'Peek past the caution tape'],
 ];
 const PANDA_TASKS = [
-  ['pGate', 'Walk through the panda gate'],
   ['pSpot', 'Spot Xin Xin the panda'],
   ['pEat', 'Watch Xin Xin munch bamboo'],
   ['pNap', 'Catch Xin Xin taking a nap'],
+  ['pTree', 'Find Xin Xin on the family tree'],
   ['pKeeper', 'Chat with the keeper'],
   ['pSign', 'Read a panda sign'],
   ['pPlush', 'Buy a panda plushie'],
   ['pCoin', 'Press a panda souvenir coin'],
   ['pPhoto', 'Take a photo of Xin Xin'],
+  ['pFlamingo', 'Visit the flamingos next door'],
 ];
 
 // ---------- renderer / scene ----------
@@ -402,7 +403,7 @@ function toggleMask() {
 paintMask();
 
 // ---------- the backpack: souvenirs from every place ----------
-const COIN_DESIGNS = 8;
+const COIN_DESIGNS = 2;
 const bag = { masks: [], coins: new Map(), plush: 0, photos: [], hinted: false, open: false };
 const bagIcons = {};
 function maskIcon(d) {
@@ -725,7 +726,7 @@ const DONE_TEXT = {
   pandas: {
     eyebrow: '¡Qué ternura!',
     title: 'You’re a true panda pal!',
-    lede: 'You watched Xin Xin munch her bamboo and doze off for a nap, and you took home a plushie and a panda coin to remember her by. ¡Hasta pronto, Xin Xin!',
+    lede: 'You watched Xin Xin munch her bamboo and doze off, found her on the family tree, said hi to the flamingos next door, and took home a plushie and a panda coin. ¡Hasta pronto, Xin Xin!',
   },
 };
 function celebrate(place) {
@@ -782,7 +783,7 @@ async function travel(destId) {
   }
   if (loc === pandas && !pandas.visited) {
     pandas.visited = true;
-    setTimeout(() => toast('¡Bienvenidos al Pabellón del Panda! Walk through the red gate to meet Xin Xin, Chapultepec’s giant panda.', 5200), 500);
+    setTimeout(() => toast('¡Bienvenidos al Pabellón del Panda! Xin Xin, Chapultepec’s giant panda, is straight ahead — and the flamingos are just next door.', 5200), 500);
   }
 }
 // Swap the world over to another place (while the screen is faded out).

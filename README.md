@@ -129,10 +129,11 @@ It has its own fourteen-item bird-spotter checklist.
 
 ## Chapultepec Zoo panda exhibit
 
-You walk in through a red Chinese gate (a paifang with green tiled roofs and
-paper lanterns) onto a terrace that looks through a glass wall into the
-panda yard: grass, bamboo groves, a rock cliff with a cave, a pool with a
-little waterfall, a wooden climbing tower and a keepers' bamboo pile.
+You arrive on a small plaza with paper lanterns and walk straight onto a
+terrace that looks through a glass wall into the panda yard: grass, bamboo
+groves, a rock cliff with a cave, a pool with a little waterfall, a wooden
+climbing tower and a keepers' bamboo pile. The panda house, where she sleeps
+at night (keepers only), sits beside the yard.
 
 The yard is home to just one panda, **Xin Xin**, and she keeps to herself.
 She follows her own calm routine: munching bamboo (holding the stalk in her
@@ -140,27 +141,37 @@ paws), pottering about, sitting by the pool and napping sprawled on her
 tummy (with sleepy z's). Look right at her to spot her, and keep watching to
 catch her eating and napping.
 
+On the wall beside the terrace is a painted **family tree** of Chapultepec's
+pandas: Pe Pe and Ying Ying (who came from China in 1975), their seven cubs
+(Xen Li, Tohui, Liang Liang, an unnamed cub, Xiu Hua, Ping Ping and Shuan
+Shuan), and Tohui and Chia Chia's daughter, Xin Xin. It shows each panda's
+years, whether they were male or female, and a black ribbon in memory of
+Shuan Shuan.
+
 Around the terrace and the plaza: a keeper who's happy to chat about pandas,
 signs about Mexico's pandas and about Xin Xin, a souvenir kiosk with plush
-pandas, benches, the panda house where she sleeps at night (keepers only),
-and a photo spot that snaps a polaroid of Xin Xin.
+pandas, benches, and a photo spot that snaps a polaroid of Xin Xin.
 
 On the plaza there's a **souvenir coin machine**, like the pressed-penny
-machines at real zoos. Pick one of eight zoo animals (panda, lion, elephant,
-giraffe, zebra, tiger, penguin or flamingo), drop two coins in the slot, then
-turn the gear-shaped crank three times. You can watch the gears turn and the
-coin get squashed flat behind the glass. The finished copper coin, stretched
-long with your animal pressed into it, drops into the tray. Take it to see
-it up close, and try to collect all eight designs.
+machines at real zoos. Pick the panda or the flamingo, drop two coins in the
+slot, then turn the gear-shaped crank three times. You can watch the gears
+turn and the coin get squashed flat behind the glass. The finished copper
+coin, stretched long with your animal pressed into it, drops into the tray.
+Take it to see it up close.
 
-It has its own nine-item panda-watch checklist.
+**Next door: the flamingos.** A boardwalk off the plaza leads to a separate
+fenced lagoon of Caribbean flamingos (not part of the panda exhibit). They
+wade and feed with their heads down, preen, honk, rest on one leg, and nest
+on a little mud island. There's a sign about them and a bench to watch from.
+
+It has its own ten-item panda-watch checklist.
 
 ## Your backpack
 
 The backpack button in the top right corner (or `B`) opens your souvenirs
 from every place: the luchador masks you bought at Arena México (click one
 to wear it), your souvenir coins from the panda exhibit's coin machine (how
-many of the 8 designs you have), panda plushies, and the photos you took at
+which of the 2 designs you have), panda plushies, and the photos you took at
 the photo spots (click one to see it again). A little badge counts them and
 the button bounces whenever you pick something up.
 
@@ -181,7 +192,7 @@ the button bounces whenever you pick something up.
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
 | `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |
-| `js/pandas.js` | Chapultepec Zoo panda exhibit: gate, terrace, yard, Xin Xin and her daily routine, souvenir coin machine |
+| `js/pandas.js` | Chapultepec Zoo panda exhibit: terrace, yard, Xin Xin and her daily routine, family tree, coin machine, and the flamingo lagoon next door |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |
