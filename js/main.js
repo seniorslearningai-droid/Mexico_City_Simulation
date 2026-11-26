@@ -5,6 +5,8 @@ import { buildWorld } from './city.js';
 import { buildArena, ARENA_SPAWN } from './arena.js';
 import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
 import { buildPandas, PANDA_SPAWN } from './pandas.js';
+import { buildCoastal, COASTAL_SPAWN } from './coastal.js';
+import { COASTAL_COINS } from './coastal-press.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS, maskFace, drawPanda } from './textures.js';
@@ -64,6 +66,16 @@ const PANDA_TASKS = [
   ['pCoin', 'Press a panda souvenir coin'],
   ['pPhoto', 'Take a photo of Xin Xin'],
   ['pFlamingo', 'Visit the flamingos next door'],
+];
+
+const COASTAL_TASKS = [
+  ['coastPenguins', 'Spot a Humboldt penguin'],
+  ['coastSeaLions', 'Watch a California sea lion'],
+  ['coastSign', 'Read an animal sign'],
+  ['coastBench', 'Sit and watch the pools'],
+  ['coastPhoto', 'Take a penguin photo'],
+  ['coastPenguinCoin', 'Press a Penguin coin'],
+  ['coastSealCoin', 'Press a Seal coin'],
 ];
 
 // ---------- renderer / scene ----------
@@ -289,7 +301,55 @@ const pandas = {
     scene.fog = null;
   },
 };
-const PLACES = [hotel, arena, aviary, pandas];
+const coastalWorld = buildCoastal({
+  toast,
+  complete,
+  sound,
+  camera,
+  showCoin,
+  souvenir: addSouvenir,
+  sit: (seat) => player.sit(seat),
+  player: () => player,
+});
+scene.add(coastalWorld.group);
+coastalWorld.group.traverse((o) => {
+  if (!o.isMesh) return;
+  o.castShadow = !!o.userData.cast;
+  o.receiveShadow = !o.material.transparent;
+});
+
+const coastalSky = new THREE.Color(0xb4d9e7);
+const coastalFog = new THREE.Fog(0xb4d9e7, 29, 81);
+const coastal = {
+  id: 'coastal',
+  title: 'Franja Costera',
+  sub: 'Zoológico de Chapultepec · Coastal Zone',
+  chip: 'Coastal',
+  tasksTitle: 'Coastal explorer',
+  goLabel: 'Go to coastal zone',
+  tasks: COASTAL_TASKS,
+  done: new Set(),
+  root: coastalWorld.group,
+  colliders: coastalWorld.colliders,
+  floorAt: coastalWorld.floorAt,
+  limit: coastalWorld.limit,
+  spawn: COASTAL_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    coastalWorld.group.visible = true;
+    scene.background = coastalSky;
+    scene.fog = coastalFog;
+    scene.environmentIntensity = 0.5;
+  },
+  exit() {
+    coastalWorld.group.visible = false;
+    scene.background = null;
+    scene.fog = null;
+  },
+};
+
+const PLACES = [hotel, arena, aviary, pandas, coastal];
 loc = hotel;
 arenaWorld.group.visible = false;
 
@@ -403,7 +463,7 @@ function toggleMask() {
 paintMask();
 
 // ---------- the backpack: souvenirs from every place ----------
-const COIN_DESIGNS = 2;
+const COIN_DESIGNS = 2 + COASTAL_COINS.length;
 const bag = { masks: [], coins: new Map(), plush: 0, photos: [], hinted: false, open: false };
 const bagIcons = {};
 function maskIcon(d) {
@@ -454,13 +514,13 @@ function renderBag() {
     : empty('Buy one at the merch stand in Arena México.');
   const coins = bag.coins.size
     ? `<div class="bag-grid bag-coins">${[...bag.coins.values()].map((c) => `<div class="bag-item"><img src="${c.img}" alt="${esc(c.name)}"><span>${esc(c.name)}</span>${num(c.n)}</div>`).join('')}</div>`
-    : empty('Press one at the coin machine by the panda exhibit.');
+    : empty('Press one at the zoo’s panda exhibit or coastal zone.');
   const plush = bag.plush
     ? `<div class="bag-grid"><div class="bag-item"><img src="${plushIcon()}" alt="Panda plushie"><span>Panda plushie</span>${num(bag.plush)}</div></div>`
     : empty('Pick one up at the panda exhibit’s souvenir kiosk.');
   const photos = bag.photos.length
     ? `<div class="bag-grid bag-photos">${bag.photos.map((p, i) => `<button type="button" class="bag-photo" data-photo="${i}" title="${esc(p.caption)}"><img src="${p.url}" alt="${esc(p.caption)}"></button>`).join('')}</div>`
-    : empty('Snap one at a 📷 FOTO sign at the aviary or the pandas.');
+    : empty('Snap one at a FOTO sign at the zoo.');
   $('#bagTotal').textContent = bagCount() === 1 ? '1 souvenir' : `${bagCount()} souvenirs`;
   $('#bagBody').innerHTML =
     sec('Máscaras · Masks', bag.masks.length, masks) +
@@ -552,6 +612,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit2') travel('arena');
   if (e.code === 'Digit3') travel('aviary');
   if (e.code === 'Digit4') travel('pandas');
+  if (e.code === 'Digit5') travel('coastal');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
   if (e.code === 'KeyB') toggleBag();
   if (e.code === 'Escape' && bag.open) closeBag(false);
@@ -728,6 +789,11 @@ const DONE_TEXT = {
     title: 'You’re a true panda pal!',
     lede: 'You watched Xin Xin munch her bamboo and doze off, found her on the family tree, said hi to the flamingos next door, and took home a plushie and a panda coin. ¡Hasta pronto, Xin Xin!',
   },
+  coastal: {
+    eyebrow: 'Coastal explorer',
+    title: '¡Hasta pronto!',
+    lede: 'You met the Humboldt penguins and California sea lions and brought home both pressed coins.',
+  },
 };
 function celebrate(place) {
   if (place !== loc) return;
@@ -785,6 +851,12 @@ async function travel(destId) {
     pandas.visited = true;
     setTimeout(() => toast('¡Bienvenidos al Pabellón del Panda! Xin Xin, Chapultepec’s giant panda, is straight ahead — and the flamingos are just next door.', 5200), 500);
   }
+  if (loc === coastal && !coastal.visited) {
+    coastal.visited = true;
+    setTimeout(() => {
+      if (loc === coastal) toast('¡Bienvenidos a la Franja Costera! Penguins are on the left and sea lions on the right.', 5200);
+    }, 500);
+  }
 }
 // Swap the world over to another place (while the screen is faded out).
 function arrive(dest) {
@@ -801,6 +873,7 @@ function arrive(dest) {
   arenaWorld.dirty = true;
   aviaryWorld.dirty = true;
   pandaWorld.dirty = true;
+  coastalWorld.dirty = true;
   room.dirty = true;
   // Build the new place's shaders while the screen is still dark.
   renderer.compile(scene, camera);
@@ -942,6 +1015,13 @@ function frame(dt, draw = true) {
       pandaWorld.dirty = false;
       for (const l of pandaWorld.shadowLights) l.shadow.needsUpdate = true;
     }
+  } else if (loc === coastal) {
+    coastalWorld.update(dt);
+    sound.aviary(coastalWorld.state);
+    if (coastalWorld.dirty) {
+      coastalWorld.dirty = false;
+      for (const light of coastalWorld.shadowLights) light.shadow.needsUpdate = true;
+    }
   } else {
     aviaryWorld.update(dt, t);
     sound.aviary(aviaryWorld.state);
@@ -1009,7 +1089,7 @@ function showPolaroid(url, caption) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },

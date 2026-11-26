@@ -23,7 +23,7 @@
   </script>
 </head>
 <body>
-  <canvas id="scene" aria-label="3D hotel room"></canvas>
+  <canvas id="scene" aria-label="3D Mexico City simulation"></canvas>
 
   <!-- ============ HUD ============ -->
   <!-- What you see while wearing the luchador mask: the world through its eye holes. -->
@@ -78,6 +78,7 @@
         <button class="pill dest" data-place="arena" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg><span class="label">Go to stadium</span></button>
         <button class="pill dest" data-place="aviary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13c3 0 5-1 7-3l3-4c1.5-2 4.5-2 5.5 0l2.5 1-2.5 1c0 4-2.5 8-8 9.5L6 21l1.5-4C5 16.5 3.5 15 3 13z"/><path d="M16.5 6.5h.01"/></svg><span class="label">Go to aviary</span></button>
         <button class="pill dest" data-place="pandas" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="6.5" r="2.5"/><circle cx="12" cy="13.5" r="7.5"/><path d="M8.6 12.8c.4-1.4 1.6-1.9 2-1 .3.9-1.4 2.3-2 1zM15.4 12.8c-.4-1.4-1.6-1.9-2-1-.3.9 1.4 2.3 2 1zM11 16.6h2"/></svg><span class="label">Go to panda exhibit</span></button>
+        <button class="pill dest" data-place="coastal" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 15c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 21c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg><span class="label">Go to coastal zone</span></button>
       </div>
       <aside id="tasks">
         <button id="tasksToggle" class="tasks-head" type="button" aria-label="Show or hide the checklist">
@@ -140,7 +141,7 @@
         <div><dt><kbd>E</kbd> / click</dt><dd>Use things</dd></div>
         <div><dt><kbd>Shift</kbd></dt><dd>Walk faster</dd></div>
         <div><dt><kbd>N</kbd></dt><dd>Day / night</dd></div>
-        <div><dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Hotel · stadium · aviary · pandas</dd></div>
+        <div><dt><kbd>1</kbd>–<kbd>5</kbd></dt><dd>Switch destinations</dd></div>
         <div><dt><kbd>K</kbd> <kbd>B</kbd></dt><dd>Mask · backpack</dd></div>
         <div><dt><kbd>Esc</kbd></dt><dd>Pause</dd></div>
       </dl>
@@ -149,7 +150,7 @@
         <div><dt>Drag</dt><dd>Look around</dd></div>
         <div><dt>Tap / Use</dt><dd>Use things</dd></div>
       </dl>
-      <p class="hint">Use the buttons at the top left to visit <strong>Arena México</strong>, the <strong>Chapultepec Zoo aviary</strong> and the <strong>panda exhibit</strong>.</p>
+      <p class="hint">Use the buttons at the top left to visit <strong>Arena México</strong>, the <strong>Chapultepec Zoo aviary</strong>, <strong>panda exhibit</strong>, and <strong>coastal zone</strong>.</p>
     </div>
   </section>
 
@@ -166,6 +167,7 @@
         <button class="cta secondary dest" data-place="arena" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg><span class="label">Go to stadium</span></button>
         <button class="cta secondary dest" data-place="aviary" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13c3 0 5-1 7-3l3-4c1.5-2 4.5-2 5.5 0l2.5 1-2.5 1c0 4-2.5 8-8 9.5L6 21l1.5-4C5 16.5 3.5 15 3 13z"/><path d="M16.5 6.5h.01"/></svg><span class="label">Go to aviary</span></button>
         <button class="cta secondary dest" data-place="pandas" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="6.5" r="2.5"/><circle cx="12" cy="13.5" r="7.5"/><path d="M8.6 12.8c.4-1.4 1.6-1.9 2-1 .3.9-1.4 2.3-2 1zM15.4 12.8c-.4-1.4-1.6-1.9-2-1-.3.9 1.4 2.3 2 1zM11 16.6h2"/></svg><span class="label">Go to panda exhibit</span></button>
+        <button class="cta secondary dest" data-place="coastal" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 15c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 21c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg><span class="label">Go to coastal zone</span></button>
       </div>
     </div>
   </section>

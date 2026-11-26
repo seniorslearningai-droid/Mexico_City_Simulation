@@ -135,6 +135,7 @@ body.touch #prompt { padding-left: 14px; }
 .pill.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35); }
 .pill.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 6px 18px rgba(47, 122, 74, 0.4); }
 .pill.dest[data-place='pandas'] { background: #26262b; box-shadow: 0 6px 18px rgba(20, 20, 24, 0.4); }
+.pill.dest[data-place='coastal'] { background: #226883; box-shadow: 0 6px 18px rgba(34, 104, 131, 0.4); }
 .pill.dest:hover { filter: brightness(1.08); }
 body:not(.in-hotel) #dayNight { display: none; }
 
@@ -539,6 +540,7 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 .cta.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 10px 24px rgba(217, 68, 122, 0.35); }
 .cta.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 10px 24px rgba(47, 122, 74, 0.35); }
 .cta.dest[data-place='pandas'] { background: #26262b; box-shadow: 0 10px 24px rgba(20, 20, 24, 0.35); }
+.cta.dest[data-place='coastal'] { background: #226883; box-shadow: 0 10px 24px rgba(34, 104, 131, 0.35); }
 #pauseDest { margin-top: 12px; }
 .hint { margin: 18px 0 0; font-size: 13.5px; color: #6b6478; }
 body:not(.touch) .hint { display: none; }

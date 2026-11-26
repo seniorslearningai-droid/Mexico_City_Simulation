@@ -146,8 +146,8 @@ export class Sound {
     const t = this.ctx.currentTime;
     const arena = id === 'arena';
     this.arenaBus.gain.setTargetAtTime(arena ? 1 : 0, t, 0.3);
-    // The zoo (aviary and pandas) shares the outdoor forest sounds.
-    this.aviaryBus.gain.setTargetAtTime(id === 'aviary' || id === 'pandas' ? 1 : 0, t, 0.3);
+    // The zoo exhibits share the outdoor ambience.
+    this.aviaryBus.gain.setTargetAtTime(id === 'aviary' || id === 'pandas' || id === 'coastal' ? 1 : 0, t, 0.3);
     if (id !== 'hotel') {
       this.city.gain.setTargetAtTime(0, t, 0.2);
       this.water.gain.setTargetAtTime(0, t, 0.2);
@@ -160,7 +160,7 @@ export class Sound {
 
   // Aviary: water 0..1 how close the waterfall is, mist 0..1, calm 0..1 (sitting still: more birdsong).
   aviary({ water = 0, mist = 0, calm = 0 }) {
-    if (!this.ctx || (this.scene !== 'aviary' && this.scene !== 'pandas')) return;
+    if (!this.ctx || !(this.scene === 'aviary' || this.scene === 'pandas' || this.scene === 'coastal')) return;
     const ctx = this.ctx;
     const t = ctx.currentTime;
     this.falls.gain.setTargetAtTime(water * 0.4, t, 0.3);

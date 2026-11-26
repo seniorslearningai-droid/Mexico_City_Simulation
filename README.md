@@ -5,7 +5,7 @@ the (fictional) Hotel Jacaranda, twelve floors above Paseo de la Reforma in
 Mexico City. Walk around the room, open things up, step out onto the balcony,
 and watch the city light up at night.
 
-The buttons at the top left take you to two more places:
+The buttons at the top left take you to four more places:
 
 - **Go to stadium** — **Arena México**, the cathedral of lucha libre. No
   luchadores yet: just you, the ring, and (once you open the doors) a few
@@ -15,6 +15,8 @@ The buttons at the top left take you to two more places:
   big pond of black swans, ducks and geese in the middle.
 - **Go to panda exhibit** — the **Pabellón del Panda** at Chapultepec Zoo, home
   to one giant panda, Xin Xin, who mostly keeps to herself.
+- **Go to coastal zone** — the **Franja Costera** at Chapultepec Zoo, with
+  Humboldt penguins, California sea lions, and two pressed-coin designs.
 
 ## Play
 
@@ -39,7 +41,7 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1` `2` `3` `4` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary or the panda exhibit |
+| `1`–`5` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, or the coastal zone |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -166,14 +168,24 @@ on a little mud island. There's a sign about them and a bench to watch from.
 
 It has its own ten-item panda-watch checklist.
 
+## Chapultepec Zoo coastal zone
+
+Two pools flank the visitor plaza. Look over the glass to spot Humboldt
+penguins and California sea lions on the rocks and in the water. Read an
+animal sign, use the bench or the penguin photo spot, and finish the
+seven-item coastal checklist.
+
+The plaza's coin press offers **Penguin** and **Seal** designs. Choose a
+design, insert two coins, turn the gear three times, and take the pressed
+coin from the tray. Both designs appear in your backpack.
+
 ## Your backpack
 
 The backpack button in the top right corner (or `B`) opens your souvenirs
 from every place: the luchador masks you bought at Arena México (click one
-to wear it), your souvenir coins from the panda exhibit's coin machine (how
-which of the 2 designs you have), panda plushies, and the photos you took at
-the photo spots (click one to see it again). A little badge counts them and
-the button bounces whenever you pick something up.
+to wear it), souvenir coins from the zoo's two coin machines, panda plushies,
+and photos from the photo spots (click one to see it again). A little badge
+counts them, and the button bounces whenever you pick something up.
 
 ## How it's built
 
@@ -193,6 +205,7 @@ the button bounces whenever you pick something up.
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
 | `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |
 | `js/pandas.js` | Chapultepec Zoo panda exhibit: terrace, yard, Xin Xin and her daily routine, family tree, coin machine, and the flamingo lagoon next door |
+| `js/coastal.js`, `js/coastal-press.js` | Chapultepec Zoo coastal pools, animals, interactions, and souvenir press |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |
