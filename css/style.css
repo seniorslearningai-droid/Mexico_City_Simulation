@@ -253,6 +253,9 @@ body:not(.in-hotel) #dayNight { display: none; }
 
 /* Backpack button and the souvenirs panel */
 #bagBtn { position: relative; }
+#walletBtn[hidden] { display: none; }
+#walletBtn svg { stroke: #f2c14e; }
+#walletBtn.bump { animation: bag-bump 0.6s ease; }
 #bagBtn.active { background: var(--marigold); color: var(--ink); border-color: transparent; }
 #bagBtn .badge {
   position: absolute;

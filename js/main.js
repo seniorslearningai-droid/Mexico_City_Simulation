@@ -7,6 +7,7 @@ import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
 import { buildPandas, PANDA_SPAWN } from './pandas.js';
 import { buildCoastal, COASTAL_SPAWN } from './coastal.js';
 import { COASTAL_COINS } from './coastal-press.js';
+import { buildPesos } from './pesos.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS, maskFace, drawPanda } from './textures.js';
@@ -262,6 +263,7 @@ const aviary = {
   },
 };
 const pandaWorld = buildPandas({
+  pay: () => payPeso(),
   toast,
   complete,
   sound,
@@ -305,6 +307,7 @@ const pandas = {
   },
 };
 const coastalWorld = buildCoastal({
+  pay: () => payPeso(),
   toast,
   complete,
   sound,
@@ -353,6 +356,39 @@ const coastal = {
 };
 
 const PLACES = [hotel, arena, aviary, pandas, coastal];
+
+// ---------- $5 peso coins: pick them up, spend two per pressed coin ----------
+const wallet = { coins: 0, found: 0 };
+function updateWallet() {
+  $('#walletBtn').hidden = wallet.found === 0;
+  $('#walletCount').textContent = `$${wallet.coins * 5}`;
+  $('#walletBtn').setAttribute('aria-label', `You have ${wallet.coins} five-peso coins`);
+  if (typeof bag !== 'undefined' && bag.open) renderBag();
+}
+function payPeso() {
+  if (wallet.coins < 1) return false;
+  wallet.coins--;
+  updateWallet();
+  return true;
+}
+const pesos = buildPesos(PLACES, {
+  collect: () => {
+    wallet.coins++;
+    wallet.found++;
+    sound.coinIn();
+    const btn = $('#walletBtn');
+    btn.classList.remove('bump');
+    void btn.offsetWidth;
+    btn.classList.add('bump');
+    updateWallet();
+    toast(
+      wallet.found === 1
+        ? 'You found a $5 peso coin! Coin presses take 2 coins per souvenir coin.'
+        : `+$5 · ${wallet.coins} coin${wallet.coins === 1 ? '' : 's'} ($${wallet.coins * 5})`,
+      wallet.found === 1 ? 4500 : 1800,
+    );
+  },
+});
 loc = hotel;
 arenaWorld.group.visible = false;
 
@@ -530,7 +566,8 @@ function renderBag() {
     sec('Máscaras · Masks', bag.masks.length, masks) +
     sec('Monedas · Coins', `${bag.coins.size}/${COIN_DESIGNS}`, coins) +
     sec('Peluches · Plushies', bag.plush, plush) +
-    sec('Fotos · Photos', bag.photos.length, photos);
+    sec('Fotos · Photos', bag.photos.length, photos) +
+    sec('Pesos · $5 coins', `$${wallet.coins * 5}`, wallet.found ? `<p class="bag-empty">${wallet.coins} coin${wallet.coins === 1 ? '' : 's'} to spend at the coin presses (2 per souvenir coin).</p>` : '<p class="bag-empty">Look for shiny $5 coins around the zoo, the shops and Arena México.</p>');
 }
 function wearMask(d) {
   if (maskState.on && maskState.design === d) toggleMask();
@@ -733,6 +770,7 @@ function toggleMute() {
 $('#muteBtn').addEventListener('click', toggleMute);
 $('#maskBtn').addEventListener('click', toggleMask);
 $('#bagBtn').addEventListener('click', toggleBag);
+$('#walletBtn').addEventListener('click', toggleBag);
 $('#bagClose').addEventListener('click', () => closeBag());
 $('#bagBody').addEventListener('click', (e) => {
   const m = e.target.closest('[data-mask]');
@@ -987,6 +1025,7 @@ function frame(dt, draw = true) {
     }
   }
   player.update(dt);
+  if (loc !== hotel) pesos.update(loc, player.pos, t);
   avatar.visible = !player.seat && loc === hotel;
   avatar.position.set(player.pos.x, 0, player.pos.z);
   avatar.rotation.y = player.yaw;
@@ -1103,7 +1142,7 @@ function showPolaroid(url, caption) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, wallet, pesos, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },

@@ -1094,7 +1094,7 @@ export function buildPandas(ctx) {
   const slotParts = [
     box(cm, CM.chrome, 0.12, 0.13, 0.025, 0.27, 1.5, 0.012),
     box(cm, CM.dark, 0.014, 0.07, 0.01, 0.27, 1.51, 0.026),
-    add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.04), new THREE.MeshBasicMaterial({ map: T.sign('$10 × 2', { bg: '#1a1a1c', fg: '#f2c14e', w: 256, h: 84, font: 'bold 46px Arial, sans-serif' }), toneMapped: false })), 0.27, 1.408, 0.003),
+    add(cm, new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.04), new THREE.MeshBasicMaterial({ map: T.sign('$5 × 2', { bg: '#1a1a1c', fg: '#f2c14e', w: 256, h: 84, font: 'bold 46px Arial, sans-serif' }), toneMapped: false })), 0.27, 1.408, 0.003),
   ];
   cast(...slotParts);
   const pesoGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.004, 20).rotateZ(Math.PI / 2);
@@ -1109,10 +1109,11 @@ export function buildPandas(ctx) {
     act: () => {
       if (cmState.ready) return ctx.toast('Take your coin from the tray first!');
       if (cmState.coins >= 2) return ctx.toast('That’s enough coins — now turn the crank!');
+      if (ctx.pay && !ctx.pay()) return ctx.toast('You need $5 peso coins for this machine (2 per coin). Look for shiny coins lying around the zoo, the shops and Arena México!', 5200);
       cmState.coins++;
       const n = cmState.coins;
       cmState.inserts.push({ mesh: pesos[n - 1], t0: time, last: n === 2 });
-      ctx.toast(n === 1 ? 'You drop a 10-peso coin in the slot… one more to go.' : 'Clink! Two coins in. Now turn the crank!', 3000);
+      ctx.toast(n === 1 ? 'You drop a $5 peso coin in the slot… one more to go.' : 'Clink! Two coins in. Now turn the crank!', 3000);
     },
   });
   const bigGear = add(cm, new THREE.Mesh(gearGeo(16, 0.115, 0.018, 0.02), CM.brass), -0.14, 1.17, -0.2);
