@@ -37,7 +37,8 @@ the `main` branch and the root folder.
 | `W` `A` `S` `D` or arrow keys | Left thumb joystick | Walk |
 | Mouse | Drag anywhere | Look around |
 | `E`, `Space` or click | Tap, or the **Use** button | Use whatever you're looking at |
-| `Shift` | Push the joystick all the way | Walk faster |
+| Hold `Shift` | Push the joystick all the way | Sprint (more than three times walking speed) |
+| Tap `Shift` | | Dash: a quick burst forward in the direction you're moving |
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |

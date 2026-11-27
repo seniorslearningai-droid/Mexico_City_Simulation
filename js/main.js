@@ -621,7 +621,19 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyB') toggleBag();
   if (e.code === 'Escape' && bag.open) closeBag(false);
 });
-window.addEventListener('keyup', (e) => keys.delete(e.code));
+// Tap Shift (press and let go quickly) to dash; hold it to sprint.
+let shiftDown = -1;
+window.addEventListener('keydown', (e) => {
+  if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) shiftDown = performance.now();
+});
+window.addEventListener('keyup', (e) => {
+  keys.delete(e.code);
+  if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && shiftDown > 0) {
+    const held = performance.now() - shiftDown;
+    shiftDown = -1;
+    if (held < 220 && state.playing && !state.traveling && player.blend >= 1 && player.dash()) sound.whoosh();
+  }
+});
 window.addEventListener('blur', () => keys.clear());
 
 function lock() {
@@ -1033,7 +1045,9 @@ function frame(dt, draw = true) {
 
   // Binoculars zoom the camera in.
   const binoc = !!(player.seat && player.seat.binoculars);
-  const wantFov = binoc && player.blend > 0.5 ? 16 : fovFor(camera.aspect);
+  // Sprinting and dashing widen the view a little, for a sense of speed.
+  const rush = Math.max(player.sprint * Math.min(1, Math.hypot(player.vel.x, player.vel.y) / 4), Math.min(1, player.push.length() / 6));
+  const wantFov = binoc && player.blend > 0.5 ? 16 : fovFor(camera.aspect) + 9 * rush;
   if (Math.abs(camera.fov - wantFov) > 0.01) {
     camera.fov += (wantFov - camera.fov) * (1 - Math.exp(-dt * 8));
     camera.updateProjectionMatrix();
