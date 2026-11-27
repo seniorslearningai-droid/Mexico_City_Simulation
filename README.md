@@ -66,19 +66,21 @@ Suite 602 is a whole apartment. Walk in through the front door and:
 
 - **Kitchen** (right beside the front door, on your right) — a compact
   L-shaped kitchen that reaches no further east than the living room: teal
-  cabinets and talavera tiles, a fridge that opens, a stove whose burners
-  glow, a sink, and a coffee machine by the door (make a café de olla).
+  cabinets and talavera tiles, a fridge that opens (nearest the door), a
+  sink and a stove whose burners glow, and a coffee machine on the counter
+  by the door (make a café de olla).
 - **Dining room** (straight ahead, through the arch) — a round table, four
   chairs, a pendant lamp and a sideboard.
 - **Living room** (beyond the dining room) — a big three-seat couch facing a
-  TV with a little local channel, an armchair, a coffee table, a painting of
+  wall-mounted TV across the room (it has a little local channel), an armchair, a coffee table, a painting of
   the volcanoes and the sliding door to the **balcony**. Below:
   Reforma's traffic (pink-and-white taxis included), jacaranda trees and the
   Ángel de la Independencia; on the horizon, Popocatépetl and Iztaccíhuatl.
 - **Hallway** (to the left of the dining room) — it runs across, so from the
   dining room you only see the bathroom door opposite. Inside it:
-  - straight ahead, the **bathroom**: talavera tiles, a hand-painted vessel
-    sink, a sunburst mirror with a real reflection and a walk-in rain shower;
+  - straight ahead, the **bathroom** (compact): talavera tiles, a
+    hand-painted vessel sink, a sunburst mirror with a real reflection, a
+    toilet and a walk-in rain shower;
   - on the left, a **bedroom** with a queen bed, a desk and a wardrobe;
   - on the right, a **walk-in closet** (clothes, shelves and a safe) and then
     the **master bedroom** with a king bed, two talavera lamps and a window

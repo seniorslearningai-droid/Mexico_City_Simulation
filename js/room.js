@@ -9,7 +9,7 @@
 //  z=-0.4├─────┬───────┬─door──┼────── arch ──────┤
 //        │BATH │CLOSET door  H │      DINING      │
 //        │  2 door      │   A door   (round       │
-//   z=2  ├─────┴───────┤   L │      table)      │
+//   z=2  ├─────┴───────┤   L │      table)      │   (the bathroom below runs from x=-7.6 to -4.6)
 //        │  BATHROOM  door  L ├───── arch ───┬───┤
 //   z=5  ├─────────────┴─door─┤    FOYER     │KIT│ fridge
 //        │     BEDROOM        ├─[front door]─┘CHN│ sink, stove
@@ -251,7 +251,7 @@ export function buildRoom(ctx) {
   floor(M.floor, -4.6, -0.4, -3.0, 5.0); // hallway
   floor(M.floor, -7.6, -0.4, -4.6, 2.0); // closet
   floor(M.saltillo, -10.6, -0.4, -7.6, 2.0); // bathroom in the closet
-  floor(M.saltillo, -10.6, 2.0, -4.6, 5.0); // bathroom
+  floor(M.saltillo, -7.6, 2.0, -4.6, 5.0); // bathroom
   floor(M.floor, -7.0, 5.0, -3.0, 9.0); // bedroom
   wbox(group, M.black, -2.6, -0.2, -5.15, 0.6, 0.012, -5);
   wbox(group, M.ceiling, -10.75, H, -5.15, 5.15, H + 0.15, 9.15);
@@ -298,6 +298,7 @@ export function buildRoom(ctx) {
   W(-7.66, -0.34, -7.54, 0.3); // closet / bathroom in the closet
   W(-7.66, 0.3, -7.54, 1.2, 2.15, H);
   W(-7.66, 1.2, -7.54, 1.94);
+  W(-7.66, 2.06, -7.54, 4.94); // bathroom's west wall (the bathroom used to run on to x = -10.6)
   W(-3.0, 3.34, -2.0, 3.46, 0, H, M.warm); // dining / foyer
   W(-2.0, 3.34, 0.0, 3.46, 2.3, H, M.warm);
   W(0.0, 3.34, 0.94, 3.46, 0, H, M.warm);
@@ -323,7 +324,7 @@ export function buildRoom(ctx) {
     cyl(group, M.chrome, 0.1, 0.1, 0.006, x, H - 0.003, z, 24, true);
   };
   for (const [x, z] of [[-2.0, -3.7], [0, -3.7], [-2.0, -1.4], [0, -1.4], [-1.0, 4.4], [-1.0, 5.6], [0.25, 4.1], [0.25, 5.6], [-3.9, 0.6], [-3.9, 2.7], [-3.9, 4.3], [-6.0, -3.7], [-4.2, -3.7], [-6.0, -1.6], [-4.2, -1.6], [-6.0, 6.2], [-4.2, 6.2], [-6.0, 7.9], [-4.2, 7.9]]) downlight(x, z, roomDL);
-  for (const [x, z] of [[-8.6, 3.5], [-6.2, 3.5], [-6.1, 0.8], [-9.1, 0.8]]) downlight(x, z, bathDL);
+  for (const [x, z] of [[-6.9, 3.6], [-5.5, 3.5], [-6.1, 0.8], [-9.1, 0.8]]) downlight(x, z, bathDL);
   const L = {
     living: spotLight(0xffe1bc, -1.0, -2.7, true),
     dining: pointLight(0xffd6a0, 6, -1.0, 1.85, 1.4),
@@ -332,7 +333,7 @@ export function buildRoom(ctx) {
     hall: pointLight(0xffe1bc, 6, -3.9, 2.4, 2.3),
     master: spotLight(0xffe1bc, -5.1, -2.7),
     bedroom: spotLight(0xffe1bc, -5.1, 7.0),
-    bath: spotLight(0xfff1e0, -7.6, 3.5),
+    bath: spotLight(0xfff1e0, -6.1, 3.5),
     closet: pointLight(0xfff1e0, 5, -7.6, 2.4, 0.8),
   };
   const roomLights = toggler((k) => {
@@ -531,18 +532,19 @@ export function buildRoom(ctx) {
     solid(-1.58, -3.28, -0.92, -2.12);
   }
   // TV on a media console.
-  const console1 = node(group, 0.75, 0, -2.7);
+  // (The living room's east wall's inner face is at x = 0.94.)
+  const console1 = node(group, 0.7, 0, -2.7);
   box(console1, M.walnut, 0.45, 0.5, 2.2, 0, 0.3, 0);
   for (const dz of [-0.75, 0, 0.75]) box(console1, M.oak, 0.01, 0.38, 0.68, -0.226, 0.3, dz);
-  solid(0.5, -3.8, 1.0, -1.6);
-  const tvBody = box(group, M.black, 0.05, 0.9, 1.56, 0.97, 1.45, -2.7);
+  solid(0.45, -3.8, 0.94, -1.6);
+  const tvBody = box(group, M.black, 0.05, 0.9, 1.56, 0.9, 1.45, -2.7);
   const tvCanvas = document.createElement('canvas');
   tvCanvas.width = 512;
   tvCanvas.height = 288;
   const tvTex = new THREE.CanvasTexture(tvCanvas);
   tvTex.colorSpace = THREE.SRGBColorSpace;
   const screenOn = new THREE.MeshBasicMaterial({ map: tvTex, toneMapped: false });
-  const screen = add(group, new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.84), M.screenOff), 0.942, 1.45, -2.7);
+  const screen = add(group, new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.84), M.screenOff), 0.872, 1.45, -2.7);
   screen.rotation.y = -Math.PI / 2;
   noShadow(screen);
   const tvLight = pointLight(0x9fb8ff, 5, 0.3, 1.45, -2.7);
@@ -727,20 +729,21 @@ export function buildRoom(ctx) {
 
   // ===================== KITCHEN =====================
   // A compact L-shaped kitchen just inside the front door, on the right:
-  // fridge, sink and stove along the east wall, a counter along the south
-  // wall beside the door. Its east wall lines up with the living room's.
+  // sink and stove along the east wall (towards the dining room), the fridge
+  // at the end by the door, and a counter along the south wall beside the
+  // door. Its east wall lines up with the living room's.
   {
     const top = 0.9;
     const EX = 0.94; // the east wall's inner face
     const SZ = 6.4; // the south wall's inner face
     // East counter run (sink, stove) with tiles and an upper cabinet.
-    wbox(group, M.cabinet, EX - 0.58, 0.08, 4.3, EX, top - 0.04, 5.78);
-    wbox(group, M.black, EX - 0.55, 0, 4.3, EX, 0.08, 5.78);
-    wbox(group, M.marble, EX - 0.62, top - 0.04, 4.3, EX, top, 5.78);
-    box(group, M.brass, 0.02, 0.012, 0.14, EX - 0.59, top - 0.12, 4.65);
-    wbox(group, M.tile, EX - 0.015, top, 4.3, EX, 1.55, SZ);
-    wbox(group, M.cabinet, EX - 0.35, 1.55, 4.3, EX, 2.25, 4.95);
-    solid(EX - 0.62, 4.3, EX, 5.78);
+    wbox(group, M.cabinet, EX - 0.58, 0.08, 3.46, EX, top - 0.04, 4.94);
+    wbox(group, M.black, EX - 0.55, 0, 3.46, EX, 0.08, 4.94);
+    wbox(group, M.marble, EX - 0.62, top - 0.04, 3.46, EX, top, 4.94);
+    box(group, M.brass, 0.02, 0.012, 0.14, EX - 0.59, top - 0.12, 3.81);
+    wbox(group, M.tile, EX - 0.015, top, 3.46, EX, 1.55, SZ);
+    wbox(group, M.cabinet, EX - 0.35, 1.55, 3.46, EX, 2.25, 4.1);
+    solid(EX - 0.62, 3.46, EX, 4.94);
     // South counter run beside the front door, with open shelves.
     wbox(group, M.cabinet, -0.45, 0.08, 5.82, EX, top - 0.04, SZ);
     wbox(group, M.black, -0.45, 0, 5.85, EX, 0.08, SZ);
@@ -751,20 +754,20 @@ export function buildRoom(ctx) {
     for (let i = 0; i < 3; i++) cyl(group, M.clay, 0.045, 0.04, 0.09, -0.15 + i * 0.35, 2.19, SZ - 0.12, 16);
     solid(-0.45, 5.78, EX, SZ);
     // Stove: cooktop, oven door, range hood.
-    wbox(group, M.glassTop, EX - 0.57, top, 5.0, EX - 0.07, top + 0.012, 5.7);
+    wbox(group, M.glassTop, EX - 0.57, top, 4.16, EX - 0.07, top + 0.012, 4.86);
     const burnerMat = std({ color: 0x222222, emissive: 0xff3a10, emissiveIntensity: 0, roughness: 0.5 });
-    for (const [bx, bz] of [[EX - 0.44, 5.16], [EX - 0.2, 5.16], [EX - 0.44, 5.54], [EX - 0.2, 5.54]]) {
+    for (const [bx, bz] of [[EX - 0.44, 4.32], [EX - 0.2, 4.32], [EX - 0.44, 4.7], [EX - 0.2, 4.7]]) {
       const ring = add(group, new THREE.Mesh(new THREE.RingGeometry(0.05, 0.085, 24), burnerMat), bx, top + 0.014, bz);
       ring.rotation.x = -Math.PI / 2;
     }
-    wbox(group, M.glassTop, EX - 0.595, 0.15, 5.0, EX - 0.58, 0.75, 5.7);
-    wbox(group, M.chrome, EX - 0.62, 0.66, 5.1, EX - 0.6, 0.68, 5.6);
-    const hood = add(group, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.4, 0.4, 4, 1), M.steel), EX - 0.25, 1.85, 5.35);
+    wbox(group, M.glassTop, EX - 0.595, 0.15, 4.16, EX - 0.58, 0.75, 4.86);
+    wbox(group, M.chrome, EX - 0.62, 0.66, 4.26, EX - 0.6, 0.68, 4.76);
+    const hood = add(group, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.4, 0.4, 4, 1), M.steel), EX - 0.25, 1.85, 4.51);
     hood.rotation.y = Math.PI / 4;
     hood.scale.set(0.9, 1, 1.4);
-    wbox(group, M.steel, EX - 0.3, 2.05, 5.25, EX - 0.1, H, 5.45);
+    wbox(group, M.steel, EX - 0.3, 2.05, 4.41, EX - 0.1, H, 4.61);
     const knobs = [];
-    for (let i = 0; i < 4; i++) knobs.push(cyl(group, M.black, 0.02, 0.02, 0.025, EX - 0.61, 0.8, 5.08 + i * 0.15, 12));
+    for (let i = 0; i < 4; i++) knobs.push(cyl(group, M.black, 0.02, 0.02, 0.025, EX - 0.61, 0.8, 4.24 + i * 0.15, 12));
     knobs.forEach((k) => (k.rotation.z = Math.PI / 2));
     const stove = toggler((k) => (burnerMat.emissiveIntensity = 1.6 * k), 1.5, { dirty: false });
     interact([...knobs, hood], {
@@ -775,12 +778,12 @@ export function buildRoom(ctx) {
       },
     });
     // Sink with a gooseneck tap.
-    wbox(group, M.steel, EX - 0.52, top - 0.18, 4.4, EX - 0.1, top + 0.005, 4.9);
-    wbox(group, M.black, EX - 0.5, top - 0.17, 4.42, EX - 0.12, top - 0.16, 4.88);
-    const kPost = cyl(group, M.chrome, 0.018, 0.02, 0.36, EX - 0.07, top + 0.18, 4.65, 12);
-    const kSpout = cyl(group, M.chrome, 0.012, 0.012, 0.25, EX - 0.18, top + 0.36, 4.65, 10);
+    wbox(group, M.steel, EX - 0.52, top - 0.18, 3.56, EX - 0.1, top + 0.005, 4.06);
+    wbox(group, M.black, EX - 0.5, top - 0.17, 3.58, EX - 0.12, top - 0.16, 4.04);
+    const kPost = cyl(group, M.chrome, 0.018, 0.02, 0.36, EX - 0.07, top + 0.18, 3.81, 12);
+    const kSpout = cyl(group, M.chrome, 0.012, 0.012, 0.25, EX - 0.18, top + 0.36, 3.81, 10);
     kSpout.rotation.z = Math.PI / 2;
-    const kStream = cyl(group, M.water, 0.008, 0.01, 0.36, EX - 0.29, top + 0.17, 4.65, 8);
+    const kStream = cyl(group, M.water, 0.008, 0.01, 0.36, EX - 0.29, top + 0.17, 3.81, 8);
     kStream.visible = false;
     noShadow(kStream);
     noRay(kStream);
@@ -797,8 +800,8 @@ export function buildRoom(ctx) {
       },
     });
     api.kitchenTap = ktap;
-    // Fridge in the north-east corner, with a door that opens.
-    const FZ = 3.46;
+    // Fridge at the end by the door, with a door that opens.
+    const FZ = 4.94;
     const FX = EX - 0.75; // the fridge's front
     wbox(group, M.white, FX, 0, FZ, EX, 1.95, FZ + 0.84);
     const fridgeLight = std({ color: 0xffffff, emissive: 0xeaf4ff, emissiveIntensity: 0 });
@@ -1059,31 +1062,35 @@ export function buildRoom(ctx) {
       wbox(group, M.trim, x0 - (x1 - x0 < 0.05 ? 0.004 : 0), top, z0 - (z1 - z0 < 0.05 ? 0.004 : 0), x1 + (x1 - x0 < 0.05 ? 0.004 : 0), top + 0.04, z1 + (z1 - z0 < 0.05 ? 0.004 : 0));
     }
   }
+  // A compact bathroom: walk-in shower at the west end, vanity on the north
+  // wall (clear of the door's swing), toilet on the south wall.
+  const BX = -7.54; // the west wall's inner face
+  const VX = -5.84; // the vanity sink's centre
   wainscot([
-    [-10.6, 2.06, -4.66, 2.072],
-    [-10.6, 4.928, -4.66, 4.94],
-    [-10.6, 2.06, -10.588, 4.94],
+    [BX, 2.06, -4.66, 2.072],
+    [BX, 4.928, -4.66, 4.94],
+    [BX, 2.06, BX + 0.012, 4.94],
     [-4.672, 2.06, -4.66, 2.3],
     [-4.672, 3.1, -4.66, 4.94],
   ]);
-  wbox(group, M.tile, -10.6, 1.25, 2.6, -10.588, 2.4, 4.94);
-  wbox(group, M.tile, -10.588, 1.25, 4.928, -9.3, 2.4, 4.94);
+  wbox(group, M.tile, BX, 1.25, 2.6, BX + 0.012, 2.4, 4.94);
+  wbox(group, M.tile, BX + 0.012, 1.25, 4.928, -6.4, 2.4, 4.94);
   // Vanity with a hand-painted vessel sink, and a real mirror.
-  wbox(group, M.walnut, -7.7, 0.14, 2.072, -6.3, 0.8, 2.6);
-  wbox(group, M.oak, -7.66, 0.2, 2.6, -6.34, 0.74, 2.61);
-  wbox(group, M.marble, -7.72, 0.8, 2.072, -6.28, 0.84, 2.64);
+  wbox(group, M.walnut, VX - 0.38, 0.14, 2.072, VX + 0.38, 0.8, 2.6);
+  wbox(group, M.oak, VX - 0.34, 0.2, 2.6, VX + 0.34, 0.74, 2.61);
+  wbox(group, M.marble, VX - 0.4, 0.8, 2.072, VX + 0.4, 0.84, 2.64);
   const sinkGeo = new THREE.LatheGeometry([[0, 0], [0.08, 0.005], [0.16, 0.04], [0.2, 0.11], [0.205, 0.13], [0.19, 0.13], [0.15, 0.06], [0.06, 0.03], [0, 0.03]].map(([x, y]) => new THREE.Vector2(x, y)), 36);
-  const sink = add(group, new THREE.Mesh(sinkGeo, std({ map: lampTile, roughness: 0.2, side: THREE.DoubleSide })), -7.0, 0.84, 2.38);
-  const tapPost = cyl(group, M.chrome, 0.016, 0.018, 0.3, -7.0, 0.99, 2.11, 12);
-  const spout = cyl(group, M.chrome, 0.012, 0.012, 0.2, -7.0, 1.13, 2.21, 10);
+  const sink = add(group, new THREE.Mesh(sinkGeo, std({ map: lampTile, roughness: 0.2, side: THREE.DoubleSide })), VX, 0.84, 2.38);
+  const tapPost = cyl(group, M.chrome, 0.016, 0.018, 0.3, VX, 0.99, 2.11, 12);
+  const spout = cyl(group, M.chrome, 0.012, 0.012, 0.2, VX, 1.13, 2.21, 10);
   spout.rotation.x = Math.PI / 2;
-  const stream = cyl(group, M.water, 0.007, 0.009, 0.22, -7.0, 1.0, 2.3, 8);
+  const stream = cyl(group, M.water, 0.007, 0.009, 0.22, VX, 1.0, 2.3, 8);
   stream.visible = false;
   noShadow(stream);
   noRay(stream);
-  solid(-7.72, 2.06, -6.28, 2.64);
-  cyl(group, std({ color: 0xf2c14e, roughness: 0.3 }), 0.025, 0.025, 0.14, -7.55, 0.91, 2.2, 12);
-  cyl(group, std({ color: 0x2f8a88, roughness: 0.3 }), 0.025, 0.025, 0.12, -7.45, 0.9, 2.25, 12);
+  solid(VX - 0.4, 2.06, VX + 0.4, 2.64);
+  cyl(group, std({ color: 0xf2c14e, roughness: 0.3 }), 0.025, 0.025, 0.14, VX - 0.3, 0.91, 2.2, 12);
+  cyl(group, std({ color: 0x2f8a88, roughness: 0.3 }), 0.025, 0.025, 0.12, VX - 0.22, 0.9, 2.25, 12);
   const tap = { on: false, t: 0 };
   updaters.push((dt) => {
     if (!tap.on) return;
@@ -1101,16 +1108,16 @@ export function buildRoom(ctx) {
       }
     },
   });
-  const mirrorGroup = node(group, -7.0, 1.62, 2.075, 0);
-  const mirror = new Reflector(new THREE.CircleGeometry(0.36, 48), { textureWidth: 640, textureHeight: 640, clipBias: 0.003, color: 0xc9c9c9 });
+  const mirrorGroup = node(group, VX, 1.62, 2.075, 0);
+  const mirror = new Reflector(new THREE.CircleGeometry(0.33, 48), { textureWidth: 640, textureHeight: 640, clipBias: 0.003, color: 0xc9c9c9 });
   mirror.position.z = 0.004;
   mirrorGroup.add(mirror);
   api.mirror = mirror;
-  const ring = add(mirrorGroup, new THREE.Mesh(new THREE.TorusGeometry(0.375, 0.022, 10, 48), M.brass), 0, 0, 0.006);
+  const ring = add(mirrorGroup, new THREE.Mesh(new THREE.TorusGeometry(0.345, 0.022, 10, 48), M.brass), 0, 0, 0.006);
   for (let i = 0; i < 24; i++) {
     const a = (i / 24) * Math.PI * 2;
-    const len = i % 2 ? 0.1 : 0.17;
-    const ray = add(mirrorGroup, new THREE.Mesh(new THREE.ConeGeometry(0.025, len, 4), M.brass), Math.cos(a) * (0.4 + len / 2), Math.sin(a) * (0.4 + len / 2), 0.004);
+    const len = i % 2 ? 0.08 : 0.14;
+    const ray = add(mirrorGroup, new THREE.Mesh(new THREE.ConeGeometry(0.022, len, 4), M.brass), Math.cos(a) * (0.37 + len / 2), Math.sin(a) * (0.37 + len / 2), 0.004);
     ray.rotation.z = a - Math.PI / 2;
     ray.scale.z = 0.25;
   }
@@ -1129,40 +1136,41 @@ export function buildRoom(ctx) {
     interact(wc, { label: () => 'Flush', act: () => ctx.toast('*whoosh*') });
     return wc;
   }
-  toilet(-8.0, 4.62, 0);
-  solid(-8.25, 4.3, -7.75, 4.94);
+  toilet(-5.15, 4.62, 0);
+  solid(-5.4, 4.3, -4.9, 4.94);
   {
-    const roll = cyl(group, M.linen, 0.055, 0.055, 0.1, -7.5, 0.66, 4.89, 16);
+    const roll = cyl(group, M.linen, 0.055, 0.055, 0.1, -5.62, 0.66, 4.89, 16);
     roll.rotation.z = Math.PI / 2;
-    const rod = cyl(group, M.chrome, 0.012, 0.012, 0.9, -5.9, 1.42, 4.88, 10);
+    const rod = cyl(group, M.chrome, 0.012, 0.012, 0.7, -6.0, 1.42, 4.88, 10);
     rod.rotation.z = Math.PI / 2;
-    rbox(group, M.linen, 0.36, 0.6, 0.035, 0.015, -6.12, 1.13, 4.87);
-    rbox(group, std({ color: 0x2f8a88, roughness: 1 }), 0.36, 0.55, 0.035, 0.015, -5.7, 1.16, 4.87);
-    const bm = add(group, new THREE.Mesh(new THREE.PlaneGeometry(0.75, 0.5), std({ color: 0xf1ece2, roughness: 1 })), -8.7, 0.005, 3.5);
+    rbox(group, M.linen, 0.3, 0.6, 0.035, 0.015, -6.16, 1.13, 4.87);
+    rbox(group, std({ color: 0x2f8a88, roughness: 1 }), 0.3, 0.55, 0.035, 0.015, -5.84, 1.16, 4.87);
+    const bm = add(group, new THREE.Mesh(new THREE.PlaneGeometry(0.75, 0.5), std({ color: 0xf1ece2, roughness: 1 })), -6.0, 0.005, 3.7);
     bm.rotation.x = -Math.PI / 2;
     bm.rotation.z = Math.PI / 2;
   }
   // Walk-in shower at the west end.
-  const trayMesh = wbox(group, M.porcelain, -10.588, 0, 2.6, -9.3, 0.04, 4.928);
+  const trayMesh = wbox(group, M.porcelain, BX + 0.012, 0, 2.6, -6.4, 0.04, 4.928);
   const showerGlass = new THREE.Group();
   group.add(showerGlass);
-  wbox(showerGlass, M.glass, -9.31, 0.04, 3.0, -9.29, 2.05, 4.928);
+  wbox(showerGlass, M.glass, -6.41, 0.04, 3.0, -6.39, 2.05, 4.928);
   noShadow(showerGlass);
-  wbox(group, M.chrome, -9.315, 2.05, 3.0, -9.285, 2.07, 4.928);
-  solid(-9.33, 3.0, -9.27, 4.94);
-  solid(-10.6, 2.06, -9.3, 2.6);
-  wbox(group, M.white, -10.6, 0, 2.06, -9.3, 2.4, 2.6);
-  const showerArm = cyl(group, M.chrome, 0.012, 0.012, 0.4, -10.39, 2.2, 3.8, 10);
+  wbox(group, M.chrome, -6.415, 2.05, 3.0, -6.385, 2.07, 4.928);
+  solid(-6.43, 3.0, -6.37, 4.94);
+  solid(BX, 2.06, -6.4, 2.6);
+  wbox(group, M.white, BX + 0.012, 0, 2.072, -6.4, 2.4, 2.6); // a tall shelf unit beside the shower
+  const SHX = -7.05; // the shower head's centre
+  const showerArm = cyl(group, M.chrome, 0.012, 0.012, 0.44, BX + 0.22, 2.2, 3.8, 10);
   showerArm.rotation.z = Math.PI / 2;
-  const showerHead = cyl(group, M.chrome, 0.15, 0.15, 0.02, -10.15, 2.18, 3.8, 32);
-  const mixer = cyl(group, M.chrome, 0.06, 0.06, 0.02, -10.578, 1.15, 3.8, 24);
+  const showerHead = cyl(group, M.chrome, 0.15, 0.15, 0.02, SHX, 2.18, 3.8, 32);
+  const mixer = cyl(group, M.chrome, 0.06, 0.06, 0.02, BX + 0.022, 1.15, 3.8, 24);
   mixer.rotation.z = Math.PI / 2;
   const dropCount = 500;
   const drops = new Float32Array(dropCount * 3);
   for (let i = 0; i < dropCount; i++) {
     const a = Math.random() * Math.PI * 2;
     const rr = Math.sqrt(Math.random()) * 0.13;
-    drops[i * 3] = -10.15 + Math.cos(a) * rr;
+    drops[i * 3] = SHX + Math.cos(a) * rr;
     drops[i * 3 + 1] = 0.05 + Math.random() * 2.1;
     drops[i * 3 + 2] = 3.8 + Math.sin(a) * rr;
   }
@@ -1295,9 +1303,9 @@ export function buildRoom(ctx) {
   api.state = {
     balconyDoor,
     water: [
-      { on: () => tap.on, pos: new THREE.Vector3(-7.0, 1, 2.38), gain: 0.4, range: 4 },
-      { on: () => shower.on, pos: new THREE.Vector3(-10.15, 1.2, 3.8), gain: 1, range: 5 },
-      { on: () => api.kitchenTap.on, pos: new THREE.Vector3(0.7, 1, 4.65), gain: 0.4, range: 4 },
+      { on: () => tap.on, pos: new THREE.Vector3(-5.84, 1, 2.38), gain: 0.4, range: 4 },
+      { on: () => shower.on, pos: new THREE.Vector3(-7.05, 1.2, 3.8), gain: 1, range: 5 },
+      { on: () => api.kitchenTap.on, pos: new THREE.Vector3(0.7, 1, 3.81), gain: 0.4, range: 4 },
       { on: () => api.bathTub.on, pos: new THREE.Vector3(-10.2, 0.6, 0.0), gain: 0.7, range: 4.5 },
     ],
   };
