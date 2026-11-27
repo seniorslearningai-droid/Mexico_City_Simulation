@@ -25,6 +25,8 @@ The buttons at the top left take you to seven more places:
   habitats and an indoor Nocturnario.
 - **Go to tropical forest** — the **Bosque Tropical** at Chapultepec Zoo: big
   cats, monkeys, a crocodile, a sloth, bats and more along jungle paths.
+- **Go to ATM** — a small bank vestibule whose ATM trades a $20 peso bill for
+  four $5 coins.
 
 ## Play
 
@@ -50,7 +52,7 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1`–`9` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, the temperate forest, or the tropical forest |
+| `1`–`9`, `0` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, the temperate forest, the tropical forest, or the ATM |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -255,6 +257,13 @@ pick it up; a coin counter
 appears next to the backpack. The souvenir coin presses take **2 coins per
 pressed coin**.
 
+Somewhere in the zoo there is also **one $20 peso bill**. It hides in a
+different tucked-away spot each game, lies flat and dull on the ground and
+never glints. Take it to the **ATM** (its own button at the top left): touch
+the screen to feed the bill in, take the four $5 coins from the tray, then
+take your receipt. The keypad shows your balance. The ATM on the right is out
+of service.
+
 ## Your backpack
 
 The backpack button in the top right corner (or `B`) opens your souvenirs
@@ -288,6 +297,7 @@ counts them, and the button bounces whenever you pick something up.
 | `js/castle.js`, `js/castle-carriages.js` | Chapultepec Castle garden, museum galleries, and carriages |
 | `js/forest.js`, `js/forest-animals.js` | Temperate Forest trail, habitats, and animal models |
 | `js/tropical.js` | Chapultepec Zoo tropical forest: paths, 22 enclosures, cats, monkeys and the other animals, signs, zoo map |
+| `js/atm.js` | The bank vestibule and the ATM that trades the $20 bill for coins |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |

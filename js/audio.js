@@ -850,6 +850,25 @@ export class Sound {
     }
   }
 
+  // An ATM's short double beep.
+  beep() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    [0, 0.14].forEach((dt) => {
+      const t = ctx.currentTime + dt;
+      const o = ctx.createOscillator();
+      o.type = 'square';
+      o.frequency.value = 1480;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.05, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      o.connect(g).connect(this.master);
+      o.start(t);
+      o.stop(t + 0.1);
+    });
+  }
+
   // A quick whoosh for dashing.
   whoosh() {
     if (!this.ctx) return;

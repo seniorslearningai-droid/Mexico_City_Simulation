@@ -11,6 +11,7 @@ import { buildCastle, CASTLE_SPAWN } from './castle.js';
 import { buildPesos } from './pesos.js';
 import { buildForest, FOREST_SPAWN } from './forest.js';
 import { buildTropical, TROPICAL_SPAWN } from './tropical.js';
+import { buildAtm, ATM_SPAWN } from './atm.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS, maskFace, drawPanda } from './textures.js';
@@ -552,14 +553,65 @@ const tropical = {
   },
 };
 
-const PLACES = [hotel, arena, aviary, pandas, coastal, axolotls, castle, forest, tropical];
+const ATM_TASKS = [
+  ['atmBalance', 'Check your balance'],
+  ['atmTrade', 'Trade a $20 bill for four $5 coins'],
+  ['atmReceipt', 'Take your receipt'],
+];
+const atmWorld = buildAtm({
+  toast,
+  complete,
+  sound,
+  wallet: () => wallet,
+  takeBill: () => {
+    if (wallet.bills < 1) return false;
+    wallet.bills--;
+    updateWallet();
+    return true;
+  },
+  giveCoins: (n) => {
+    wallet.coins += n;
+    sound.coinIn();
+    updateWallet();
+    toast(`+$${n * 5} · ${wallet.coins} coins ($${wallet.coins * 5}). Spend them at the zoo’s coin presses!`, 3800);
+  },
+});
+scene.add(atmWorld.group);
+const atmPlace = {
+  id: 'atm',
+  title: 'Cajero automático',
+  sub: 'Banco Jacaranda · Paseo de la Reforma',
+  chip: 'ATM',
+  tasksTitle: 'At the ATM',
+  goLabel: 'Go to ATM',
+  tasks: ATM_TASKS,
+  done: new Set(),
+  root: atmWorld.group,
+  colliders: atmWorld.colliders,
+  floorAt: atmWorld.floorAt,
+  limit: atmWorld.limit,
+  spawn: ATM_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    atmWorld.group.visible = true;
+    scene.background = null;
+    scene.fog = null;
+    scene.environmentIntensity = 0.45;
+  },
+  exit() {
+    atmWorld.group.visible = false;
+  },
+};
+
+const PLACES = [hotel, arena, aviary, pandas, coastal, axolotls, castle, forest, tropical, atmPlace];
 
 // ---------- $5 peso coins: pick them up, spend two per pressed coin ----------
-const wallet = { coins: 0, found: 0 };
+const wallet = { coins: 0, found: 0, bills: 0, billFound: false };
 function updateWallet() {
-  $('#walletBtn').hidden = wallet.found === 0;
-  $('#walletCount').textContent = `$${wallet.coins * 5}`;
-  $('#walletBtn').setAttribute('aria-label', `You have ${wallet.coins} five-peso coins`);
+  $('#walletBtn').hidden = wallet.found === 0 && !wallet.billFound;
+  $('#walletCount').textContent = `$${wallet.coins * 5 + wallet.bills * 20}`;
+  $('#walletBtn').setAttribute('aria-label', `You have ${wallet.coins} five-peso coins${wallet.bills ? ` and ${wallet.bills} twenty-peso bill` : ''}`);
   if (typeof bag !== 'undefined' && bag.open) renderBag();
 }
 function payPeso() {
@@ -569,6 +621,17 @@ function payPeso() {
   return true;
 }
 const pesos = buildPesos(PLACES, {
+  collectBill: () => {
+    wallet.bills++;
+    wallet.billFound = true;
+    sound.coinIn();
+    const btn = $('#walletBtn');
+    btn.classList.remove('bump');
+    void btn.offsetWidth;
+    btn.classList.add('bump');
+    updateWallet();
+    toast('💵 You found a $20 peso bill! Take it to the ATM (top left) to trade it for four $5 coins.', 5600);
+  },
   collect: () => {
     wallet.coins++;
     wallet.found++;
@@ -764,7 +827,8 @@ function renderBag() {
     sec('Monedas · Coins', `${bag.coins.size}/${COIN_DESIGNS}`, coins) +
     sec('Peluches · Plushies', bag.plush, plush) +
     sec('Fotos · Photos', bag.photos.length, photos) +
-    sec('Pesos · $5 coins', `$${wallet.coins * 5}`, wallet.found ? `<p class="bag-empty">${wallet.coins} coin${wallet.coins === 1 ? '' : 's'} to spend at the coin presses (2 per souvenir coin).</p>` : '<p class="bag-empty">Look for shiny $5 coins around the zoo, the shops and Arena México.</p>');
+    sec('Pesos · $5 coins', `$${wallet.coins * 5}`, wallet.found || wallet.coins ? `<p class="bag-empty">${wallet.coins} coin${wallet.coins === 1 ? '' : 's'} to spend at the coin presses (2 per souvenir coin).</p>` : '<p class="bag-empty">Look for $5 coins glinting on the ground around the zoo, the shops and Arena México.</p>') +
+    sec('Billete · $20 bill', wallet.bills, wallet.bills ? '<p class="bag-empty">💵 A $20 peso bill. Trade it at the ATM for four $5 coins.</p>' : wallet.billFound ? '<p class="bag-empty">You traded your $20 bill at the ATM.</p>' : '<p class="bag-empty">Someone dropped a $20 bill somewhere in the zoo. It’s hard to spot!</p>');
 }
 function wearMask(d) {
   if (maskState.on && maskState.design === d) toggleMask();
@@ -855,6 +919,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit7') travel('castle');
   if (e.code === 'Digit8') travel('forest');
   if (e.code === 'Digit9') travel('tropical');
+  if (e.code === 'Digit0') travel('atm');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
   if (e.code === 'KeyB') toggleBag();
   if (e.code === 'Escape' && bag.open) closeBag(false);
@@ -1069,6 +1134,11 @@ const DONE_TEXT = {
     title: '¡Hasta pronto, Bosque Tropical!',
     lede: 'You visited all 22 exhibits, heard the lion roar, and peeked in on the bats.',
   },
+  atm: {
+    eyebrow: 'Cambio listo',
+    title: '¡Gracias por su visita!',
+    lede: 'You traded your $20 bill for four $5 coins. Spend them at the zoo’s coin presses.',
+  },
 };
 function celebrate(place) {
   if (place !== loc) return;
@@ -1143,6 +1213,10 @@ async function travel(destId) {
     setTimeout(() => {
       if (loc === castle) toast('¡Bienvenidos al Castillo de Chapultepec! Explore the garden, then take the stairs behind the tower to the galleries.', 6000);
     }, 500);
+  }
+  if (loc === atmPlace && !atmPlace.visited) {
+    atmPlace.visited = true;
+    setTimeout(() => loc === atmPlace && toast('This ATM trades a $20 peso bill for four $5 coins. The one on the left works; the other is out of service.', 5200), 500);
   }
   if (loc === tropical && !tropical.visited) {
     tropical.visited = true;
@@ -1268,7 +1342,7 @@ function frame(dt, draw = true) {
     }
   }
   player.update(dt);
-  if (loc !== hotel) pesos.update(loc, player.pos, t);
+  if (loc !== hotel && loc !== atmPlace) pesos.update(loc, player.pos, t);
   avatar.visible = !player.seat && loc === hotel;
   avatar.position.set(player.pos.x, 0, player.pos.z);
   avatar.rotation.y = player.yaw;
@@ -1322,6 +1396,8 @@ function frame(dt, draw = true) {
   } else if (loc === castle) {
     castleWorld.update(dt);
     sound.aviary(castleWorld.state);
+  } else if (loc === atmPlace) {
+    atmWorld.update(dt);
   } else if (loc === tropical) {
     tropicalWorld.update(dt);
     sound.aviary(tropicalWorld.state);
@@ -1401,7 +1477,7 @@ function showPolaroid(url, caption) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, castle: castleWorld, forest: forestWorld, tropical: tropicalWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, wallet, pesos, openBag, closeBag, addSouvenir,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, castle: castleWorld, forest: forestWorld, tropical: tropicalWorld, atm: atmWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, wallet, pesos, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },
