@@ -8,10 +8,10 @@
 //        │   bed               │      couch ▸ ▸ ▸ TV            │
 //  z=-0.4├─────┬───────┬─door──┼───── arch ─────┬───────────────┤
 //        │BATH │CLOSET door  H │     DINING     │               │
-//        │  2 door      │   A door  (round     hatch  KITCHEN   │
+//        │  2 door      │   A door  (round     open to kitchen   │
 //   z=2  ├─────┴───────┤   L │      table)    │    island     │
-//        │  BATHROOM  door  L ├───── arch ─────┤               │
-//   z=5  ├─────────────┴─door─┤     FOYER   opening (on your right)
+//        │  BATHROOM  door  L ├───── arch ─────┘               │
+//   z=5  ├─────────────┴─door─┤     FOYER          KITCHEN    │
 //        │     BEDROOM        ├───[front door]──┴───────────────┘ z=6.4
 //   z=9  └────────────────────┘
 //      x=-10.6      -4.6  -3.2 -3.0           1.0            5.0
@@ -240,6 +240,7 @@ export function buildRoom(ctx) {
   const floor = (mat, x0, z0, x1, z1) => wbox(group, mat, x0, -0.2, z0, x1, 0, z1);
   floor(M.floor, -3.1, -5.0, 1.0, -0.4); // living
   floor(M.floor, -3.0, -0.4, 1.0, 6.4); // dining + foyer
+  floor(M.saltillo, 1.0, -0.4, 2.85, 3.0); // open connection to the dining room
   floor(M.saltillo, 1.0, 3.0, 5.0, 6.4); // kitchen
   floor(M.floor, -7.0, -5.0, -3.1, -0.4); // master bedroom
   floor(M.floor, -4.6, -0.4, -3.0, 5.0); // hallway
@@ -295,11 +296,10 @@ export function buildRoom(ctx) {
   W(-3.0, 3.34, -2.0, 3.46, 0, H, M.warm); // dining / foyer
   W(-2.0, 3.34, 0.0, 3.46, 2.3, H, M.warm);
   W(0.0, 3.34, 0.94, 3.46, 0, H, M.warm);
-  W(0.94, -0.34, 1.06, 3.4, 0, H, M.warm); // dining / kitchen
-  W(0.94, 3.4, 1.06, 3.8);
-  W(1.06, 2.94, 5.0, 3.06); // kitchen north wall
-  W(0.94, 3.8, 1.06, 6.0, 2.3, H);
-  W(0.94, 6.0, 1.06, 6.4);
+  // Wrap the north wall around the tiled corner. The dining side is open.
+  W(1.06, -0.46, 2.91, -0.34);
+  W(2.79, -0.34, 2.91, 3.06);
+  W(2.91, 2.94, 5.0, 3.06); // kitchen north wall
   casing('x', -0.4, -4.4, -3.5, 2.15);
   casing('x', 5.0, -4.4, -3.5, 2.15);
   casing('z', -4.6, 0.4, 1.3, 2.15);
@@ -308,7 +308,6 @@ export function buildRoom(ctx) {
   casing('z', -3.1, 2.2, 3.2, 2.3, 0.24);
   casing('x', -0.4, -2.4, 0.4, 2.4);
   casing('x', 3.4, -2.0, 0.0, 2.3);
-  casing('z', 1.0, 3.8, 6.0, 2.3);
   casing('x', 6.475, -1.6, -0.6, 2.15, 0.19);
 
   // ---------- lights ----------
