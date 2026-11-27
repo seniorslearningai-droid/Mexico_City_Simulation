@@ -128,17 +128,59 @@ body.touch #prompt { padding-left: 14px; }
   align-items: flex-start;
   gap: 10px;
 }
-#zooMapBtn { background: #365b42; border-color: transparent; }
-#zooMapBtn .label { display: inline; }
-#destBtns { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-.dest[hidden] { display: none !important; }
-.pill.dest { border-color: transparent; }
-.pill.dest[data-place='hotel'] { background: var(--teal); box-shadow: 0 6px 18px rgba(31, 107, 110, 0.4); }
-.pill.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35); }
-.pill.dest[data-place='bandera'] { background: #006847; box-shadow: 0 6px 18px rgba(0, 104, 71, 0.4); }
-.cta.dest[data-place='bandera'] { background: #006847; box-shadow: 0 10px 24px rgba(0, 104, 71, 0.35); }
-.pill.dest[data-place='castle'] { background: #80563a; box-shadow: 0 6px 18px rgba(128, 86, 58, 0.4); }
-.pill.dest:hover { filter: brightness(1.08); }
+#hudPlaces > summary { pointer-events: auto; }
+.places-menu { position: relative; }
+.places-menu > summary {
+  list-style: none;
+  background: #365b42;
+  color: var(--cream);
+  border-color: transparent;
+}
+.places-menu > summary::-webkit-details-marker { display: none; }
+.places-menu .places-chevron { width: 16px; height: 16px; margin-inline-start: 5px; }
+.places-menu[open] .places-chevron { transform: rotate(180deg); }
+.places-options {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 2;
+  width: min(218px, calc(100vw - 32px));
+  padding: 5px;
+  border: 1px solid var(--glass-line);
+  border-radius: 12px;
+  background: #253d31;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 35%);
+  pointer-events: auto;
+}
+.places-options button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--cream);
+  font: 600 14px Inter, system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.places-options button:hover,
+.places-options button:focus-visible,
+.places-options button[aria-current="location"] { background: rgb(255 255 255 / 13%); }
+.places-options button[aria-current="location"]::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin-inline-start: auto;
+  border-radius: 50%;
+  background: var(--marigold);
+}
+#pausePlaces { margin-top: 12px; }
+#pausePlaces > summary { display: inline-flex; }
+#pausePlaces .places-options { position: static; margin: 6px auto 0; }
 body:not(.in-hotel) #dayNight { display: none; }
 
 /* Checklist */
@@ -613,9 +655,6 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 .cta.secondary { background: var(--teal); box-shadow: 0 10px 24px rgba(31, 107, 110, 0.35); }
 .cta.secondary:hover { box-shadow: 0 14px 28px rgba(31, 107, 110, 0.4); }
 .cta svg { width: 20px; height: 20px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.cta.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 10px 24px rgba(217, 68, 122, 0.35); }
-.cta.dest[data-place='castle'] { background: #80563a; box-shadow: 0 10px 24px rgba(128, 86, 58, 0.35); }
-#pauseDest { margin-top: 12px; }
 .hint { margin: 18px 0 0; font-size: 13.5px; color: #6b6478; }
 body:not(.touch) .hint { display: none; }
 .keys {
@@ -681,7 +720,6 @@ body.touch .desktop-only { display: none; }
   .left { max-width: calc(100vw - 32px - 150px); }
   .tasks-title { display: none; }
   .pill .label { display: none; }
-  .pill.dest .label { display: inline; }
   #dayNight { width: 42px; padding: 0; justify-content: center; }
   #prompt { font-size: 14px; }
 }

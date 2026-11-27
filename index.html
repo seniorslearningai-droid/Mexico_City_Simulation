@@ -73,16 +73,20 @@
     <div id="toast" role="status" aria-live="polite"></div>
 
     <div class="left">
-      <button id="zooMapBtn" class="pill" type="button" data-open-zoo-map aria-haspopup="dialog" aria-controls="zooMap" title="Zoo map (Z)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zm6-3v15m6-12v15"/></svg>
-        <span class="label">Zoo map</span>
-      </button>
-      <div id="destBtns">
-        <button class="pill dest" data-place="hotel" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg><span class="label">Back to Air BnB</span></button>
-        <button class="pill dest" data-place="arena" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg><span class="label">Go to stadium</span></button>
-        <button class="pill dest" data-place="castle" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l3 2 3-2v3h6V9l3 2 3-2v12H3m7 0v-4a2 2 0 0 1 4 0v4M9 9V4h6v5"/></svg><span class="label">Go to castle</span></button>
-        <button class="pill dest" data-place="bandera" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 22V2"/><path d="M5 3h15v10H5"/><path d="M10 3v10M15 3v10"/></svg><span class="label">Go to Bandera Monumental</span></button>
-      </div>
+      <details id="hudPlaces" class="places-menu">
+        <summary class="pill">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zm6-3v15m6-12v15"/></svg>
+          <span>Places</span>
+          <svg class="places-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="places-options">
+          <button type="button" data-open-zoo-map aria-haspopup="dialog" aria-controls="zooMap">Zoo map</button>
+          <button type="button" data-place="hotel">Room</button>
+          <button type="button" data-place="arena">Stadium</button>
+          <button type="button" data-place="castle">Castle</button>
+          <button type="button" data-place="bandera">Bandera Monumental</button>
+        </div>
+      </details>
       <aside id="tasks">
         <button id="tasksToggle" class="tasks-head" type="button" aria-label="Show or hide the checklist">
           <span id="roomChip" class="room-chip">Suite 602</span>
@@ -154,7 +158,7 @@
         <div><dt>Drag</dt><dd>Look around</dd></div>
         <div><dt>Tap / Use</dt><dd>Use things</dd></div>
       </dl>
-      <p class="hint">The top-left menu takes you to <strong>Arena México</strong> and <strong>Chapultepec Castle</strong>. Open <strong>Zoo map</strong> to visit the zoo.</p>
+      <p class="hint">Open <strong>Places</strong> at the top left to travel. Choose <strong>Zoo map</strong> to visit the zoo.</p>
     </div>
   </section>
 
@@ -165,14 +169,21 @@
       <p class="lede">Everything is right where you left it.</p>
       <div class="cta-row">
         <button id="resumeBtn" class="cta" type="button">Keep playing</button>
-        <button class="cta secondary" type="button" data-open-zoo-map aria-haspopup="dialog" aria-controls="zooMap">Zoo map</button>
       </div>
-      <div id="pauseDest" class="cta-row">
-        <button class="cta secondary dest" data-place="hotel" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg><span class="label">Back to Air BnB</span></button>
-        <button class="cta secondary dest" data-place="arena" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg><span class="label">Go to stadium</span></button>
-        <button class="cta secondary dest" data-place="castle" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l3 2 3-2v3h6V9l3 2 3-2v12H3m7 0v-4a2 2 0 0 1 4 0v4M9 9V4h6v5"/></svg><span class="label">Go to castle</span></button>
-        <button class="cta secondary dest" data-place="bandera" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 22V2"/><path d="M5 3h15v10H5"/><path d="M10 3v10M15 3v10"/></svg><span class="label">Go to Bandera Monumental</span></button>
-      </div>
+      <details id="pausePlaces" class="places-menu">
+        <summary class="pill">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zm6-3v15m6-12v15"/></svg>
+          <span>Places</span>
+          <svg class="places-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="places-options">
+          <button type="button" data-open-zoo-map aria-haspopup="dialog" aria-controls="zooMap">Zoo map</button>
+          <button type="button" data-place="hotel">Room</button>
+          <button type="button" data-place="arena">Stadium</button>
+          <button type="button" data-place="castle">Castle</button>
+          <button type="button" data-place="bandera">Bandera Monumental</button>
+        </div>
+      </details>
     </div>
   </section>
 

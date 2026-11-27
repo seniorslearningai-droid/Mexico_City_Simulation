@@ -5,7 +5,8 @@ the (fictional) Air BnB, overlooking Paseo de la Reforma in
 Mexico City. Explore the suite, open things up, step out onto the balcony,
 and watch the city light up at night.
 
-Use **Zoo map** in the top-left menu to select a marked zoo destination. The hotel, stadium, castle, and Bandera Monumental have their own buttons.
+Open **Places** at the top left to visit the room, stadium, castle, or
+Bandera Monumental. Choose **Zoo map** to travel to a marked zoo destination.
 
 - **Go to stadium** — **Arena México**, the cathedral of lucha libre. No
   luchadores yet: just you, the ring, and (once you open the doors) a few
@@ -54,8 +55,8 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1`–`9`, `0`, `-` (or `G` to cycle) | Top-left destination buttons and Zoo map | Switch destinations |
-| `Z` | **Zoo map** (top left) | Open the map and select a zoo destination |
+| `1`–`9`, `0`, `-` (or `G` to cycle) | **Places** menu and Zoo map | Switch destinations |
+| `Z` | **Places** → **Zoo map** | Open the map and select a zoo destination |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -214,7 +215,7 @@ pink, golden, and wild-type axolotls. Look for their feathery gills, read an
 exhibit sign, and use the photo spot at the end of the hall. Outside, insert
 two coins and turn the gear three times to press an **Axolotl** souvenir coin.
 
-Use **Zoo map** in the top-left menu, or press `Z`, to view the map during
+Choose **Places** → **Zoo map**, or press `Z`, to view the map during
 play and pick a marked destination. [Open the illustrated Chapultepec Zoo map for kids](docs/chapultepec-zoo-kids-map.png).
 
 ## Castillo de Chapultepec

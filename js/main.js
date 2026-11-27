@@ -215,7 +215,6 @@ const hotel = {
   sub: 'Suite 602 · Sixth floor · Paseo de la Reforma',
   chip: 'Suite 602',
   tasksTitle: 'Settle in',
-  goLabel: 'Back to Air BnB',
   tasks: HOTEL_TASKS,
   done: new Set(),
   root: room.group,
@@ -239,7 +238,6 @@ const arena = {
   sub: 'Colonia Doctores · La Catedral de la Lucha Libre',
   chip: 'Arena México',
   tasksTitle: 'Fan checklist',
-  goLabel: 'Go to stadium',
   tasks: ARENA_TASKS,
   done: new Set(),
   root: arenaWorld.group,
@@ -440,7 +438,6 @@ const castle = {
   sub: 'Museo Nacional de Historia · Garden and galleries',
   chip: 'Castle',
   tasksTitle: 'Castle visit',
-  goLabel: 'Go to castle',
   tasks: CASTLE_TASKS,
   done: new Set(),
   root: castleWorld.group,
@@ -630,7 +627,6 @@ const bandera = {
   sub: 'Campo Marte · Bosque de Chapultepec',
   chip: 'Bandera',
   tasksTitle: 'Plaza visit',
-  goLabel: 'Go to Bandera Monumental',
   tasks: BANDERA_TASKS,
   done: new Set(),
   root: banderaWorld.group,
@@ -929,6 +925,9 @@ const state = { started: false, playing: false, locked: false, dragMode: touch, 
 const keys = new Set();
 const has = (c) => keys.has(c);
 const joy = { x: 0, y: 0 };
+const hudPlaces = $('#hudPlaces');
+const placesMenus = [hudPlaces, $('#pausePlaces')];
+const placeOptions = document.querySelectorAll('.places-options [data-place]');
 const zooMap = $('#zooMap');
 const zooMapView = $('#zooMapView');
 const zooMapZoom = $('#zooMapZoom');
@@ -937,6 +936,7 @@ let restoreMapPointerLock = false;
 
 function openZooMap() {
   if (!state.started || state.modal || state.traveling || zooMap.open) return;
+  closePlacesMenus();
   restoreMapPointerLock = document.pointerLockElement === canvas;
   keys.clear();
   shiftDown = -1;
@@ -954,7 +954,7 @@ zooMap.addEventListener('close', () => {
 });
 
 function useAction() {
-  if (!state.playing || zooMap.open) return;
+  if (!state.playing || hudPlaces.open || zooMap.open) return;
   if (player.seat) {
     if (player.seat.binoculars && focus) {
       focus.act(focusHit);
@@ -979,8 +979,18 @@ function toggleNight() {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (zooMap.open || !state.playing) return;
-  if ((e.code === 'Enter' || e.code === 'Space') && e.target.closest?.('[data-open-zoo-map]')) return;
+  if (zooMap.open) return;
+  const openMenu = placesMenus.find((menu) => menu.open);
+  if (openMenu) {
+    if (e.code === 'Escape') {
+      e.preventDefault();
+      openMenu.open = false;
+      openMenu.querySelector('summary').focus();
+    }
+    return;
+  }
+  if (!state.playing) return;
+  if ((e.code === 'Enter' || e.code === 'Space') && e.target.closest?.('.places-menu')) return;
   if (e.code === 'KeyZ' && !e.repeat) {
     openZooMap();
     return;
@@ -1013,7 +1023,7 @@ window.addEventListener('keydown', (e) => {
 // Tap Shift (press and let go quickly) to dash; hold it to sprint.
 let shiftDown = -1;
 window.addEventListener('keydown', (e) => {
-  if (!zooMap.open && (e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) shiftDown = performance.now();
+  if (!zooMap.open && !hudPlaces.open && (e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) shiftDown = performance.now();
 });
 window.addEventListener('keyup', (e) => {
   keys.delete(e.code);
@@ -1113,7 +1123,35 @@ joyEl.addEventListener('pointercancel', joyEnd);
 $('#useBtn').addEventListener('click', useAction);
 
 // ---------- buttons + overlays ----------
-document.querySelectorAll('[data-open-zoo-map]').forEach((button) => button.addEventListener('click', openZooMap));
+function closePlacesMenus() {
+  for (const menu of placesMenus) menu.open = false;
+}
+for (const menu of placesMenus) {
+  menu.addEventListener('toggle', () => {
+    if (!menu.open) return;
+    keys.clear();
+    shiftDown = -1;
+  });
+  menu.querySelector('.places-options').addEventListener('click', (e) => {
+    const option = e.target.closest('button');
+    if (!option) return;
+    menu.open = false;
+    menu.querySelector('summary').focus({ preventScroll: true });
+    if (option.hasAttribute('data-open-zoo-map')) {
+      openZooMap();
+      return;
+    }
+    const destId = option.dataset.place;
+    if (destId === loc.id) return;
+    if (!state.playing) begin();
+    travel(destId);
+  });
+}
+document.addEventListener('click', (e) => {
+  for (const menu of placesMenus) {
+    if (menu.open && !menu.contains(e.target)) menu.open = false;
+  }
+});
 $('#zooMapClose').addEventListener('click', () => zooMap.close());
 zooMapZoom.addEventListener('click', () => {
   const zoomed = zooMapView.classList.toggle('zoomed');
@@ -1153,7 +1191,6 @@ $('#bagBody').addEventListener('click', (e) => {
     if (ph) showPolaroid(ph.url, ph.caption);
   }
 });
-document.querySelectorAll('#destBtns .dest').forEach((b) => b.addEventListener('click', () => travel(b.dataset.place)));
 $('#tasksToggle').addEventListener('click', () => $('#tasks').classList.toggle('collapsed'));
 if (touch || window.innerWidth < 700) $('#tasks').classList.add('collapsed');
 
@@ -1161,6 +1198,7 @@ function show(id, on) {
   $(id).classList.toggle('hidden', !on);
 }
 function begin() {
+  closePlacesMenus();
   state.started = true;
   state.playing = true;
   show('#start', false);
@@ -1174,18 +1212,13 @@ function begin() {
   }
 }
 function pause() {
+  closePlacesMenus();
   state.playing = false;
   keys.clear();
   show('#pause', true);
 }
 $('#startBtn').addEventListener('click', begin);
 $('#resumeBtn').addEventListener('click', begin);
-document.querySelectorAll('#pauseDest .dest').forEach((b) =>
-  b.addEventListener('click', () => {
-    begin();
-    travel(b.dataset.place);
-  }),
-);
 $('#pauseBtn').addEventListener('click', () => {
   if (document.pointerLockElement) document.exitPointerLock();
   else pause();
@@ -1271,12 +1304,10 @@ const fadeEl = $('#fade');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 function syncPlaceUI() {
   for (const p of PLACES) document.body.classList.toggle(`in-${p.id}`, loc === p);
-  // The HUD and pause menu show buttons for destinations outside the zoo map.
-  document.querySelectorAll('.dest').forEach((b) => {
-    const p = PLACES.find((q) => q.id === b.dataset.place);
-    b.hidden = p === loc;
-    b.querySelector('.label').textContent = p.goLabel;
-  });
+  for (const option of placeOptions) {
+    if (option.dataset.place === loc.id) option.setAttribute('aria-current', 'location');
+    else option.removeAttribute('aria-current');
+  }
   renderTasks();
 }
 async function travel(destId) {
@@ -1438,7 +1469,7 @@ function frame(dt, draw = true) {
   simT += dt;
   const t = simT;
 
-  if (state.playing && !state.traveling && !zooMap.open) {
+  if (state.playing && !state.traveling && !hudPlaces.open && !zooMap.open) {
     const f = (has('KeyW') || has('ArrowUp') ? 1 : 0) - (has('KeyS') || has('ArrowDown') ? 1 : 0);
     const s = (has('KeyD') || has('ArrowRight') ? 1 : 0) - (has('KeyA') || has('ArrowLeft') ? 1 : 0);
     player.move.x = s + joy.x;
@@ -1453,13 +1484,13 @@ function frame(dt, draw = true) {
       player.pitch = -0.04 + Math.sin(idleT * 0.11) * 0.05;
     }
   }
-  if (!zooMap.open) player.update(dt);
+  if (!hudPlaces.open && !zooMap.open) player.update(dt);
   if (loc !== hotel && loc !== atmPlace) pesos.update(loc, player.pos, t);
   avatar.visible = !player.seat && loc === hotel;
   avatar.position.set(player.pos.x, 0, player.pos.z);
   avatar.rotation.y = player.yaw;
 
-  if (state.playing && !zooMap.open) updateFocus();
+  if (state.playing && !hudPlaces.open && !zooMap.open) updateFocus();
   night += THREE.MathUtils.clamp(nightTarget - night, -dt * 0.45, dt * 0.45);
 
   if (loc === hotel) {
