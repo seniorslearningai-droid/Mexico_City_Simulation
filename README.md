@@ -5,27 +5,27 @@ the (fictional) Air BnB, overlooking Paseo de la Reforma in
 Mexico City. Explore the suite, open things up, step out onto the balcony,
 and watch the city light up at night.
 
-The buttons at the top left take you to seven more places:
+Use **Zoo map** in the top-left menu to select a marked zoo destination. The hotel, stadium, castle, and Bandera Monumental have their own buttons.
 
 - **Go to stadium** — **Arena México**, the cathedral of lucha libre. No
   luchadores yet: just you, the ring, and (once you open the doors) a few
   thousand fans.
-- **Go to aviary** — the **bird trail at Chapultepec Zoo**: a U-shaped forest
+- **Aviary** — the **bird trail at Chapultepec Zoo**: a U-shaped forest
   path lined with mini aviaries, emu and rhea paddocks, trumpeter swans, and a
   big pond of black swans, ducks and geese in the middle.
-- **Go to panda exhibit** — the **Pabellón del Panda** at Chapultepec Zoo, home
+- **Panda Complex** — the **Pabellón del Panda** at Chapultepec Zoo, home
   to one giant panda, Xin Xin, who mostly keeps to herself.
-- **Go to coastal zone** — the **Franja Costera** at Chapultepec Zoo, with
+- **Coastal Zone** — the **Franja Costera** at Chapultepec Zoo, with
   Humboldt penguins, California sea lions, and two pressed-coin designs.
-- **Visit axolotls** — the **Ajolotario** at Chapultepec Zoo, with a hall of
+- **Axolotl Exhibit** — the **Ajolotario** at Chapultepec Zoo, with a hall of
   freshwater tanks and an axolotl coin press outside.
 - **Go to castle** — the **Castillo de Chapultepec**, with the Alcázar
   garden, carriage hall, and a gallery of period artifacts.
-- **Go to forest** — the **Bosque Templado**, a loop past thirteen outdoor
+- **Temperate Forest** — the **Bosque Templado**, a loop past thirteen outdoor
   habitats and an indoor Nocturnario.
-- **Go to tropical forest** — the **Bosque Tropical** at Chapultepec Zoo: big
+- **Tropical Forest** — the **Bosque Tropical** at Chapultepec Zoo: big
   cats, monkeys, a crocodile, a sloth, bats and more along jungle paths.
-- **Go to ATM** — a small bank vestibule whose ATM trades a $20 peso bill for
+- **ATM** — a small bank vestibule whose ATM trades a $20 peso bill for
   four $5 coins.
 - **Go to Bandera Monumental** — a huge plaza with a 50 m flagpole, a giant
   waving Mexican flag (and its shadow), and stalls selling traditional toys.
@@ -54,7 +54,8 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1`–`9`, `0`, `-` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, the temperate forest, the tropical forest, the ATM, or the Bandera Monumental |
+| `1`–`9`, `0`, `-` (or `G` to cycle) | Top-left destination buttons and Zoo map | Switch destinations |
+| `Z` | **Zoo map** (top left) | Open the map and select a zoo destination |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -211,7 +212,7 @@ exhibit sign, and use the photo spot at the end of the hall. Outside, insert
 two coins and turn the gear three times to press an **Axolotl** souvenir coin.
 
 Use **Zoo map** in the top-left menu, or press `Z`, to view the map during
-play. [Open the illustrated Chapultepec Zoo map for kids](docs/chapultepec-zoo-kids-map.png).
+play and pick a marked destination. [Open the illustrated Chapultepec Zoo map for kids](docs/chapultepec-zoo-kids-map.png).
 
 ## Castillo de Chapultepec
 
@@ -290,7 +291,7 @@ pressed coin**.
 
 Somewhere in the zoo there is also **one $20 peso bill**. It hides in a
 different tucked-away spot each game, lies flat and dull on the ground and
-never glints. Take it to the **ATM** (its own button at the top left): touch
+never glints. Take it to the **ATM** (marked on the Zoo map): touch
 the screen to feed the bill in, take the four $5 coins from the tray, then
 take your receipt. The keypad shows your balance. The ATM on the right is out
 of service.

@@ -278,7 +278,6 @@ const aviary = {
   sub: 'Zoológico de Chapultepec · Bird trail',
   chip: 'Aviary',
   tasksTitle: 'Bird spotter',
-  goLabel: 'Go to aviary',
   tasks: AVIARY_TASKS,
   done: new Set(),
   root: aviaryWorld.group,
@@ -322,7 +321,6 @@ const pandas = {
   sub: 'Zoológico de Chapultepec · Panda exhibit',
   chip: 'Pandas',
   tasksTitle: 'Panda watch',
-  goLabel: 'Go to panda exhibit',
   tasks: PANDA_TASKS,
   done: new Set(),
   root: pandaWorld.group,
@@ -368,7 +366,6 @@ const coastal = {
   sub: 'Zoológico de Chapultepec · Coastal Zone',
   chip: 'Coastal',
   tasksTitle: 'Coastal explorer',
-  goLabel: 'Go to coastal zone',
   tasks: COASTAL_TASKS,
   done: new Set(),
   root: coastalWorld.group,
@@ -411,7 +408,6 @@ const axolotls = {
   sub: 'Zoológico de Chapultepec · Axolotl Exhibit',
   chip: 'Axolotls',
   tasksTitle: 'Tank explorer',
-  goLabel: 'Visit axolotls',
   tasks: AXOLOTL_TASKS,
   done: new Set(),
   root: axolotlWorld.group,
@@ -477,7 +473,6 @@ const forest = {
   sub: 'Zoológico de Chapultepec · Temperate Forest',
   chip: 'Forest',
   tasksTitle: 'Forest explorer',
-  goLabel: 'Go to forest',
   tasks: FOREST_TASKS,
   done: new Set(),
   root: forestWorld.group,
@@ -533,7 +528,6 @@ const tropical = {
   sub: 'Zoológico de Chapultepec · Tropical forest',
   chip: 'Tropical',
   tasksTitle: 'Jungle explorer',
-  goLabel: 'Go to tropical forest',
   tasks: TROPICAL_TASKS,
   done: new Set(),
   root: tropicalWorld.group,
@@ -584,7 +578,6 @@ const atmPlace = {
   sub: 'Banco Jacaranda · Paseo de la Reforma',
   chip: 'ATM',
   tasksTitle: 'At the ATM',
-  goLabel: 'Go to ATM',
   tasks: ATM_TASKS,
   done: new Set(),
   root: atmWorld.group,
@@ -686,7 +679,7 @@ const pesos = buildPesos(PLACES, {
     void btn.offsetWidth;
     btn.classList.add('bump');
     updateWallet();
-    toast('💵 You found a $20 peso bill! Take it to the ATM (top left) to trade it for four $5 coins.', 5600);
+    toast('💵 You found a $20 peso bill! Choose the ATM on the Zoo map to trade it for four $5 coins.', 5600);
   },
   collect: () => {
     wallet.coins++;
@@ -937,6 +930,9 @@ const keys = new Set();
 const has = (c) => keys.has(c);
 const joy = { x: 0, y: 0 };
 const zooMap = $('#zooMap');
+const zooMapView = $('#zooMapView');
+const zooMapZoom = $('#zooMapZoom');
+const zooMapStops = zooMap.querySelectorAll('[data-zoo-stop]');
 let restoreMapPointerLock = false;
 
 function openZooMap() {
@@ -945,6 +941,10 @@ function openZooMap() {
   keys.clear();
   shiftDown = -1;
   joy.x = joy.y = 0;
+  for (const stop of zooMapStops) {
+    if (stop.dataset.zooStop === loc.id) stop.setAttribute('aria-current', 'location');
+    else stop.removeAttribute('aria-current');
+  }
   zooMap.showModal();
   if (restoreMapPointerLock) document.exitPointerLock();
 }
@@ -1115,6 +1115,21 @@ $('#useBtn').addEventListener('click', useAction);
 // ---------- buttons + overlays ----------
 document.querySelectorAll('[data-open-zoo-map]').forEach((button) => button.addEventListener('click', openZooMap));
 $('#zooMapClose').addEventListener('click', () => zooMap.close());
+zooMapZoom.addEventListener('click', () => {
+  const zoomed = zooMapView.classList.toggle('zoomed');
+  zooMapZoom.textContent = zoomed ? 'Zoom out' : 'Zoom in';
+  if (!zoomed) zooMapView.scrollTo(0, 0);
+});
+for (const stop of zooMapStops) {
+  stop.addEventListener('click', () => {
+    if (!zooMap.open) return;
+    const destId = stop.dataset.zooStop;
+    zooMap.close();
+    if (destId === loc.id) return;
+    if (!state.playing) begin();
+    travel(destId);
+  });
+}
 $('#dayNight').addEventListener('click', toggleNight);
 function toggleMute() {
   const muted = sound.toggleMute();
@@ -1256,7 +1271,7 @@ const fadeEl = $('#fade');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 function syncPlaceUI() {
   for (const p of PLACES) document.body.classList.toggle(`in-${p.id}`, loc === p);
-  // One button for every place you're not in.
+  // The HUD and pause menu show buttons for destinations outside the zoo map.
   document.querySelectorAll('.dest').forEach((b) => {
     const p = PLACES.find((q) => q.id === b.dataset.place);
     b.hidden = p === loc;

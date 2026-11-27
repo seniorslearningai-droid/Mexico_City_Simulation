@@ -135,18 +135,9 @@ body.touch #prompt { padding-left: 14px; }
 .pill.dest { border-color: transparent; }
 .pill.dest[data-place='hotel'] { background: var(--teal); box-shadow: 0 6px 18px rgba(31, 107, 110, 0.4); }
 .pill.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35); }
-.pill.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 6px 18px rgba(47, 122, 74, 0.4); }
 .pill.dest[data-place='bandera'] { background: #006847; box-shadow: 0 6px 18px rgba(0, 104, 71, 0.4); }
 .cta.dest[data-place='bandera'] { background: #006847; box-shadow: 0 10px 24px rgba(0, 104, 71, 0.35); }
-.pill.dest[data-place='atm'] { background: #1f4f7a; box-shadow: 0 6px 18px rgba(31, 79, 122, 0.4); }
-.cta.dest[data-place='atm'] { background: #1f4f7a; box-shadow: 0 10px 24px rgba(31, 79, 122, 0.35); }
-.pill.dest[data-place='tropical'] { background: #4a7a2a; box-shadow: 0 6px 18px rgba(74, 122, 42, 0.4); }
-.cta.dest[data-place='tropical'] { background: #4a7a2a; box-shadow: 0 10px 24px rgba(74, 122, 42, 0.35); }
-.pill.dest[data-place='pandas'] { background: #26262b; box-shadow: 0 6px 18px rgba(20, 20, 24, 0.4); }
-.pill.dest[data-place='coastal'] { background: #226883; box-shadow: 0 6px 18px rgba(34, 104, 131, 0.4); }
-.pill.dest[data-place='axolotls'] { background: #794461; box-shadow: 0 6px 18px rgba(121, 68, 97, 0.4); }
 .pill.dest[data-place='castle'] { background: #80563a; box-shadow: 0 6px 18px rgba(128, 86, 58, 0.4); }
-.pill.dest[data-place='forest'] { background: #365b42; box-shadow: 0 6px 18px rgba(54, 91, 66, 0.4); }
 .pill.dest:hover { filter: brightness(1.08); }
 body:not(.in-hotel) #dayNight { display: none; }
 
@@ -484,6 +475,7 @@ body.touch #pauseBtn { display: none; }
 body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 
 #zooMap {
+  --map-height: max(112px, calc(100dvh - 168px - var(--safe-t) - var(--safe-b)));
   width: min(1100px, calc(100% - 24px));
   max-height: calc(100dvh - 24px - var(--safe-t) - var(--safe-b));
   padding: clamp(10px, 2vw, 18px);
@@ -503,17 +495,55 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 }
 .zoo-map-header h2 { margin: 0; font: 800 clamp(19px, 4vw, 26px) Fraunces, Georgia, serif; }
 .zoo-map-actions { display: flex; align-items: center; gap: 14px; }
-.zoo-map-actions a { color: var(--teal); font-weight: 700; }
-.zoo-map-actions .cta { min-width: 0; height: 40px; padding: 0 17px; font-size: 14px; }
-#zooMap img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: calc(100dvh - 112px - var(--safe-t) - var(--safe-b));
-  margin-inline: auto;
-  border-radius: 8px;
+.zoo-map-zoom {
+  border: 0;
+  background: transparent;
+  color: var(--teal);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
+.zoo-map-actions .cta { min-width: 0; height: 40px; padding: 0 17px; font-size: 14px; }
+.zoo-map-instruction { margin: 0 0 9px; font-size: 14px; }
+.zoo-map-view { max-height: var(--map-height); overflow: auto; overscroll-behavior: contain; border-radius: 8px; }
+.zoo-map-art { position: relative; width: min(100%, calc(var(--map-height) * 1.5)); margin-inline: auto; }
+.zoo-map-view.zoomed .zoo-map-art { width: max(760px, 140%); margin-inline: 0; }
+.zoo-map-art img { display: block; width: 100%; height: auto; }
+
+.zoo-map-stop {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  padding: 0;
+  border: 0;
+  border-radius: 16%;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+}
+.zoo-map-stop:hover,
+.zoo-map-stop:focus-visible { background: rgb(31 107 110 / 20%); outline: 2px solid white; outline-offset: -2px; }
+.zoo-map-pin {
+  position: absolute;
+  left: var(--pin-x);
+  top: var(--pin-y);
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  min-width: clamp(21px, 3vw, 32px);
+  height: clamp(21px, 3vw, 32px);
+  padding-inline: 4px;
+  border: 2px solid white;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 1px 5px rgb(0 0 0 / 45%);
+  font: 800 clamp(13px, 1.8vw, 18px) Inter, system-ui, sans-serif;
+}
+.zoo-map-atm { left: auto; right: 2%; min-width: 44px; min-height: 44px; transform: translateY(-50%); }
+.zoo-map-atm .zoo-map-pin { font-size: 11px; padding-inline: 6px; }
+.zoo-map-stop[aria-current="location"] .zoo-map-pin { background: var(--marigold); color: var(--ink); }
 
 /* ---------------- Overlays ---------------- */
 .overlay {
@@ -584,12 +614,7 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 .cta.secondary:hover { box-shadow: 0 14px 28px rgba(31, 107, 110, 0.4); }
 .cta svg { width: 20px; height: 20px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .cta.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 10px 24px rgba(217, 68, 122, 0.35); }
-.cta.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 10px 24px rgba(47, 122, 74, 0.35); }
-.cta.dest[data-place='pandas'] { background: #26262b; box-shadow: 0 10px 24px rgba(20, 20, 24, 0.35); }
-.cta.dest[data-place='coastal'] { background: #226883; box-shadow: 0 10px 24px rgba(34, 104, 131, 0.35); }
-.cta.dest[data-place='axolotls'] { background: #794461; box-shadow: 0 10px 24px rgba(121, 68, 97, 0.35); }
 .cta.dest[data-place='castle'] { background: #80563a; box-shadow: 0 10px 24px rgba(128, 86, 58, 0.35); }
-.cta.dest[data-place='forest'] { background: #365b42; box-shadow: 0 10px 24px rgba(54, 91, 66, 0.35); }
 #pauseDest { margin-top: 12px; }
 .hint { margin: 18px 0 0; font-size: 13.5px; color: #6b6478; }
 body:not(.touch) .hint { display: none; }
