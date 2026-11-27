@@ -208,7 +208,8 @@ pink, golden, and wild-type axolotls. Look for their feathery gills, read an
 exhibit sign, and use the photo spot at the end of the hall. Outside, insert
 two coins and turn the gear three times to press an **Axolotl** souvenir coin.
 
-[Open the illustrated Chapultepec Zoo map for kids](docs/chapultepec-zoo-kids-map.png).
+Use **Zoo map** in the top-left menu, or press `Z`, to view the map during
+play. [Open the illustrated Chapultepec Zoo map for kids](docs/chapultepec-zoo-kids-map.png).
 
 ## Castillo de Chapultepec
 

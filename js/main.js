@@ -872,9 +872,25 @@ const state = { started: false, playing: false, locked: false, dragMode: touch, 
 const keys = new Set();
 const has = (c) => keys.has(c);
 const joy = { x: 0, y: 0 };
+const zooMap = $('#zooMap');
+let restoreMapPointerLock = false;
+
+function openZooMap() {
+  if (!state.started || state.modal || state.traveling || zooMap.open) return;
+  restoreMapPointerLock = document.pointerLockElement === canvas;
+  keys.clear();
+  shiftDown = -1;
+  joy.x = joy.y = 0;
+  zooMap.showModal();
+  if (restoreMapPointerLock) document.exitPointerLock();
+}
+zooMap.addEventListener('close', () => {
+  if (restoreMapPointerLock && state.playing && !state.modal) relock();
+  restoreMapPointerLock = false;
+});
 
 function useAction() {
-  if (!state.playing) return;
+  if (!state.playing || zooMap.open) return;
   if (player.seat) {
     if (player.seat.binoculars && focus) {
       focus.act(focusHit);
@@ -899,7 +915,12 @@ function toggleNight() {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (!state.playing) return;
+  if (zooMap.open || !state.playing) return;
+  if ((e.code === 'Enter' || e.code === 'Space') && e.target.closest?.('[data-open-zoo-map]')) return;
+  if (e.code === 'KeyZ' && !e.repeat) {
+    openZooMap();
+    return;
+  }
   keys.add(e.code);
   if (e.repeat) return;
   if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') {
@@ -927,7 +948,7 @@ window.addEventListener('keydown', (e) => {
 // Tap Shift (press and let go quickly) to dash; hold it to sprint.
 let shiftDown = -1;
 window.addEventListener('keydown', (e) => {
-  if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) shiftDown = performance.now();
+  if (!zooMap.open && (e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) shiftDown = performance.now();
 });
 window.addEventListener('keyup', (e) => {
   keys.delete(e.code);
@@ -952,7 +973,7 @@ document.addEventListener('pointerlockchange', () => {
   if (document.pointerLockElement === canvas && bag.open) closeBag(false);
   state.locked = document.pointerLockElement === canvas;
   document.body.classList.toggle('locked', state.locked);
-  if (!state.locked && state.playing && !state.dragMode && !state.modal) pause();
+  if (!state.locked && state.playing && !state.dragMode && !state.modal && !zooMap.open) pause();
 });
 document.addEventListener('pointerlockerror', () => (state.dragMode = true));
 document.addEventListener('mousemove', (e) => {
@@ -1027,6 +1048,8 @@ joyEl.addEventListener('pointercancel', joyEnd);
 $('#useBtn').addEventListener('click', useAction);
 
 // ---------- buttons + overlays ----------
+document.querySelectorAll('[data-open-zoo-map]').forEach((button) => button.addEventListener('click', openZooMap));
+$('#zooMapClose').addEventListener('click', () => zooMap.close());
 $('#dayNight').addEventListener('click', toggleNight);
 function toggleMute() {
   const muted = sound.toggleMute();
@@ -1326,7 +1349,7 @@ function frame(dt, draw = true) {
   simT += dt;
   const t = simT;
 
-  if (state.playing && !state.traveling) {
+  if (state.playing && !state.traveling && !zooMap.open) {
     const f = (has('KeyW') || has('ArrowUp') ? 1 : 0) - (has('KeyS') || has('ArrowDown') ? 1 : 0);
     const s = (has('KeyD') || has('ArrowRight') ? 1 : 0) - (has('KeyA') || has('ArrowLeft') ? 1 : 0);
     player.move.x = s + joy.x;
@@ -1341,13 +1364,13 @@ function frame(dt, draw = true) {
       player.pitch = -0.04 + Math.sin(idleT * 0.11) * 0.05;
     }
   }
-  player.update(dt);
+  if (!zooMap.open) player.update(dt);
   if (loc !== hotel && loc !== atmPlace) pesos.update(loc, player.pos, t);
   avatar.visible = !player.seat && loc === hotel;
   avatar.position.set(player.pos.x, 0, player.pos.z);
   avatar.rotation.y = player.yaw;
 
-  if (state.playing) updateFocus();
+  if (state.playing && !zooMap.open) updateFocus();
   night += THREE.MathUtils.clamp(nightTarget - night, -dt * 0.45, dt * 0.45);
 
   if (loc === hotel) {

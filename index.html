@@ -73,6 +73,10 @@
     <div id="toast" role="status" aria-live="polite"></div>
 
     <div class="left">
+      <button id="zooMapBtn" class="pill" type="button" data-open-zoo-map aria-haspopup="dialog" aria-controls="zooMap" title="Zoo map (Z)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zm6-3v15m6-12v15"/></svg>
+        <span class="label">Zoo map</span>
+      </button>
       <div id="destBtns">
         <button class="pill dest" data-place="hotel" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg><span class="label">Back to Air BnB</span></button>
         <button class="pill dest" data-place="arena" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c0-2.5 4-4.5 9-4.5s9 2 9 4.5v7c0 2.5-4 4.5-9 4.5S3 19.5 3 17z"/><path d="M3 10c0 2.5 4 4.5 9 4.5s9-2 9-4.5"/><path d="M9 14.2v7M15 14.2v7"/></svg><span class="label">Go to stadium</span></button>
@@ -167,6 +171,7 @@
       <p class="lede">Everything is right where you left it.</p>
       <div class="cta-row">
         <button id="resumeBtn" class="cta" type="button">Keep playing</button>
+        <button class="cta secondary" type="button" data-open-zoo-map aria-haspopup="dialog" aria-controls="zooMap">Zoo map</button>
       </div>
       <div id="pauseDest" class="cta-row">
         <button class="cta secondary dest" data-place="hotel" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M8 8h1M15 8h1M8 12h1M15 12h1"/></svg><span class="label">Back to Air BnB</span></button>
@@ -182,6 +187,18 @@
       </div>
     </div>
   </section>
+
+  <dialog id="zooMap" aria-labelledby="zooMapTitle">
+    <header class="zoo-map-header">
+      <h2 id="zooMapTitle">Chapultepec Zoo map</h2>
+      <div class="zoo-map-actions">
+        <a href="docs/chapultepec-zoo-kids-map.png" target="_blank" rel="noopener">Full size</a>
+        <button id="zooMapClose" class="cta secondary" type="button" autofocus>Close</button>
+      </div>
+    </header>
+    <img src="docs/chapultepec-zoo-kids-map.png" loading="lazy" width="1536" height="1024"
+         alt="Illustrated map of Chapultepec Zoo. The axolotl exhibit is beside the food area near the center.">
+  </dialog>
 
   <!-- Camera flash + the polaroid you get from the photo spot. -->
   <div id="flash" aria-hidden="true"></div>
