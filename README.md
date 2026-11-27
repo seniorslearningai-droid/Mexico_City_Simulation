@@ -23,6 +23,8 @@ The buttons at the top left take you to seven more places:
   garden, carriage hall, and a gallery of period artifacts.
 - **Go to forest** — the **Bosque Templado**, a loop past thirteen outdoor
   habitats and an indoor Nocturnario.
+- **Go to tropical forest** — the **Bosque Tropical** at Chapultepec Zoo: big
+  cats, monkeys, a crocodile, a sloth, bats and more along jungle paths.
 
 ## Play
 
@@ -48,7 +50,7 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1`–`8` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, or the temperate forest |
+| `1`–`9` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, the temperate forest, or the tropical forest |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -223,10 +225,29 @@ Canadian wolves, raccoon dogs, macaques, margay, and snow leopard. Visit
 the Nocturnario to see an owl, read the bilingual enclosure signs, and take
 a Bengal tiger photo. There are eight checklist activities.
 
+## Chapultepec Zoo tropical forest
+
+Based on the zoo's own map of the **Bosque Tropical**. From the entrance, a
+loop path circles the section with a cross path through the middle, and a
+map board by the entrance shows where everything is. 22 enclosures line the
+paths, each with a sign (Spanish name, English name, scientific name and a
+fact):
+
+- **Cats** — jaguar, black jaguar, ocelot, margay (tigrillo), leopard and two
+  lions. The big cats pace along their glass; the lion roars now and then.
+- **Monkeys** — spider monkeys swinging on ropes, siamangs that hoot, ring-tailed
+  lemurs, white-faced, white-throated and tufted capuchins, stump-tailed
+  macaques, cotton-top tamarins and patas monkeys.
+- **Others** — golden agoutis, red brocket deer (temazate), a crocodile that
+  basks and swims, spotted hyenas, a spectacled bear, a sloth hanging in its
+  tree, and a dim bat house you can peek into.
+
+It has its own ten-item jungle-explorer checklist.
+
 ## Pesos
 
 Shiny $5 peso coins lie around Arena México, the aviary trail, the panda
-exhibit, coastal zone, axolotl plaza, and temperate forest (never in the hotel), with extra ones near the
+exhibit, coastal zone, axolotl plaza, temperate forest and tropical forest (never in the hotel), with extra ones near the
 shops and all over the arena. Walk over one to pick it up; a coin counter
 appears next to the backpack. The souvenir coin presses take **2 coins per
 pressed coin**.
@@ -263,6 +284,7 @@ counts them, and the button bounces whenever you pick something up.
 | `js/zoo-press.js` | Shared coastal and axolotl souvenir presses |
 | `js/castle.js`, `js/castle-carriages.js` | Chapultepec Castle garden, museum galleries, and carriages |
 | `js/forest.js`, `js/forest-animals.js` | Temperate Forest trail, habitats, and animal models |
+| `js/tropical.js` | Chapultepec Zoo tropical forest: paths, 22 enclosures, cats, monkeys and the other animals, signs, zoo map |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |

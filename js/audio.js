@@ -5,7 +5,7 @@
 //  - Arena: a big reverberant hall, crowd roar and "¡Lu-cha! ¡Lu-cha!"
 //    chants when the fans are in, the ring bell, rope boings and a beat for
 //    the light show.
-const NATURE_SCENES = ['aviary', 'pandas', 'coastal', 'axolotls', 'castle', 'forest'];
+const NATURE_SCENES = ['aviary', 'pandas', 'coastal', 'axolotls', 'castle', 'forest', 'tropical'];
 
 export class Sound {
   constructor() {
@@ -795,6 +795,59 @@ export class Sound {
     o.start(t);
     o.stop(t + 0.55);
     this.burst(t, { type: 'lowpass', freq: 300, q: 0.7, gain: 0.35, decay: 0.2, dur: 0.25 });
+  }
+
+  // A lion's roar: a deep growl that swells and fades.
+  roar(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(70, t);
+    o.frequency.linearRampToValueAtTime(140, t + 0.5);
+    o.frequency.linearRampToValueAtTime(60, t + 1.8);
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = 700;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5 * vol, t + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.9);
+    o.connect(f).connect(g).connect(this.aviaryBus);
+    o.start(t);
+    o.stop(t + 2);
+    const src = ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    const nf = ctx.createBiquadFilter();
+    nf.type = 'bandpass';
+    nf.frequency.value = 300;
+    nf.Q.value = 0.8;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.0001, t);
+    ng.gain.exponentialRampToValueAtTime(0.35 * vol, t + 0.4);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+    src.connect(nf).connect(ng).connect(this.aviaryBus);
+    src.start(t, 0, 1.9);
+  }
+
+  // A siamang's booming, rising whoops.
+  hoot(vol = 1) {
+    if (!this.ctx || vol <= 0) return;
+    const ctx = this.ctx;
+    for (let i = 0; i < 5; i++) {
+      const t = ctx.currentTime + i * 0.28;
+      const o = ctx.createOscillator();
+      o.frequency.setValueAtTime(320 + i * 60, t);
+      o.frequency.exponentialRampToValueAtTime(600 + i * 80, t + 0.2);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.12 * vol, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+      o.connect(g).connect(this.aviaryBus);
+      o.start(t);
+      o.stop(t + 0.26);
+    }
   }
 
   // A quick whoosh for dashing.

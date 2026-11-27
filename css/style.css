@@ -134,6 +134,8 @@ body.touch #prompt { padding-left: 14px; }
 .pill.dest[data-place='hotel'] { background: var(--teal); box-shadow: 0 6px 18px rgba(31, 107, 110, 0.4); }
 .pill.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35); }
 .pill.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 6px 18px rgba(47, 122, 74, 0.4); }
+.pill.dest[data-place='tropical'] { background: #4a7a2a; box-shadow: 0 6px 18px rgba(74, 122, 42, 0.4); }
+.cta.dest[data-place='tropical'] { background: #4a7a2a; box-shadow: 0 10px 24px rgba(74, 122, 42, 0.35); }
 .pill.dest[data-place='pandas'] { background: #26262b; box-shadow: 0 6px 18px rgba(20, 20, 24, 0.4); }
 .pill.dest[data-place='coastal'] { background: #226883; box-shadow: 0 6px 18px rgba(34, 104, 131, 0.4); }
 .pill.dest[data-place='axolotls'] { background: #794461; box-shadow: 0 6px 18px rgba(121, 68, 97, 0.4); }
