@@ -1,7 +1,7 @@
 # Mexico City Simulation — Hotel Jacaranda
 
-A 3D first-person game in the browser. You've just checked into suite 1207 at
-the (fictional) Hotel Jacaranda, twelve floors above Paseo de la Reforma in
+A 3D first-person game in the browser. You've just checked into suite 602 on the sixth floor of
+the (fictional) Hotel Jacaranda, overlooking Paseo de la Reforma in
 Mexico City. Explore the suite, open things up, step out onto the balcony,
 and watch the city light up at night.
 
@@ -53,7 +53,7 @@ the `main` branch and the root folder.
 
 ## What's in the suite
 
-Suite 1207 is a whole apartment. Walk in through the front door and:
+Suite 602 is a whole apartment. Walk in through the front door and:
 
 - **Kitchen** (on your right, a cosy galley) — teal cabinets and talavera tiles, a fridge
   that opens, a stove whose burners glow, a sink, a coffee machine (make a

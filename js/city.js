@@ -1,11 +1,14 @@
 // Everything outside the room: sky, sun, the hotel facade, Paseo de la
 // Reforma with traffic and jacaranda trees, the Ángel de la Independencia,
 // a few thousand buildings, and the two volcanoes on the horizon.
-// The room's floor is at y = 0, twelve floors up; the street is at GROUND.
+// The suite's floor is at y = 0. Outside, elevations are relative to it.
 import * as THREE from 'three';
 import * as T from './textures.js';
 
-export const GROUND = -42;
+const SUITE_FLOOR = 6;
+const HOTEL_FLOOR_HEIGHT = 3.15;
+export const GROUND = -SUITE_FLOOR * HOTEL_FLOOR_HEIGHT;
+const HOTEL_ROOF = GROUND + 59;
 const HOTEL_FRONT = -5.15; // facade plane (z)
 const AVE_NEAR = -5; // avenue cross-section starts at the facade...
 const AVE_W = 47; // ...and runs 47 m north
@@ -236,7 +239,7 @@ export function buildWorld(scene) {
   group.add(tank);
 
   // ---------- hotel facade around our room ----------
-  const fTex = T.buildingWindows({ seed: 77, bayW: 3.5, floorH: 3.15, warm: true });
+  const fTex = T.buildingWindows({ seed: 77, bayW: 3.5, floorH: HOTEL_FLOOR_HEIGHT, warm: true });
   const fMat = new THREE.MeshStandardMaterial({ map: fTex.map, emissiveMap: fTex.emissive, emissive: 0xffffff, emissiveIntensity: 0, color: 0xe0cdb0, roughness: 0.85 });
   nightFns.push((n) => (fMat.emissiveIntensity = 1.1 * n * n));
   function facadeBox(x0, y0, z0, x1, y1, z1) {
@@ -260,17 +263,18 @@ export function buildWorld(scene) {
     group.add(m);
   }
   // A hole in the building for our suite (x -10.75 .. 5.15, z to 9.15).
-  facadeBox(-26, GROUND, HOTEL_FRONT, -10.75, 17, 30);
-  facadeBox(5.15, GROUND, HOTEL_FRONT, 26, 17, 30);
+  facadeBox(-26, GROUND, HOTEL_FRONT, -10.75, HOTEL_ROOF, 30);
+  facadeBox(5.15, GROUND, HOTEL_FRONT, 26, HOTEL_ROOF, 30);
   facadeBox(-10.75, GROUND, HOTEL_FRONT, 5.15, -0.26, 30);
-  facadeBox(-10.75, 2.95, HOTEL_FRONT, 5.15, 17, 30);
+  facadeBox(-10.75, 2.95, HOTEL_FRONT, 5.15, HOTEL_ROOF, 30);
   facadeBox(-10.75, -0.26, 9.15, 5.15, 2.95, 30);
   // Neighbouring balconies above, below and beside ours.
   const balc = [];
-  for (let k = -12; k <= 4; k++) {
+  const lastBalcony = Math.floor((HOTEL_ROOF - 2.95) / HOTEL_FLOOR_HEIGHT);
+  for (let k = 1 - SUITE_FLOOR; k <= lastBalcony; k++) {
     for (const x of [-14, 0, 14]) {
       if (k === 0 && x === 0) continue;
-      balc.push([x, k * 3.15]);
+      balc.push([x, k * HOTEL_FLOOR_HEIGHT]);
     }
   }
   const slab = new THREE.InstancedMesh(new THREE.BoxGeometry(6.6, 0.25, 1.45), new THREE.MeshStandardMaterial({ color: 0xcdb89a, roughness: 0.9 }), balc.length);

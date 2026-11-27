@@ -196,8 +196,8 @@ arenaWorld.group.traverse((o) => {
 const hotel = {
   id: 'hotel',
   title: 'Hotel Jacaranda',
-  sub: 'Suite 1207 · Paseo de la Reforma',
-  chip: 'Suite 1207',
+  sub: 'Suite 602 · Sixth floor · Paseo de la Reforma',
+  chip: 'Suite 602',
   tasksTitle: 'Settle in',
   goLabel: 'Back to hotel',
   tasks: HOTEL_TASKS,
@@ -1244,5 +1244,5 @@ if (new URLSearchParams(location.search).has('debug')) {
 
 syncPlaceUI();
 $('#startBtn').disabled = false;
-$('#startBtn').textContent = 'Enter suite 1207';
+$('#startBtn').textContent = 'Enter suite 602';
 document.body.classList.add('ready');
