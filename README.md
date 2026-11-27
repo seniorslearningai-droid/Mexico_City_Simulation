@@ -5,7 +5,7 @@ the (fictional) Hotel Jacaranda, overlooking Paseo de la Reforma in
 Mexico City. Explore the suite, open things up, step out onto the balcony,
 and watch the city light up at night.
 
-The buttons at the top left take you to six more places:
+The buttons at the top left take you to seven more places:
 
 - **Go to stadium** — **Arena México**, the cathedral of lucha libre. No
   luchadores yet: just you, the ring, and (once you open the doors) a few
@@ -21,6 +21,8 @@ The buttons at the top left take you to six more places:
   freshwater tanks and an axolotl coin press outside.
 - **Go to castle** — the **Castillo de Chapultepec**, with the Alcázar
   garden, carriage hall, and a gallery of period artifacts.
+- **Go to forest** — the **Bosque Templado**, a loop past thirteen outdoor
+  habitats and an indoor Nocturnario.
 
 ## Play
 
@@ -46,7 +48,7 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1`–`7` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, or the castle |
+| `1`–`8` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, or the temperate forest |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -214,10 +216,17 @@ The route is condensed for the game. The models and labels draw on the
 [Museo Nacional de Historia’s Alcázar guide](https://mnh.inah.gob.mx/salas-del-alcazar)
 and [the museum’s floor plan](https://lugares.inah.gob.mx/images/museos/planos/72_historia_chapultepec.pdf).
 
+## Chapultepec Zoo temperate forest
+
+Follow the shaded loop past the tiger, maned wolf, deer, gray fox, bears,
+Canadian wolves, raccoon dogs, macaques, margay, and snow leopard. Visit
+the Nocturnario to see an owl, read the bilingual enclosure signs, and take
+a Bengal tiger photo. There are eight checklist activities.
+
 ## Pesos
 
 Shiny $5 peso coins lie around Arena México, the aviary trail, the panda
-exhibit, the coastal zone, and the axolotl plaza (never in the hotel), with extra ones near the
+exhibit, coastal zone, axolotl plaza, and temperate forest (never in the hotel), with extra ones near the
 shops and all over the arena. Walk over one to pick it up; a coin counter
 appears next to the backpack. The souvenir coin presses take **2 coins per
 pressed coin**.
@@ -253,6 +262,7 @@ counts them, and the button bounces whenever you pick something up.
 | `js/axolotls.js` | Indoor axolotl tanks and outdoor plaza |
 | `js/zoo-press.js` | Shared coastal and axolotl souvenir presses |
 | `js/castle.js`, `js/castle-carriages.js` | Chapultepec Castle garden, museum galleries, and carriages |
+| `js/forest.js`, `js/forest-animals.js` | Temperate Forest trail, habitats, and animal models |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |

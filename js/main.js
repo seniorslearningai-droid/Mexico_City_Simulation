@@ -9,6 +9,7 @@ import { buildCoastal, COASTAL_COINS, COASTAL_SPAWN } from './coastal.js';
 import { buildAxolotls, AXOLOTL_COINS, AXOLOTL_SPAWN } from './axolotls.js';
 import { buildCastle, CASTLE_SPAWN } from './castle.js';
 import { buildPesos } from './pesos.js';
+import { buildForest, FOREST_SPAWN } from './forest.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS, maskFace, drawPanda } from './textures.js';
@@ -101,6 +102,17 @@ const CASTLE_TASKS = [
   ['castleJuarez', 'Find Benito Juárez’s calesa'],
   ['castleService', 'Examine the dining service'],
   ['castleDress', 'Read about nineteenth-century dress'],
+];
+
+const FOREST_TASKS = [
+  ['forestTiger', 'Read about the Bengal tiger'],
+  ['forestElk', 'Find the wapití'],
+  ['forestWolf', 'Find the Canadian wolf'],
+  ['forestSnow', 'Read about the snow leopard'],
+  ['forestBlack', 'Find the black bear'],
+  ['forestNight', 'Go inside the Nocturnario'],
+  ['forestOwl', 'Read about the owl'],
+  ['forestPhoto', 'Take a tiger photo'],
 ];
 
 // ---------- renderer / scene ----------
@@ -377,7 +389,7 @@ const coastal = {
 };
 
 const axolotlWorld = buildAxolotls({
-  payPeso,
+  pay: payPeso,
   toast,
   complete,
   sound,
@@ -452,7 +464,40 @@ const castle = {
   },
 };
 
-const PLACES = [hotel, arena, aviary, pandas, coastal, axolotls, castle];
+const forestWorld = buildForest({ toast, complete, player: () => player, sit: (seat) => player.sit(seat) });
+scene.add(forestWorld.group);
+const forestSky = new THREE.Color(0xa4c7d3);
+const forestFog = new THREE.Fog(0xa4c7d3, 35, 93);
+const forest = {
+  id: 'forest',
+  title: 'Bosque Templado',
+  sub: 'Zoológico de Chapultepec · Temperate Forest',
+  chip: 'Forest',
+  tasksTitle: 'Forest explorer',
+  goLabel: 'Go to forest',
+  tasks: FOREST_TASKS,
+  done: new Set(),
+  root: forestWorld.group,
+  colliders: forestWorld.colliders,
+  floorAt: forestWorld.floorAt,
+  limit: forestWorld.limit,
+  spawn: FOREST_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    forestWorld.group.visible = true;
+    scene.background = forestSky;
+    scene.fog = forestFog;
+    scene.environmentIntensity = 0.5;
+  },
+  exit() {
+    forestWorld.group.visible = false;
+    scene.background = null;
+    scene.fog = null;
+  },
+};
+
+const PLACES = [hotel, arena, aviary, pandas, coastal, axolotls, castle, forest];
 
 // ---------- $5 peso coins: pick them up, spend two per pressed coin ----------
 const wallet = { coins: 0, found: 0 };
@@ -753,6 +798,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit5') travel('coastal');
   if (e.code === 'Digit6') travel('axolotls');
   if (e.code === 'Digit7') travel('castle');
+  if (e.code === 'Digit8') travel('forest');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
   if (e.code === 'KeyB') toggleBag();
   if (e.code === 'Escape' && bag.open) closeBag(false);
@@ -957,6 +1003,11 @@ const DONE_TEXT = {
     title: '¡Hasta pronto, Chapultepec!',
     lede: 'You explored the terrace, found three historic carriages, and visited the artifact gallery.',
   },
+  forest: {
+    eyebrow: 'Forest explorer',
+    title: '¡Hasta pronto, Bosque Templado!',
+    lede: 'You explored the forest habitats, met the owl, and took home a Bengal tiger photo.',
+  },
 };
 function celebrate(place) {
   if (place !== loc) return;
@@ -1030,6 +1081,12 @@ async function travel(destId) {
     castle.visited = true;
     setTimeout(() => {
       if (loc === castle) toast('¡Bienvenidos al Castillo de Chapultepec! Explore the garden, then take the stairs behind the tower to the galleries.', 6000);
+    }, 500);
+  }
+  if (loc === forest && !forest.visited) {
+    forest.visited = true;
+    setTimeout(() => {
+      if (loc === forest) toast('¡Bienvenidos al Bosque Templado! Follow the loop to the Nocturnario, then return past the snow leopard and the deer.', 5700);
     }, 500);
   }
 }
@@ -1200,6 +1257,9 @@ function frame(dt, draw = true) {
   } else if (loc === castle) {
     castleWorld.update(dt);
     sound.aviary(castleWorld.state);
+  } else if (loc === forest) {
+    forestWorld.update(dt);
+    sound.aviary(forestWorld.state);
   } else {
     aviaryWorld.update(dt, t);
     sound.aviary(aviaryWorld.state);
@@ -1269,7 +1329,7 @@ function showPolaroid(url, caption) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, castle: castleWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, wallet, pesos, openBag, closeBag, addSouvenir,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, castle: castleWorld, forest: forestWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, wallet, pesos, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },

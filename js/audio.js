@@ -5,7 +5,7 @@
 //  - Arena: a big reverberant hall, crowd roar and "¡Lu-cha! ¡Lu-cha!"
 //    chants when the fans are in, the ring bell, rope boings and a beat for
 //    the light show.
-const NATURE_SCENES = ['aviary', 'pandas', 'coastal', 'axolotls', 'castle'];
+const NATURE_SCENES = ['aviary', 'pandas', 'coastal', 'axolotls', 'castle', 'forest'];
 
 export class Sound {
   constructor() {

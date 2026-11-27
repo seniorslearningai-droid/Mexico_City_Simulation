@@ -6,6 +6,7 @@ import * as THREE from 'three';
 // Arena México. Spots that turn out to be inside furniture are skipped.
 const SPOTS = {
   axolotls: [[3.5, 11.0], [5.4, 11.0], [-2.5, 10.5], [1.6, 5.1]],
+  forest: [[-10.8, 9.1], [-11.1, -11.7], [-13.3, -30.2], [0, -39.6], [10.8, -17.2], [10.6, 5.1]],
   arena: [
     // Merch stand and snack stand.
     [-4.3, 14.5], [-3.2, 14.4], [-5.4, 14.5], [-4.3, 17.0],

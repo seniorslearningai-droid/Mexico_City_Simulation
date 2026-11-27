@@ -138,6 +138,7 @@ body.touch #prompt { padding-left: 14px; }
 .pill.dest[data-place='coastal'] { background: #226883; box-shadow: 0 6px 18px rgba(34, 104, 131, 0.4); }
 .pill.dest[data-place='axolotls'] { background: #794461; box-shadow: 0 6px 18px rgba(121, 68, 97, 0.4); }
 .pill.dest[data-place='castle'] { background: #80563a; box-shadow: 0 6px 18px rgba(128, 86, 58, 0.4); }
+.pill.dest[data-place='forest'] { background: #365b42; box-shadow: 0 6px 18px rgba(54, 91, 66, 0.4); }
 .pill.dest:hover { filter: brightness(1.08); }
 body:not(.in-hotel) #dayNight { display: none; }
 
@@ -548,6 +549,7 @@ body.touch #toast { bottom: calc(176px + var(--safe-b)); }
 .cta.dest[data-place='coastal'] { background: #226883; box-shadow: 0 10px 24px rgba(34, 104, 131, 0.35); }
 .cta.dest[data-place='axolotls'] { background: #794461; box-shadow: 0 10px 24px rgba(121, 68, 97, 0.35); }
 .cta.dest[data-place='castle'] { background: #80563a; box-shadow: 0 10px 24px rgba(128, 86, 58, 0.35); }
+.cta.dest[data-place='forest'] { background: #365b42; box-shadow: 0 10px 24px rgba(54, 91, 66, 0.35); }
 #pauseDest { margin-top: 12px; }
 .hint { margin: 18px 0 0; font-size: 13.5px; color: #6b6478; }
 body:not(.touch) .hint { display: none; }
