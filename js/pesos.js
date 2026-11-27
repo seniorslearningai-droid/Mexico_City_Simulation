@@ -2,7 +2,7 @@
 // Walk over one to pick it up; the coin presses take two per souvenir coin.
 import * as THREE from 'three';
 
-// Hand-placed spots per place. Extra coins sit near the shops and all over
+// Hand-placed spots per place. Extra spots sit near the shops and all over
 // Arena México. Spots that turn out to be inside furniture are skipped.
 const SPOTS = {
   axolotls: [[3.5, 11.0], [5.4, 11.0], [-2.5, 10.5], [1.6, 5.1]],
@@ -38,32 +38,58 @@ const SPOTS = {
   ],
 };
 
+// Only some spots get a coin each game, so they're not always in the same place.
+const SHARE = 0.4;
+
 export function buildPesos(places, ctx) {
-  const rim = new THREE.MeshStandardMaterial({ color: 0xd8d8d0, metalness: 0.9, roughness: 0.25, emissive: 0x222222 });
-  const core = new THREE.MeshStandardMaterial({ color: 0xe6b84a, metalness: 0.9, roughness: 0.25, emissive: 0x3a2a08 });
-  const rimGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.03, 28).rotateX(Math.PI / 2);
-  const coreGeo = new THREE.CylinderGeometry(0.085, 0.085, 0.034, 24).rotateX(Math.PI / 2);
-  const glowGeo = new THREE.CircleGeometry(0.28, 24).rotateX(-Math.PI / 2);
-  const glowMat = new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.35, depthWrite: false });
+  // No glow: the coins are a dull, worn silver and gold, lying flat on the ground.
+  const rim = new THREE.MeshStandardMaterial({ color: 0xb4b2a8, metalness: 0.8, roughness: 0.45 });
+  const core = new THREE.MeshStandardMaterial({ color: 0xb8954a, metalness: 0.8, roughness: 0.45 });
+  const rimGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.022, 24);
+  const coreGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.025, 20);
+  // A tiny glint that flashes now and then: the only thing that gives a coin away.
+  const glintTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grd.addColorStop(0, 'rgba(255,255,240,1)');
+    grd.addColorStop(0.25, 'rgba(255,240,190,0.5)');
+    grd.addColorStop(1, 'rgba(255,240,190,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 64, 64);
+    g.fillStyle = 'rgba(255,255,240,0.9)';
+    g.fillRect(30, 4, 4, 56);
+    g.fillRect(4, 30, 56, 4);
+    return new THREE.CanvasTexture(c);
+  })();
   const byPlace = {};
   const blocked = (p, x, z) =>
     p.colliders.some((c) => (c.r !== undefined ? Math.hypot(x - c.x, z - c.z) < c.r + 0.3 : x > c.x0 - 0.3 && x < c.x1 + 0.3 && z > c.z0 - 0.3 && z < c.z1 + 0.3));
   for (const p of places) {
     const spots = SPOTS[p.id];
     if (!spots) continue;
+    const open = spots.filter(([x, z]) => !blocked(p, x, z));
+    // Shuffle and keep a share of the spots (at least two per place).
+    for (let i = open.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [open[i], open[j]] = [open[j], open[i]];
+    }
+    const keep = open.slice(0, Math.max(2, Math.round(open.length * SHARE)));
     const list = [];
-    for (const [x, z] of spots) {
-      if (blocked(p, x, z)) continue;
+    for (const [x, z] of keep) {
       const y = p.floorAt ? p.floorAt(x, z) : 0;
       const g = new THREE.Group();
-      g.position.set(x, y + 0.42, z);
+      g.position.set(x, y + 0.013, z);
+      g.rotation.set((Math.random() - 0.5) * 0.12, Math.random() * 6.3, (Math.random() - 0.5) * 0.12);
       g.add(new THREE.Mesh(rimGeo, rim), new THREE.Mesh(coreGeo, core));
-      const glow = new THREE.Mesh(glowGeo, glowMat);
-      glow.position.y = -0.4;
-      g.add(glow);
+      const glint = new THREE.Sprite(new THREE.SpriteMaterial({ map: glintTex, transparent: true, depthWrite: false, opacity: 0 }));
+      glint.position.y = 0.05;
+      glint.scale.setScalar(0.32);
+      g.add(glint);
       g.traverse((o) => (o.raycast = () => {}));
       p.root.add(g);
-      list.push({ g, x, z, y, taken: false, phase: Math.random() * 6 });
+      list.push({ g, glint, x, z, y, taken: false, phase: Math.random() * 6, every: 3.5 + Math.random() * 3 });
     }
     byPlace[p.id] = list;
   }
@@ -72,9 +98,10 @@ export function buildPesos(places, ctx) {
     if (!list) return;
     for (const c of list) {
       if (c.taken) continue;
-      c.g.rotation.y = t * 2.5 + c.phase;
-      c.g.position.y = c.y + 0.42 + Math.sin(t * 3 + c.phase) * 0.05;
-      if (Math.hypot(pos.x - c.x, pos.z - c.z) < 0.7 && Math.abs(pos.y - c.y) < 1) {
+      // A short flash once every few seconds.
+      const k = ((t + c.phase) % c.every) / 0.35;
+      c.glint.material.opacity = k < 1 ? Math.sin(k * Math.PI) * 0.9 : 0;
+      if (Math.hypot(pos.x - c.x, pos.z - c.z) < 0.5 && Math.abs(pos.y - c.y) < 1) {
         c.taken = true;
         c.g.visible = false;
         ctx.collect();

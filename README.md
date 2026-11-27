@@ -248,7 +248,10 @@ It has its own ten-item jungle-explorer checklist.
 
 Shiny $5 peso coins lie around Arena México, the aviary trail, the panda
 exhibit, coastal zone, axolotl plaza, temperate forest and tropical forest (never in the hotel), with extra ones near the
-shops and all over the arena. Walk over one to pick it up; a coin counter
+shops and all over the arena. They're not easy to spot: each game only some
+of the hiding spots get a coin, and they lie flat on the ground, giving
+themselves away only with a quick glint now and then. Walk right over one to
+pick it up; a coin counter
 appears next to the backpack. The souvenir coin presses take **2 coins per
 pressed coin**.
 
