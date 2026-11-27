@@ -136,6 +136,8 @@ body.touch #prompt { padding-left: 14px; }
 .pill.dest[data-place='hotel'] { background: var(--teal); box-shadow: 0 6px 18px rgba(31, 107, 110, 0.4); }
 .pill.dest[data-place='arena'] { background: var(--rosa); box-shadow: 0 6px 18px rgba(217, 68, 122, 0.35); }
 .pill.dest[data-place='aviary'] { background: #2f7a4a; box-shadow: 0 6px 18px rgba(47, 122, 74, 0.4); }
+.pill.dest[data-place='bandera'] { background: #006847; box-shadow: 0 6px 18px rgba(0, 104, 71, 0.4); }
+.cta.dest[data-place='bandera'] { background: #006847; box-shadow: 0 10px 24px rgba(0, 104, 71, 0.35); }
 .pill.dest[data-place='atm'] { background: #1f4f7a; box-shadow: 0 6px 18px rgba(31, 79, 122, 0.4); }
 .cta.dest[data-place='atm'] { background: #1f4f7a; box-shadow: 0 10px 24px rgba(31, 79, 122, 0.35); }
 .pill.dest[data-place='tropical'] { background: #4a7a2a; box-shadow: 0 6px 18px rgba(74, 122, 42, 0.4); }

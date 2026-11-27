@@ -27,6 +27,8 @@ The buttons at the top left take you to seven more places:
   cats, monkeys, a crocodile, a sloth, bats and more along jungle paths.
 - **Go to ATM** — a small bank vestibule whose ATM trades a $20 peso bill for
   four $5 coins.
+- **Go to Bandera Monumental** — a huge plaza with a 50 m flagpole, a giant
+  waving Mexican flag (and its shadow), and stalls selling traditional toys.
 
 ## Play
 
@@ -52,7 +54,7 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1`–`9`, `0` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, the temperate forest, the tropical forest, or the ATM |
+| `1`–`9`, `0`, `-` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, the castle, the temperate forest, the tropical forest, the ATM, or the Bandera Monumental |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -255,6 +257,26 @@ fence; the crocodile basks on the sand and swims laps that keep it in its pond.
 
 It has its own ten-item jungle-explorer checklist.
 
+## Bandera Monumental
+
+A huge paved plaza ringed by trees, with the city skyline beyond. In the
+middle, on a stepped stone base, stands a 50 m steel flagpole flying a
+giant Mexican flag (25 × 14.3 m) that ripples in the wind. The sun is high,
+so the flag's shadow lies across the paving and ripples along with it — walk
+into it. Read the plaque on the base, sit on a bench to look up at the
+flag, and watch the other visitors strolling round.
+
+Along the left side, three stalls sell traditional toys for $5 coins:
+
+| Stall | Toys |
+| --- | --- |
+| Juguetes de madera | trompo $10, balero $10, wooden yo-yo $10 |
+| Juegos y fiesta | lotería $20, matraca $15, piñata $20 |
+| Artesanías | alebrije $30, luchador figure $25, matatena $5 |
+
+Toys you buy go in a new **Juguetes · Toys** section of your backpack. The
+plaza has its own six-item checklist.
+
 ## Pesos
 
 Shiny $5 peso coins lie around Arena México, the aviary trail, the panda
@@ -307,6 +329,7 @@ counts them, and the button bounces whenever you pick something up.
 | `js/forest.js`, `js/forest-animals.js` | Temperate Forest trail, habitats, and animal models |
 | `js/tropical.js` | Chapultepec Zoo tropical forest: paths, 22 enclosures, cats, monkeys and the other animals, signs, zoo map |
 | `js/atm.js` | The bank vestibule and the ATM that trades the $20 bill for coins |
+| `js/bandera.js` | The Bandera Monumental plaza: flagpole, waving flag and its shadow, toy stalls, visitors |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |
