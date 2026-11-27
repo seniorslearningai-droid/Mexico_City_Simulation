@@ -208,6 +208,8 @@ pink, golden, and wild-type axolotls. Look for their feathery gills, read an
 exhibit sign, and use the photo spot at the end of the hall. Outside, insert
 two coins and turn the gear three times to press an **Axolotl** souvenir coin.
 
+[Open the illustrated Chapultepec Zoo map for kids](docs/chapultepec-zoo-kids-map.png).
+
 ## Castillo de Chapultepec
 
 Start in the Alcázar’s formal garden, by the fountain and the round
@@ -276,7 +278,7 @@ counts them, and the button bounces whenever you pick something up.
 
 - [three.js](https://threejs.org) r165 from a CDN — no build step, no installs.
 - Every texture (wood floor, tiles, rug, city windows, the painting) is
-  painted on a `<canvas>` in code, so there are no image files.
+  painted on a `<canvas>` in code, so the 3D scenes need no external texture files.
 - Sounds (city traffic, running water, the crowd, the ring bell, the light
   show beat, birdsong, squawks, whistles, emu drumming, honks, quacks, crunching bamboo, a snoring panda and the coin machine's clinks, ratchet and ka-chunk) are synthesized with the Web
   Audio API.
