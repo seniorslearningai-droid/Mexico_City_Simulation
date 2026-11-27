@@ -5,7 +5,7 @@
 //  - Arena: a big reverberant hall, crowd roar and "¡Lu-cha! ¡Lu-cha!"
 //    chants when the fans are in, the ring bell, rope boings and a beat for
 //    the light show.
-const ZOO_SCENES = ['aviary', 'pandas', 'coastal', 'axolotls'];
+const NATURE_SCENES = ['aviary', 'pandas', 'coastal', 'axolotls', 'castle'];
 
 export class Sound {
   constructor() {
@@ -148,8 +148,8 @@ export class Sound {
     const t = this.ctx.currentTime;
     const arena = id === 'arena';
     this.arenaBus.gain.setTargetAtTime(arena ? 1 : 0, t, 0.3);
-    // The zoo exhibits share the outdoor ambience.
-    this.aviaryBus.gain.setTargetAtTime(ZOO_SCENES.includes(id) ? 1 : 0, t, 0.3);
+    // The zoo exhibits and castle grounds share the outdoor ambience.
+    this.aviaryBus.gain.setTargetAtTime(NATURE_SCENES.includes(id) ? 1 : 0, t, 0.3);
     if (id !== 'hotel') {
       this.city.gain.setTargetAtTime(0, t, 0.2);
       this.water.gain.setTargetAtTime(0, t, 0.2);
@@ -162,7 +162,7 @@ export class Sound {
 
   // Aviary: water 0..1 how close the waterfall is, mist 0..1, calm 0..1 (sitting still: more birdsong).
   aviary({ water = 0, mist = 0, calm = 0 }) {
-    if (!this.ctx || !ZOO_SCENES.includes(this.scene)) return;
+    if (!this.ctx || !NATURE_SCENES.includes(this.scene)) return;
     const ctx = this.ctx;
     const t = ctx.currentTime;
     this.falls.gain.setTargetAtTime(water * 0.4, t, 0.3);

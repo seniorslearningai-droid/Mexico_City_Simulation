@@ -5,7 +5,7 @@ the (fictional) Hotel Jacaranda, twelve floors above Paseo de la Reforma in
 Mexico City. Explore the suite, open things up, step out onto the balcony,
 and watch the city light up at night.
 
-The buttons at the top left take you to five more places:
+The buttons at the top left take you to six more places:
 
 - **Go to stadium** — **Arena México**, the cathedral of lucha libre. No
   luchadores yet: just you, the ring, and (once you open the doors) a few
@@ -19,6 +19,8 @@ The buttons at the top left take you to five more places:
   Humboldt penguins, California sea lions, and two pressed-coin designs.
 - **Visit axolotls** — the **Ajolotario** at Chapultepec Zoo, with a hall of
   freshwater tanks and an axolotl coin press outside.
+- **Go to castle** — the **Castillo de Chapultepec**, with the Alcázar
+  garden, carriage hall, and a gallery of period artifacts.
 
 ## Play
 
@@ -43,7 +45,7 @@ the `main` branch and the root folder.
 | `N` | Sun/moon button | Day / night |
 | `M` | Speaker button | Sound on / off |
 | `T` | Tap the checklist | Show / hide the checklist |
-| `1`–`6` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, or the axolotl exhibit |
+| `1`–`7` (or `G` to cycle) | Buttons at the top left | Go to the hotel, the stadium, the aviary, the panda exhibit, the coastal zone, the axolotl exhibit, or the castle |
 | `K` | Mask button | Put your luchador mask on / off (after you buy one) |
 | `B` | Backpack button (top right) | Open your backpack of souvenirs |
 | `Esc` | | Pause |
@@ -199,6 +201,18 @@ pink, golden, and wild-type axolotls. Look for their feathery gills, read an
 exhibit sign, and use the photo spot at the end of the hall. Outside, insert
 two coins and turn the gear three times to press an **Axolotl** souvenir coin.
 
+## Castillo de Chapultepec
+
+Start in the Alcázar’s formal garden, by the fountain and the round
+Caballero Alto tower. Take a garden photo, then follow the stairs behind
+the tower into the carriage hall. Read the plaques for the imperial gala
+coach, the everyday coach, and Benito Juárez’s calesa. Beyond the coaches,
+the artifact gallery has modeled examples of dining pieces and period dress.
+
+The route is condensed for the game. The models and labels draw on the
+[Museo Nacional de Historia’s Alcázar guide](https://mnh.inah.gob.mx/salas-del-alcazar)
+and [the museum’s floor plan](https://lugares.inah.gob.mx/images/museos/planos/72_historia_chapultepec.pdf).
+
 ## Your backpack
 
 The backpack button in the top right corner (or `B`) opens your souvenirs
@@ -228,6 +242,7 @@ counts them, and the button bounces whenever you pick something up.
 | `js/coastal.js` | Chapultepec Zoo coastal pools and animals |
 | `js/axolotls.js` | Indoor axolotl tanks and outdoor plaza |
 | `js/zoo-press.js` | Shared coastal and axolotl souvenir presses |
+| `js/castle.js`, `js/castle-carriages.js` | Chapultepec Castle garden, museum galleries, and carriages |
 | `js/player.js` | Walking, collisions, stairs, sitting, hops into the ring |
 | `js/textures.js` | Procedural textures |
 | `js/audio.js` | Procedural sound |

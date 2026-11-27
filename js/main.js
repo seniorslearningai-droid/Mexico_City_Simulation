@@ -7,6 +7,7 @@ import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
 import { buildPandas, PANDA_SPAWN } from './pandas.js';
 import { buildCoastal, COASTAL_COINS, COASTAL_SPAWN } from './coastal.js';
 import { buildAxolotls, AXOLOTL_COINS, AXOLOTL_SPAWN } from './axolotls.js';
+import { buildCastle, CASTLE_SPAWN } from './castle.js';
 import { Player } from './player.js';
 import { Sound } from './audio.js';
 import { MASKS, maskFace, drawPanda } from './textures.js';
@@ -88,6 +89,17 @@ const AXOLOTL_TASKS = [
   ['axSign', 'Read about axolotls'],
   ['axPhoto', 'Take an axolotl photo'],
   ['axCoin', 'Press an Axolotl coin outside'],
+];
+
+const CASTLE_TASKS = [
+  ['castleGarden', 'Walk through the Alcázar garden'],
+  ['castlePhoto', 'Take a garden photo'],
+  ['castleGallery', 'Enter the carriage hall'],
+  ['castleGala', 'Read about the imperial gala coach'],
+  ['castleDaily', 'Find the everyday coach'],
+  ['castleJuarez', 'Find Benito Juárez’s calesa'],
+  ['castleService', 'Examine the dining service'],
+  ['castleDress', 'Read about nineteenth-century dress'],
 ];
 
 // ---------- renderer / scene ----------
@@ -403,7 +415,40 @@ const axolotls = {
   },
 };
 
-const PLACES = [hotel, arena, aviary, pandas, coastal, axolotls];
+const castleWorld = buildCastle({ toast, complete, player: () => player, sit: (seat) => player.sit(seat) });
+scene.add(castleWorld.group);
+const castleSky = new THREE.Color(0xaacde1);
+const castleFog = new THREE.Fog(0xaacde1, 50, 130);
+const castle = {
+  id: 'castle',
+  title: 'Castillo de Chapultepec',
+  sub: 'Museo Nacional de Historia · Garden and galleries',
+  chip: 'Castle',
+  tasksTitle: 'Castle visit',
+  goLabel: 'Go to castle',
+  tasks: CASTLE_TASKS,
+  done: new Set(),
+  root: castleWorld.group,
+  colliders: castleWorld.colliders,
+  floorAt: castleWorld.floorAt,
+  limit: castleWorld.limit,
+  spawn: CASTLE_SPAWN,
+  saved: null,
+  visited: false,
+  enter() {
+    castleWorld.group.visible = true;
+    scene.background = castleSky;
+    scene.fog = castleFog;
+    scene.environmentIntensity = 0.54;
+  },
+  exit() {
+    castleWorld.group.visible = false;
+    scene.background = null;
+    scene.fog = null;
+  },
+};
+
+const PLACES = [hotel, arena, aviary, pandas, coastal, axolotls, castle];
 loc = hotel;
 arenaWorld.group.visible = false;
 
@@ -669,6 +714,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit4') travel('pandas');
   if (e.code === 'Digit5') travel('coastal');
   if (e.code === 'Digit6') travel('axolotls');
+  if (e.code === 'Digit7') travel('castle');
   if (e.code === 'KeyT') $('#tasks').classList.toggle('collapsed');
   if (e.code === 'KeyB') toggleBag();
   if (e.code === 'Escape' && bag.open) closeBag(false);
@@ -855,6 +901,11 @@ const DONE_TEXT = {
     title: '¡Hasta pronto, ajolotes!',
     lede: 'You explored the axolotl tanks, took a photo, and pressed an Axolotl coin to take home.',
   },
+  castle: {
+    eyebrow: 'Castle visit',
+    title: '¡Hasta pronto, Chapultepec!',
+    lede: 'You explored the terrace, found three historic carriages, and visited the artifact gallery.',
+  },
 };
 function celebrate(place) {
   if (place !== loc) return;
@@ -922,6 +973,12 @@ async function travel(destId) {
     axolotls.visited = true;
     setTimeout(() => {
       if (loc === axolotls) toast('¡Bienvenidos al Ajolotario! The tanks are inside and the coin press is on the plaza.', 5200);
+    }, 500);
+  }
+  if (loc === castle && !castle.visited) {
+    castle.visited = true;
+    setTimeout(() => {
+      if (loc === castle) toast('¡Bienvenidos al Castillo de Chapultepec! Explore the garden, then take the stairs behind the tower to the galleries.', 6000);
     }, 500);
   }
 }
@@ -1088,6 +1145,9 @@ function frame(dt, draw = true) {
   } else if (loc === axolotls) {
     axolotlWorld.update(dt);
     sound.aviary(axolotlWorld.state);
+  } else if (loc === castle) {
+    castleWorld.update(dt);
+    sound.aviary(castleWorld.state);
   } else {
     aviaryWorld.update(dt, t);
     sound.aviary(aviaryWorld.state);
@@ -1155,7 +1215,7 @@ function showPolaroid(url, caption) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, castle: castleWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },
