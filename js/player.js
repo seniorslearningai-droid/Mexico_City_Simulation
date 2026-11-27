@@ -26,6 +26,8 @@ export class Player {
     this.releasedMove = true;
     this.push = new THREE.Vector2(); // extra velocity that fades out (rope bounces)
     this.arc = 0; // height of the hop during a blend (climbing, jumping)
+    this.sprint = 0; // 0..1, eases in while you hold Shift
+    this.dashCool = 0; // seconds until you can dash again
     this.floorAt = () => 0; // ground height under (x, z): stairs, the ring
     this.limit = null; // optional (pos, radius) => void that keeps you inside curved areas
     this.target = new THREE.Vector3(this.pos.x, this.eye, this.pos.z);
@@ -91,7 +93,29 @@ export class Player {
     this.apply();
   }
 
+  // A quick burst forward in the direction you're moving (or facing).
+  dash() {
+    if (this.seat || this.dashCool > 0) return false;
+    let f = this.move.y;
+    let s = this.move.x;
+    const len = Math.hypot(f, s);
+    if (len < 0.1) {
+      f = 1;
+      s = 0;
+    } else {
+      f /= len;
+      s /= len;
+    }
+    const sin = Math.sin(this.yaw);
+    const cos = Math.cos(this.yaw);
+    const speed = 7.5;
+    this.push.set((-sin * f + cos * s) * speed, (-cos * f - sin * s) * speed);
+    this.dashCool = 0.7;
+    return true;
+  }
+
   update(dt) {
+    this.dashCool = Math.max(0, this.dashCool - dt);
     const moving = Math.hypot(this.move.x, this.move.y) > 0.3;
     if (this.seat) {
       if (!moving) this.releasedMove = true;
@@ -123,7 +147,9 @@ export class Player {
     const f = this.move.y;
     const s = this.move.x;
     const len = Math.hypot(f, s);
-    const speed = this.run ? 3.4 : 1.9;
+    // Hold Shift to sprint: it ramps up to more than three times walking pace.
+    this.sprint += ((this.run && len > 0.05 ? 1 : 0) - this.sprint) * (1 - Math.exp(-dt * 4));
+    const speed = 1.9 + (6.2 - 1.9) * this.sprint;
     let tx = 0;
     let tz = 0;
     if (len > 0.05) {

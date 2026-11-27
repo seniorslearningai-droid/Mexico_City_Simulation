@@ -797,6 +797,27 @@ export class Sound {
     this.burst(t, { type: 'lowpass', freq: 300, q: 0.7, gain: 0.35, decay: 0.2, dur: 0.25 });
   }
 
+  // A quick whoosh for dashing.
+  whoosh() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.Q.value = 1.2;
+    f.frequency.setValueAtTime(500, t);
+    f.frequency.exponentialRampToValueAtTime(2400, t + 0.12);
+    f.frequency.exponentialRampToValueAtTime(700, t + 0.32);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.22, t + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    src.connect(f).connect(g).connect(this.master);
+    src.start(t, Math.random() * 0.5, 0.4);
+  }
+
   click() {
     if (!this.ctx || this.muted) return;
     const ctx = this.ctx;
