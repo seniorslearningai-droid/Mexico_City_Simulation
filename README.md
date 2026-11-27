@@ -51,14 +51,14 @@ the `main` branch and the root folder.
 
 Suite 1207 is a whole apartment. Walk in through the front door and:
 
-- **Kitchen** (on your right) — teal cabinets and talavera tiles, a fridge
+- **Kitchen** (on your right, a cosy galley) — teal cabinets and talavera tiles, a fridge
   that opens, a stove whose burners glow, a sink, a coffee machine (make a
-  café de olla), and an island with three stools.
+  café de olla), and a small island with two stools.
 - **Dining room** (straight ahead) — a small room with a round table, four
-  chairs, a pendant lamp, a sideboard and a serving hatch to the kitchen.
-- **Living room** (beyond the dining room) — a big sectional couch facing a
+  chairs, a pendant lamp and a sideboard.
+- **Living room** (beyond the dining room) — a big three-seat couch facing a
   TV with a little local channel, an armchair, a coffee table, a painting of
-  the volcanoes, a window and the sliding door to the **balcony**. Below:
+  the volcanoes and the sliding door to the **balcony**. Below:
   Reforma's traffic (pink-and-white taxis included), jacaranda trees and the
   Ángel de la Independencia; on the horizon, Popocatépetl and Iztaccíhuatl.
 - **Hallway** (to the left of the dining room) — it runs across, so from the

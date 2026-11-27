@@ -238,32 +238,31 @@ export function buildRoom(ctx) {
 
   // ---------- floors and ceiling ----------
   const floor = (mat, x0, z0, x1, z1) => wbox(group, mat, x0, -0.2, z0, x1, 0, z1);
-  floor(M.floor, -3.1, -5.0, 5.0, -0.4); // living
+  floor(M.floor, -3.1, -5.0, 1.0, -0.4); // living
   floor(M.floor, -3.0, -0.4, 1.0, 6.4); // dining + foyer
-  floor(M.saltillo, 1.0, -0.4, 5.0, 6.4); // kitchen
-  floor(M.floor, -10.6, -5.0, -3.1, -0.4); // master bedroom
+  floor(M.saltillo, 1.0, 3.0, 5.0, 6.4); // kitchen
+  floor(M.floor, -7.0, -5.0, -3.1, -0.4); // master bedroom
   floor(M.floor, -4.6, -0.4, -3.0, 5.0); // hallway
   floor(M.floor, -7.6, -0.4, -4.6, 2.0); // closet
   floor(M.saltillo, -10.6, -0.4, -7.6, 2.0); // bathroom in the closet
   floor(M.saltillo, -10.6, 2.0, -4.6, 5.0); // bathroom
-  floor(M.floor, -10.6, 5.0, -3.0, 9.0); // bedroom
-  wbox(group, M.black, -2.6, -0.2, -5.15, 2.6, 0.012, -5);
+  floor(M.floor, -7.0, 5.0, -3.0, 9.0); // bedroom
+  wbox(group, M.black, -2.6, -0.2, -5.15, 0.6, 0.012, -5);
   wbox(group, M.ceiling, -10.75, H, -5.15, 5.15, H + 0.15, 9.15);
 
   // ---------- outer walls ----------
-  W(-10.75, -5.15, -9.6, -5.0);
-  W(-9.6, -5.15, -4.4, -5.0, 0, 0.5);
-  W(-9.6, -5.15, -4.4, -5.0, 2.45, H);
-  W(-4.4, -5.15, -2.6, -5.0);
-  W(-2.6, -5.15, 2.6, -5.0, 2.5, H);
-  W(2.6, -5.15, 3.0, -5.0);
-  W(3.0, -5.15, 4.6, -5.0, 0, 0.6);
-  W(3.0, -5.15, 4.6, -5.0, 2.45, H);
-  W(4.6, -5.15, 5.15, -5.0);
+  W(-10.75, -5.15, -6.5, -5.0);
+  W(-6.5, -5.15, -3.7, -5.0, 0, 0.5);
+  W(-6.5, -5.15, -3.7, -5.0, 2.45, H);
+  W(-3.7, -5.15, -2.6, -5.0);
+  W(-2.6, -5.15, 0.6, -5.0, 2.5, H);
+  W(0.6, -5.15, 5.15, -5.0);
   W(5.0, -5.0, 5.15, 6.55);
-  W(-10.75, -5.0, -10.6, -0.4, 0, H, M.accent);
+  W(-10.75, -5.0, -10.6, -0.4);
+  W(-7.06, -5.0, -6.94, -0.46, 0, H, M.accent); // master bedroom west wall
   W(-10.75, -0.4, -10.6, 5.0);
-  W(-10.75, 5.0, -10.6, 9.15, 0, H, M.accent2);
+  W(-10.75, 5.0, -10.6, 9.15);
+  W(-7.06, 5.06, -6.94, 9.0, 0, H, M.accent2); // bedroom west wall
   W(-10.6, 9.0, -3.0, 9.15);
   W(-3.2, 5.06, -3.0, 9.0);
   W(-3.0, 6.4, -1.6, 6.55);
@@ -272,7 +271,8 @@ export function buildRoom(ctx) {
   // ---------- inner walls ----------
   W(-3.0, -0.46, -2.4, -0.34); // living / dining + kitchen
   W(-2.4, -0.46, 0.4, -0.34, 2.4, H);
-  W(0.4, -0.46, 5.0, -0.34);
+  W(0.4, -0.46, 1.06, -0.34);
+  W(0.94, -5.0, 1.06, -0.46); // living room east wall
   W(-3.2, -5.0, -3.0, -0.46); // master / living
   W(-10.6, -0.46, -4.4, -0.34); // master / closet + hall
   W(-4.4, -0.46, -3.5, -0.34, 2.15, H);
@@ -295,10 +295,9 @@ export function buildRoom(ctx) {
   W(-3.0, 3.34, -2.0, 3.46, 0, H, M.warm); // dining / foyer
   W(-2.0, 3.34, 0.0, 3.46, 2.3, H, M.warm);
   W(0.0, 3.34, 0.94, 3.46, 0, H, M.warm);
-  W(0.94, -0.34, 1.06, 0.6, 0, H, M.warm); // dining + foyer / kitchen
-  W(0.94, 0.6, 1.06, 2.2, 0, 1.0, M.warm);
-  W(0.94, 0.6, 1.06, 2.2, 2.0, H, M.warm);
-  W(0.94, 2.2, 1.06, 3.8);
+  W(0.94, -0.34, 1.06, 3.4, 0, H, M.warm); // dining / kitchen
+  W(0.94, 3.4, 1.06, 3.8);
+  W(1.06, 2.94, 5.0, 3.06); // kitchen north wall
   W(0.94, 3.8, 1.06, 6.0, 2.3, H);
   W(0.94, 6.0, 1.06, 6.4);
   casing('x', -0.4, -4.4, -3.5, 2.15);
@@ -320,16 +319,16 @@ export function buildRoom(ctx) {
     m.rotation.x = Math.PI / 2;
     cyl(group, M.chrome, 0.1, 0.1, 0.006, x, H - 0.003, z, 24, true);
   };
-  for (const [x, z] of [[-1.2, -3.7], [1.5, -3.7], [3.6, -3.7], [-1.2, -1.4], [1.5, -1.4], [3.6, -1.4], [-1.0, 4.4], [-1.0, 5.6], [2.2, 1.0], [3.8, 1.0], [2.2, 4.4], [3.8, 4.4], [-3.9, 0.6], [-3.9, 2.7], [-3.9, 4.3], [-8.5, -3.7], [-5.2, -3.7], [-8.5, -1.6], [-5.2, -1.6], [-8.5, 6.2], [-5.2, 6.2], [-8.5, 7.9], [-5.2, 7.9]]) downlight(x, z, roomDL);
+  for (const [x, z] of [[-2.0, -3.7], [0, -3.7], [-2.0, -1.4], [0, -1.4], [-1.0, 4.4], [-1.0, 5.6], [2.2, 4.2], [3.8, 4.2], [2.2, 5.5], [3.8, 5.5], [-3.9, 0.6], [-3.9, 2.7], [-3.9, 4.3], [-6.0, -3.7], [-4.2, -3.7], [-6.0, -1.6], [-4.2, -1.6], [-6.0, 6.2], [-4.2, 6.2], [-6.0, 7.9], [-4.2, 7.9]]) downlight(x, z, roomDL);
   for (const [x, z] of [[-8.6, 3.5], [-6.2, 3.5], [-6.1, 0.8], [-9.1, 0.8]]) downlight(x, z, bathDL);
   const L = {
-    living: spotLight(0xffe1bc, 1.2, -2.6, true),
+    living: spotLight(0xffe1bc, -1.0, -2.7, true),
     dining: pointLight(0xffd6a0, 6, -1.0, 1.85, 1.4),
-    kitchen: spotLight(0xfff0dc, 3.0, 2.8),
+    kitchen: spotLight(0xfff0dc, 3.0, 4.7),
     foyer: spotLight(0xffe1bc, -1.0, 4.9),
     hall: pointLight(0xffe1bc, 6, -3.9, 2.4, 2.3),
-    master: spotLight(0xffe1bc, -6.8, -2.7),
-    bedroom: spotLight(0xffe1bc, -6.8, 7.0),
+    master: spotLight(0xffe1bc, -5.1, -2.7),
+    bedroom: spotLight(0xffe1bc, -5.1, 7.0),
     bath: spotLight(0xfff1e0, -7.6, 3.5),
     closet: pointLight(0xfff1e0, 5, -7.6, 2.4, 0.8),
   };
@@ -368,8 +367,8 @@ export function buildRoom(ctx) {
   // ===================== LIVING ROOM =====================
   // Balcony door: one fixed pane and one that slides.
   wbox(group, M.black, -2.6, 0, -5.15, -2.55, 2.5, -5);
-  wbox(group, M.black, 2.55, 0, -5.15, 2.6, 2.5, -5);
-  wbox(group, M.black, -2.6, 2.45, -5.15, 2.6, 2.5, -5);
+  wbox(group, M.black, 0.55, 0, -5.15, 0.6, 2.5, -5);
+  wbox(group, M.black, -2.6, 2.45, -5.15, 0.6, 2.5, -5);
   function pane(width, ph = 2.45) {
     const g = new THREE.Group();
     box(g, M.black, width, 0.05, 0.045, width / 2, 0.025, 0);
@@ -381,14 +380,14 @@ export function buildRoom(ctx) {
     group.add(g);
     return g;
   }
-  pane(2.6).position.set(-2.55, 0, -5.115);
-  const slidePane = pane(2.6);
-  slidePane.position.set(-0.05, 0, -5.045);
+  pane(1.6).position.set(-2.55, 0, -5.115);
+  const slidePane = pane(1.6);
+  slidePane.position.set(-1.0, 0, -5.045);
   box(slidePane, M.chrome, 0.025, 0.35, 0.03, 0.12, 1.05, 0.04);
-  solid(-2.6, -5.15, 0.05, -5);
-  const slideCol = solid(0.05, -5.15, 2.6, -5);
+  solid(-2.6, -5.15, -0.95, -5);
+  const slideCol = solid(-0.95, -5.15, 0.6, -5);
   const balconyDoor = toggler((k) => {
-    slidePane.position.x = -0.05 - 2.4 * k;
+    slidePane.position.x = -1.0 - 1.45 * k;
     slideCol.off = k > 0.7;
   }, 1.1);
   interact(slidePane, {
@@ -409,24 +408,23 @@ export function buildRoom(ctx) {
     noShadow(wbox(group, M.glass, x0, y0, z - 0.006, x1, y1, z + 0.006));
     wbox(group, M.white, x0 - 0.05, y0 - 0.04, -5.0, x1 + 0.05, y0, -4.86);
   }
-  windowFrame(3.0, 4.6, 0.6, 2.45);
-  windowFrame(-9.6, -4.4, 0.5, 2.45);
+  windowFrame(-6.5, -3.7, 0.5, 2.45);
 
   // Balcony slab and glass railing, with a bistro set and plants.
-  wbox(group, M.saltillo, -3.3, -0.25, -6.6, 3.3, 0, -5.15);
+  wbox(group, M.saltillo, -3.3, -0.25, -6.6, 1.3, 0, -5.15);
   const rail = new THREE.Group();
   group.add(rail);
-  wbox(rail, M.glass, -3.25, 0.05, -6.56, 3.25, 1.0, -6.54);
+  wbox(rail, M.glass, -3.25, 0.05, -6.56, 1.25, 1.0, -6.54);
   wbox(rail, M.glass, -3.26, 0.05, -6.55, -3.24, 1.0, -5.15);
-  wbox(rail, M.glass, 3.24, 0.05, -6.55, 3.26, 1.0, -5.15);
+  wbox(rail, M.glass, 1.24, 0.05, -6.55, 1.26, 1.0, -5.15);
   noShadow(rail);
-  wbox(group, M.black, -3.3, 1.0, -6.6, 3.3, 1.05, -6.5);
+  wbox(group, M.black, -3.3, 1.0, -6.6, 1.3, 1.05, -6.5);
   wbox(group, M.black, -3.3, 1.0, -6.6, -3.2, 1.05, -5.15);
-  wbox(group, M.black, 3.2, 1.0, -6.6, 3.3, 1.05, -5.15);
-  for (const x of [-3.25, -1.1, 1.1, 3.25]) wbox(group, M.black, x - 0.025, 0, -6.58, x + 0.025, 1.0, -6.53);
-  solid(-3.5, -6.9, 3.5, -6.5);
+  wbox(group, M.black, 1.2, 1.0, -6.6, 1.3, 1.05, -5.15);
+  for (const x of [-3.25, -1.0, 1.25]) wbox(group, M.black, x - 0.025, 0, -6.58, x + 0.025, 1.0, -6.53);
+  solid(-3.5, -6.9, 1.5, -6.5);
   solid(-3.5, -6.6, -3.2, -5.15);
-  solid(3.2, -6.6, 3.5, -5.15);
+  solid(1.2, -6.6, 1.5, -5.15);
   function bistroChair(x, z, ry, cushion) {
     const g = node(group, x, 0, z, ry);
     for (const [lx, lz] of [[-0.18, -0.18], [0.18, -0.18], [-0.18, 0.18], [0.18, 0.18]]) cyl(g, M.black, 0.012, 0.012, 0.45, lx, 0.225, lz, 8);
@@ -461,13 +459,13 @@ export function buildRoom(ctx) {
     }
     return g;
   }
-  const potA = node(group, 2.55, 0, -5.95);
+  const potA = node(group, 0.6, 0, -5.95);
   cyl(potA, M.terracotta, 0.26, 0.2, 0.45, 0, 0.225, 0, 24);
   agavePlant(potA, 0, 0.42, 0, 1.2, 16);
-  solid(2.25, -6.25, 2.85, -5.65);
+  solid(0.3, -6.25, 0.9, -5.65);
 
   // Curtains across the balcony door.
-  cyl(group, M.brass, 0.015, 0.015, 6.0, 0, 2.66, -4.88, 12).rotation.z = Math.PI / 2;
+  cyl(group, M.brass, 0.015, 0.015, 4.0, -1.0, 2.66, -4.88, 12).rotation.z = Math.PI / 2;
   const curtainGeo = new THREE.PlaneGeometry(1, 2.58, 72, 1);
   curtainGeo.translate(0.5, 1.29, 0);
   {
@@ -476,9 +474,9 @@ export function buildRoom(ctx) {
     curtainGeo.computeVertexNormals();
   }
   const curtainL = add(group, new THREE.Mesh(curtainGeo, M.curtain), -2.95, 0.06, -4.86);
-  const curtainR = add(group, new THREE.Mesh(curtainGeo, M.curtain), 2.95, 0.06, -4.86);
+  const curtainR = add(group, new THREE.Mesh(curtainGeo, M.curtain), 0.95, 0.06, -4.86);
   const curtains = toggler((k) => {
-    const w = 3.0 - 2.55 * k;
+    const w = 2.0 - 1.6 * k;
     curtainL.scale.set(w, 1, 1 + 1.6 * k);
     curtainR.scale.set(-w, 1, 1 + 1.6 * k);
   }, 0.9);
@@ -493,60 +491,56 @@ export function buildRoom(ctx) {
     },
   });
 
-  // Big sectional couch facing the TV on the east wall.
+  // A big three-seat couch against the west wall, facing the TV.
   {
-    const sofa = node(group, 1.3, 0, -2.6, -Math.PI / 2);
-    box(sofa, M.walnut, 3.0, 0.12, 0.95, 0, 0.1, 0);
-    rbox(sofa, M.sofa, 3.0, 0.26, 0.95, 0.05, 0, 0.29, 0);
-    for (let i = 0; i < 3; i++) rbox(sofa, M.sofa, 0.9, 0.14, 0.75, 0.06, -0.92 + i * 0.92, 0.48, -0.08);
-    rbox(sofa, M.sofa, 3.0, 0.5, 0.24, 0.08, 0, 0.65, 0.36);
-    for (let i = 0; i < 3; i++) rbox(sofa, M.sofa, 0.85, 0.42, 0.16, 0.07, -0.92 + i * 0.92, 0.72, 0.2).rotation.x = -0.12;
-    for (const s of [-1, 1]) rbox(sofa, M.sofa, 0.2, 0.58, 0.95, 0.07, s * 1.5, 0.37, 0);
-    // The chaise end.
-    rbox(sofa, M.sofa, 0.95, 0.4, 0.8, 0.05, -1.02, 0.29, -0.87);
-    rbox(sofa, M.sofa, 0.9, 0.14, 0.78, 0.06, -1.02, 0.48, -0.87);
-    rbox(sofa, M.pink, 0.4, 0.36, 0.13, 0.06, -1.2, 0.7, 0.2).rotation.z = 0.15;
-    rbox(sofa, M.mustard, 0.38, 0.34, 0.13, 0.06, 1.15, 0.7, 0.2).rotation.z = -0.15;
-    rbox(sofa, M.sarape, 0.6, 0.04, 0.9, 0.02, 0.6, 0.57, -0.05);
-    solid(0.825, -4.1, 1.775, -1.1);
-    solid(1.775, -4.1, 2.55, -3.15);
+    const sofa = node(group, -2.25, 0, -2.7, -Math.PI / 2);
+    box(sofa, M.walnut, 2.6, 0.12, 0.95, 0, 0.1, 0);
+    rbox(sofa, M.sofa, 2.6, 0.26, 0.95, 0.05, 0, 0.29, 0);
+    for (let i = 0; i < 3; i++) rbox(sofa, M.sofa, 0.78, 0.14, 0.75, 0.06, -0.8 + i * 0.8, 0.48, -0.08);
+    rbox(sofa, M.sofa, 2.6, 0.5, 0.24, 0.08, 0, 0.65, 0.36);
+    for (let i = 0; i < 3; i++) rbox(sofa, M.sofa, 0.74, 0.42, 0.16, 0.07, -0.8 + i * 0.8, 0.72, 0.2).rotation.x = -0.12;
+    for (const sd of [-1, 1]) rbox(sofa, M.sofa, 0.2, 0.58, 0.95, 0.07, sd * 1.3, 0.37, 0);
+    rbox(sofa, M.pink, 0.4, 0.36, 0.13, 0.06, -1.0, 0.7, 0.2).rotation.z = 0.15;
+    rbox(sofa, M.mustard, 0.38, 0.34, 0.13, 0.06, 1.0, 0.7, 0.2).rotation.z = -0.15;
+    rbox(sofa, M.sarape, 0.6, 0.04, 0.9, 0.02, 0.5, 0.57, -0.05);
+    solid(-2.73, -4.0, -1.77, -1.4);
     interact(sofa, {
       label: () => 'Sit on the couch',
       act: () => {
-        ctx.sit({ eye: new THREE.Vector3(1.45, 1.08, -2.4), yaw: -Math.PI / 2, pitch: -0.05, calm: true });
+        ctx.sit({ eye: new THREE.Vector3(-2.1, 1.08, -2.7), yaw: -Math.PI / 2, pitch: -0.05, calm: true });
         ctx.complete('couch');
         ctx.toast('So comfy. The TV remote is right here…');
       },
     });
   }
-  const rugMesh = add(group, new THREE.Mesh(new THREE.PlaneGeometry(3.4, 3.2), M.rug), 2.6, 0.004, -2.6);
+  const rugMesh = add(group, new THREE.Mesh(new THREE.PlaneGeometry(2.6, 3.0), M.rug), -1.4, 0.004, -2.7);
   rugMesh.rotation.x = -Math.PI / 2;
   noShadow(rugMesh);
   {
-    const ct = node(group, 3.05, 0, -2.5);
+    const ct = node(group, -1.25, 0, -2.7);
     rbox(ct, M.walnut, 0.65, 0.06, 1.15, 0.02, 0, 0.42, 0);
     box(ct, M.walnut, 0.55, 0.03, 1.05, 0, 0.12, 0);
     for (const [lx, lz] of [[-0.27, -0.52], [0.27, -0.52], [-0.27, 0.52], [0.27, 0.52]]) box(ct, M.walnut, 0.05, 0.4, 0.05, lx, 0.2, lz);
     box(ct, M.teal, 0.2, 0.04, 0.28, 0.1, 0.47, 0.25);
     cyl(ct, M.clay, 0.07, 0.05, 0.12, -0.1, 0.51, -0.25, 16);
-    solid(2.72, -3.08, 3.38, -1.92);
+    solid(-1.58, -3.28, -0.92, -2.12);
   }
   // TV on a media console.
-  const console1 = node(group, 4.75, 0, -2.6);
+  const console1 = node(group, 0.75, 0, -2.7);
   box(console1, M.walnut, 0.45, 0.5, 2.2, 0, 0.3, 0);
   for (const dz of [-0.75, 0, 0.75]) box(console1, M.oak, 0.01, 0.38, 0.68, -0.226, 0.3, dz);
-  solid(4.5, -3.7, 5.0, -1.5);
-  const tvBody = box(group, M.black, 0.05, 0.9, 1.56, 4.97, 1.45, -2.6);
+  solid(0.5, -3.8, 1.0, -1.6);
+  const tvBody = box(group, M.black, 0.05, 0.9, 1.56, 0.97, 1.45, -2.7);
   const tvCanvas = document.createElement('canvas');
   tvCanvas.width = 512;
   tvCanvas.height = 288;
   const tvTex = new THREE.CanvasTexture(tvCanvas);
   tvTex.colorSpace = THREE.SRGBColorSpace;
   const screenOn = new THREE.MeshBasicMaterial({ map: tvTex, toneMapped: false });
-  const screen = add(group, new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.84), M.screenOff), 4.942, 1.45, -2.6);
+  const screen = add(group, new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.84), M.screenOff), 0.942, 1.45, -2.7);
   screen.rotation.y = -Math.PI / 2;
   noShadow(screen);
-  const tvLight = pointLight(0x9fb8ff, 5, 4.3, 1.45, -2.6);
+  const tvLight = pointLight(0x9fb8ff, 5, 0.3, 1.45, -2.7);
   const tv = { on: false, t: 0, acc: 1 };
   updaters.push((dt) => {
     if (!tv.on) return;
@@ -589,7 +583,7 @@ export function buildRoom(ctx) {
     });
     return a;
   }
-  armchair(3.6, -1.0, -0.5);
+  armchair(0.3, -1.05, 0.5);
   function floorLamp(x, z, withLight) {
     const fl = node(group, x, 0, z);
     cyl(fl, M.black, 0.15, 0.16, 0.025, 0, 0.012, 0, 24);
@@ -605,7 +599,7 @@ export function buildRoom(ctx) {
     interact(fl, { label: () => (st.on ? 'Switch off the floor lamp' : 'Switch on the floor lamp'), act: () => (st.on = !st.on) });
     return st;
   }
-  floorLamp(0.6, -4.6, false);
+  floorLamp(-2.7, -4.6, false);
   function cactusPot(x, z) {
     const c = node(group, x, 0, z);
     cyl(c, M.tile, 0.22, 0.17, 0.42, 0, 0.21, 0, 28);
@@ -614,7 +608,7 @@ export function buildRoom(ctx) {
     solid(x - 0.24, z - 0.24, x + 0.24, z + 0.24);
     interact(c, { label: () => 'Touch the cactus', act: () => ctx.toast('¡Ay! Órgano cactus — look, don’t touch.') });
   }
-  cactusPot(4.6, -4.55);
+  cactusPot(0.6, -4.55);
   function wallArt(mat, x, y, z, w, h, ry, label, msg) {
     const g = node(group, x, y, z, ry);
     box(g, M.walnut, w + 0.08, h + 0.08, 0.03, 0, 0, 0);
@@ -622,7 +616,7 @@ export function buildRoom(ctx) {
     if (label) interact(a, { label: () => label, act: () => ctx.toast(msg) });
     return g;
   }
-  wallArt(M.canvas, 2.7, 1.65, -0.32, 1.5, 0.88, Math.PI, 'Look at the painting', '“Volcanes al atardecer” — Popocatépetl and Iztaccíhuatl at sunset.');
+  wallArt(M.canvas, -2.985, 1.8, -2.7, 1.4, 0.82, Math.PI / 2, 'Look at the painting', '“Volcanes al atardecer” — Popocatépetl and Iztaccíhuatl at sunset.');
 
   // ===================== DINING ROOM =====================
   function chair(x, z, ry, seat) {
@@ -677,7 +671,6 @@ export function buildRoom(ctx) {
     solid(-3.0, 0.0, -2.55, 1.6);
   }
   wallArt(M.poster, -2.985, 1.75, 0.8, 0.66, 0.86, Math.PI / 2);
-  box(group, M.oak, 0.6, 0.04, 1.6, 1.0, 1.0, 1.4); // the hatch ledge
 
   // ===================== FOYER =====================
   const door = node(group, -1.1, 0, 6.455);
@@ -730,15 +723,14 @@ export function buildRoom(ctx) {
   // ===================== KITCHEN =====================
   {
     const top = 0.9;
-    // East counter run with base cabinets, marble top, tile backsplash and upper cabinets.
-    wbox(group, M.cabinet, 4.42, 0.08, 0.55, 5.0, top - 0.04, 5.8);
-    wbox(group, M.black, 4.45, 0, 0.55, 5.0, 0.08, 5.8);
-    wbox(group, M.marble, 4.38, top - 0.04, 0.55, 5.0, top, 5.8);
-    for (let z = 0.6; z < 5.7; z += 0.6) box(group, M.brass, 0.02, 0.012, 0.14, 4.41, top - 0.12, z + 0.3);
-    wbox(group, M.tile, 4.985, top, 0.55, 5.0, 1.55, 6.4);
-    wbox(group, M.cabinet, 4.65, 1.55, 0.55, 5.0, 2.25, 1.1);
-    wbox(group, M.cabinet, 4.65, 1.55, 2.1, 5.0, 2.25, 5.8);
-    solid(4.38, 0.55, 5.0, 5.8);
+    // East counter run (sink, stove) with tiles and an upper cabinet.
+    wbox(group, M.cabinet, 4.42, 0.08, 3.9, 5.0, top - 0.04, 5.8);
+    wbox(group, M.black, 4.45, 0, 3.9, 5.0, 0.08, 5.8);
+    wbox(group, M.marble, 4.38, top - 0.04, 3.9, 5.0, top, 5.8);
+    box(group, M.brass, 0.02, 0.012, 0.14, 4.41, top - 0.12, 4.3);
+    wbox(group, M.tile, 4.985, top, 3.9, 5.0, 1.55, 6.4);
+    wbox(group, M.cabinet, 4.65, 1.55, 3.9, 5.0, 2.25, 4.75);
+    solid(4.38, 3.9, 5.0, 5.8);
     // South counter run with open shelves.
     wbox(group, M.cabinet, 2.0, 0.08, 5.82, 4.42, top - 0.04, 6.4);
     wbox(group, M.black, 2.0, 0, 5.85, 4.42, 0.08, 6.4);
@@ -749,20 +741,20 @@ export function buildRoom(ctx) {
     for (let i = 0; i < 5; i++) cyl(group, M.clay, 0.045, 0.04, 0.09, 2.5 + i * 0.35, 2.19, 6.28, 16);
     solid(2.0, 5.78, 5.0, 6.4);
     // Stove: cooktop, oven door, range hood.
-    wbox(group, M.glassTop, 4.45, top, 1.15, 4.95, top + 0.012, 1.95);
+    wbox(group, M.glassTop, 4.45, top, 4.85, 4.95, top + 0.012, 5.65);
     const burnerMat = std({ color: 0x222222, emissive: 0xff3a10, emissiveIntensity: 0, roughness: 0.5 });
-    for (const [bx, bz] of [[4.58, 1.33], [4.82, 1.33], [4.58, 1.77], [4.82, 1.77]]) {
+    for (const [bx, bz] of [[4.58, 5.03], [4.82, 5.03], [4.58, 5.47], [4.82, 5.47]]) {
       const ring = add(group, new THREE.Mesh(new THREE.RingGeometry(0.05, 0.085, 24), burnerMat), bx, top + 0.014, bz);
       ring.rotation.x = -Math.PI / 2;
     }
-    wbox(group, M.glassTop, 4.405, 0.15, 1.15, 4.42, 0.75, 1.95);
-    wbox(group, M.chrome, 4.38, 0.66, 1.25, 4.4, 0.68, 1.85);
-    const hood = add(group, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.4, 0.4, 4, 1), M.steel), 4.75, 1.85, 1.55);
+    wbox(group, M.glassTop, 4.405, 0.15, 4.85, 4.42, 0.75, 5.65);
+    wbox(group, M.chrome, 4.38, 0.66, 4.95, 4.4, 0.68, 5.55);
+    const hood = add(group, new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.4, 0.4, 4, 1), M.steel), 4.75, 1.85, 5.25);
     hood.rotation.y = Math.PI / 4;
     hood.scale.set(0.9, 1, 1.4);
-    wbox(group, M.steel, 4.7, 2.05, 1.45, 4.9, H, 1.65);
+    wbox(group, M.steel, 4.7, 2.05, 5.15, 4.9, H, 5.35);
     const knobs = [];
-    for (let i = 0; i < 4; i++) knobs.push(cyl(group, M.black, 0.02, 0.02, 0.025, 4.39, 0.8, 1.3 + i * 0.15, 12));
+    for (let i = 0; i < 4; i++) knobs.push(cyl(group, M.black, 0.02, 0.02, 0.025, 4.39, 0.8, 5.02 + i * 0.15, 12));
     knobs.forEach((k) => (k.rotation.z = Math.PI / 2));
     const stove = toggler((k) => (burnerMat.emissiveIntensity = 1.6 * k), 1.5, { dirty: false });
     interact([...knobs, hood], {
@@ -773,12 +765,12 @@ export function buildRoom(ctx) {
       },
     });
     // Sink with a gooseneck tap.
-    wbox(group, M.steel, 4.48, top - 0.18, 3.25, 4.9, top + 0.005, 3.95);
-    wbox(group, M.black, 4.5, top - 0.17, 3.27, 4.88, top - 0.16, 3.93);
-    const kPost = cyl(group, M.chrome, 0.018, 0.02, 0.36, 4.93, top + 0.18, 3.6, 12);
-    const kSpout = cyl(group, M.chrome, 0.012, 0.012, 0.25, 4.82, top + 0.36, 3.6, 10);
+    wbox(group, M.steel, 4.48, top - 0.18, 4.0, 4.9, top + 0.005, 4.6);
+    wbox(group, M.black, 4.5, top - 0.17, 4.02, 4.88, top - 0.16, 4.58);
+    const kPost = cyl(group, M.chrome, 0.018, 0.02, 0.36, 4.93, top + 0.18, 4.3, 12);
+    const kSpout = cyl(group, M.chrome, 0.012, 0.012, 0.25, 4.82, top + 0.36, 4.3, 10);
     kSpout.rotation.z = Math.PI / 2;
-    const kStream = cyl(group, M.water, 0.008, 0.01, 0.36, 4.71, top + 0.17, 3.6, 8);
+    const kStream = cyl(group, M.water, 0.008, 0.01, 0.36, 4.71, top + 0.17, 4.3, 8);
     kStream.visible = false;
     noShadow(kStream);
     noRay(kStream);
@@ -795,26 +787,27 @@ export function buildRoom(ctx) {
       },
     });
     api.kitchenTap = ktap;
-    // Fridge with a door that opens.
-    wbox(group, M.white, 4.25, 0, -0.34, 5.0, 1.95, 0.5);
+    // Fridge in the corner, with a door that opens.
+    const FZ = 3.06;
+    wbox(group, M.white, 4.25, 0, FZ, 5.0, 1.95, FZ + 0.84);
     const fridgeLight = std({ color: 0xffffff, emissive: 0xeaf4ff, emissiveIntensity: 0 });
-    wbox(group, fridgeLight, 4.3, 1.86, -0.3, 4.95, 1.88, 0.46);
-    for (const y of [0.45, 0.9, 1.35]) wbox(group, M.glass, 4.3, y, -0.3, 4.95, y + 0.01, 0.46);
+    wbox(group, fridgeLight, 4.3, 1.86, FZ + 0.04, 4.95, 1.88, FZ + 0.8);
+    for (const y of [0.45, 0.9, 1.35]) wbox(group, M.glass, 4.3, y, FZ + 0.04, 4.95, y + 0.01, FZ + 0.8);
     const sodaCols = [0xf2862e, 0x7cc243, 0xd9447a, 0x8e44ad, 0xcfe8f5, 0xf2c14e];
     let si = 0;
     for (const y of [0.46, 0.91]) {
-      for (const z of [-0.2, -0.05, 0.1, 0.25, 0.38]) {
+      for (const dz of [0.14, 0.29, 0.44, 0.59, 0.72]) {
         const c = sodaCols[si++ % sodaCols.length];
-        cyl(group, std({ color: c, roughness: 0.2, transparent: c === 0xcfe8f5, opacity: 0.7 }), 0.03, 0.032, 0.22, 4.35, y + 0.11, z, 12);
+        cyl(group, std({ color: c, roughness: 0.2, transparent: c === 0xcfe8f5, opacity: 0.7 }), 0.03, 0.032, 0.22, 4.35, y + 0.11, FZ + dz, 12);
       }
     }
-    box(group, std({ color: 0xc8a060, roughness: 0.8 }), 0.25, 0.12, 0.3, 4.6, 1.42, 0.1);
-    sphere(group, std({ color: 0xf28a1d, roughness: 0.5 }), 0.06, 4.7, 0.55, -0.15, 12);
-    const fridgePivot = node(group, 4.24, 0, -0.32);
+    box(group, std({ color: 0xc8a060, roughness: 0.8 }), 0.25, 0.12, 0.3, 4.6, 1.42, FZ + 0.44);
+    sphere(group, std({ color: 0xf28a1d, roughness: 0.5 }), 0.06, 4.7, 0.55, FZ + 0.2, 12);
+    const fridgePivot = node(group, 4.24, 0, FZ + 0.02);
     box(fridgePivot, M.steel, 0.04, 1.9, 0.8, 0, 0.98, 0.4);
     box(fridgePivot, M.chrome, 0.03, 0.6, 0.03, -0.04, 1.2, 0.74);
-    wbox(group, fridgeLight, 4.97, 0.05, -0.3, 4.99, 1.85, 0.46);
-    const fridgeCol = solid(4.2, -0.34, 4.27, 0.5);
+    wbox(group, fridgeLight, 4.97, 0.05, FZ + 0.04, 4.99, 1.85, FZ + 0.8);
+    const fridgeCol = solid(4.2, FZ, 4.27, FZ + 0.84);
     const fridge = toggler((k) => {
       fridgePivot.rotation.y = 1.6 * k;
       fridgeLight.emissiveIntensity = 1.5 * Math.min(1, k * 3);
@@ -832,7 +825,7 @@ export function buildRoom(ctx) {
         }
       },
     });
-    solid(4.25, -0.34, 5.0, 0.5);
+    solid(4.25, FZ, 5.0, FZ + 0.84);
     // Coffee machine.
     const cm = node(group, 3.0, top, 6.15);
     box(cm, M.black, 0.26, 0.34, 0.24, 0, 0.17, 0);
@@ -841,10 +834,10 @@ export function buildRoom(ctx) {
     const coffeeMug = cyl(group, M.clay, 0.04, 0.035, 0.09, 3.0, top + 0.06, 6.03, 16);
     coffeeMug.visible = false;
     const steam = [0, 1, 2].map((i) => {
-      const s = sphere(group, std({ color: 0xffffff, transparent: true, opacity: 0, roughness: 1, depthWrite: false }), 0.025, 3.0, top + 0.2, 6.03, 8);
-      noRay(s);
-      noShadow(s);
-      return { s, p: i / 3 };
+      const st = sphere(group, std({ color: 0xffffff, transparent: true, opacity: 0, roughness: 1, depthWrite: false }), 0.025, 3.0, top + 0.2, 6.03, 8);
+      noRay(st);
+      noShadow(st);
+      return { s: st, p: i / 3 };
     });
     let brewT = -1;
     updaters.push((dt) => {
@@ -871,24 +864,22 @@ export function buildRoom(ctx) {
     const bowl = add(group, new THREE.Mesh(new THREE.SphereGeometry(0.15, 24, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), std({ map: lampTile, roughness: 0.25, side: THREE.DoubleSide })), 2.4, top + 0.08, 6.1);
     bowl.scale.y = 0.6;
     for (const [fx, fz, c] of [[2.36, 6.08, 0xf28a1d], [2.44, 6.12, 0x7cc243], [2.4, 6.04, 0xf2c14e]]) sphere(group, std({ color: c, roughness: 0.5 }), 0.045, fx, top + 0.1, fz, 12);
-    // Island with three stools.
-    wbox(group, M.walnut, 2.25, 0, 1.85, 3.35, top - 0.04, 3.75);
-    wbox(group, M.marble, 2.15, top - 0.04, 1.8, 3.4, top, 3.8);
-    solid(2.15, 1.8, 3.4, 3.8);
-    for (const z of [2.2, 2.8, 3.4]) {
-      const s = node(group, 1.8, 0, z);
-      cyl(s, M.black, 0.15, 0.17, 0.02, 0, 0.01, 0, 16);
-      cyl(s, M.chrome, 0.02, 0.02, 0.62, 0, 0.32, 0, 8);
-      cyl(s, M.leather, 0.18, 0.17, 0.06, 0, 0.66, 0, 20);
-      solid(1.62, z - 0.18, 1.98, z + 0.18);
-      interact(s, { label: () => 'Sit at the kitchen island', act: () => ctx.sit({ eye: new THREE.Vector3(1.82, 1.32, z), yaw: -Math.PI / 2, pitch: -0.25 }) });
+    // A small island with two stools.
+    wbox(group, M.walnut, 2.4, 0, 3.95, 3.3, top - 0.04, 4.65);
+    wbox(group, M.marble, 2.3, top - 0.04, 3.9, 3.4, top, 4.7);
+    solid(2.3, 3.9, 3.4, 4.7);
+    for (const z of [4.05, 4.55]) {
+      const st = node(group, 1.95, 0, z);
+      cyl(st, M.black, 0.15, 0.17, 0.02, 0, 0.01, 0, 16);
+      cyl(st, M.chrome, 0.02, 0.02, 0.62, 0, 0.32, 0, 8);
+      cyl(st, M.leather, 0.18, 0.17, 0.06, 0, 0.66, 0, 20);
+      solid(1.77, z - 0.18, 2.13, z + 0.18);
+      interact(st, { label: () => 'Sit at the kitchen island', act: () => ctx.sit({ eye: new THREE.Vector3(1.97, 1.32, z), yaw: -Math.PI / 2, pitch: -0.25 }) });
     }
-    cyl(group, M.clay, 0.16, 0.12, 0.14, 2.8, top + 0.07, 2.8, 20);
-    for (const [fx, fz, c] of [[2.75, 2.78, 0xd9447a], [2.85, 2.84, 0x7cc243]]) sphere(group, std({ color: c, roughness: 0.5 }), 0.05, fx, top + 0.15, fz, 12);
-    for (const z of [2.3, 3.3]) {
-      cyl(group, M.black, 0.004, 0.004, 0.8, 2.78, H - 0.4, z, 6);
-      noShadow(cyl(group, std({ color: 0xf2c14e, emissive: 0xffc47a, emissiveIntensity: 0.7, roughness: 0.5, side: THREE.DoubleSide }), 0.06, 0.14, 0.16, 2.78, 1.95, z, 20, true));
-    }
+    cyl(group, M.clay, 0.16, 0.12, 0.14, 2.85, top + 0.07, 4.3, 20);
+    for (const [fx, fz, c] of [[2.8, 4.28, 0xd9447a], [2.9, 4.34, 0x7cc243]]) sphere(group, std({ color: c, roughness: 0.5 }), 0.05, fx, top + 0.15, fz, 12);
+    cyl(group, M.black, 0.004, 0.004, 0.8, 2.85, H - 0.4, 4.3, 6);
+    noShadow(cyl(group, std({ color: 0xf2c14e, emissive: 0xffc47a, emissiveIntensity: 0.7, roughness: 0.5, side: THREE.DoubleSide }), 0.06, 0.14, 0.16, 2.85, 1.95, 4.3, 20, true));
   }
 
   // ===================== HALLWAY =====================
@@ -973,56 +964,56 @@ export function buildRoom(ctx) {
     return d;
   }
   // Master bedroom (by the window).
-  bed(-10.6, -2.7, 2.0);
-  nightstand(-10.6, -4.06);
-  const ns2 = nightstand(-10.6, -1.34);
-  tableLamp(-10.34, 0.58, -4.1);
-  tableLamp(-10.34, 0.58, -1.38);
+  bed(-7.0, -2.7, 2.0);
+  nightstand(-7.0, -4.06);
+  const ns2 = nightstand(-7.0, -1.34);
+  tableLamp(-6.74, 0.58, -4.1);
+  tableLamp(-6.74, 0.58, -1.38);
   box(ns2, M.black, 0.1, 0.06, 0.06, 0.1, 0.61, 0.14);
   noShadow(box(ns2, std({ color: 0x000000, emissive: 0xff5040, emissiveIntensity: 1.2 }), 0.004, 0.025, 0.045, 0.151, 0.61, 0.14));
-  wallArt(M.sarape, -10.585, 2.05, -2.7, 1.3, 0.72, Math.PI / 2, 'Look at the weaving', 'A hand-woven sarape from Saltillo, hung like a painting.');
+  wallArt(M.sarape, -6.925, 2.05, -2.7, 1.3, 0.72, Math.PI / 2, 'Look at the weaving', 'A hand-woven sarape from Saltillo, hung like a painting.');
   {
-    const r2 = add(group, new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2.6), M.rug), -8.65, 0.004, -2.7);
+    const r2 = add(group, new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.6), M.rug), -5.0, 0.004, -2.7);
     r2.rotation.x = -Math.PI / 2;
     noShadow(r2);
-    const bench = node(group, -8.12, 0, -2.7);
+    const bench = node(group, -4.5, 0, -2.7);
     for (const [lx, lz] of [[-0.15, -0.6], [0.15, -0.6], [-0.15, 0.6], [0.15, 0.6]]) box(bench, M.walnut, 0.04, 0.4, 0.04, lx, 0.2, lz);
     box(bench, M.walnut, 0.38, 0.04, 1.36, 0, 0.4, 0);
     rbox(bench, M.leather, 0.38, 0.1, 1.36, 0.03, 0, 0.46, 0);
-    solid(-8.33, -3.4, -7.91, -2.0);
+    solid(-4.71, -3.4, -4.29, -2.0);
   }
   dresser(-3.45, -2.6);
   wallArt(M.poster, -3.215, 1.65, -2.6, 0.66, 0.86, -Math.PI / 2);
   add(group, new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.07, 0], [0.1, 0.06], [0.09, 0.16], [0.05, 0.24], [0.045, 0.3], [0.06, 0.32]].map(([x, y]) => new THREE.Vector2(x, y)), 24), M.clay), -3.45, 0.78, -3.2);
-  armchair(-4.5, -4.2, 0.9, M.teal);
-  floorLamp(-3.6, -4.65, false);
+  armchair(-3.85, -4.4, 0.6, M.teal);
+  floorLamp(-5.5, -4.7, false);
   // Curtains gathered either side of the bedroom window.
-  cyl(group, M.brass, 0.015, 0.015, 5.6, -7.0, 2.62, -4.88, 12).rotation.z = Math.PI / 2;
-  const bcL = add(group, new THREE.Mesh(curtainGeo, M.curtain), -9.8, 0.06, -4.86);
-  bcL.scale.set(0.55, 0.985, 2.4);
-  const bcR = add(group, new THREE.Mesh(curtainGeo, M.curtain), -4.2, 0.06, -4.86);
-  bcR.scale.set(-0.55, 0.985, 2.4);
+  cyl(group, M.brass, 0.015, 0.015, 3.2, -5.1, 2.62, -4.88, 12).rotation.z = Math.PI / 2;
+  const bcL = add(group, new THREE.Mesh(curtainGeo, M.curtain), -6.75, 0.06, -4.86);
+  bcL.scale.set(0.4, 0.985, 2.4);
+  const bcR = add(group, new THREE.Mesh(curtainGeo, M.curtain), -3.45, 0.06, -4.86);
+  bcR.scale.set(-0.4, 0.985, 2.4);
 
   // Second bedroom (off the south end of the hallway).
-  bed(-10.6, 7.0, 1.6);
-  nightstand(-10.6, 5.62);
-  tableLamp(-10.34, 0.58, 5.6);
-  wallArt(M.canvas, -10.585, 2.0, 7.0, 1.1, 0.64, Math.PI / 2, 'Look at the painting', 'Another view of the volcanoes. Someone at this hotel really loves Popocatépetl.');
+  bed(-7.0, 7.0, 1.6);
+  nightstand(-7.0, 5.62);
+  tableLamp(-6.74, 0.58, 5.6);
+  wallArt(M.canvas, -6.925, 2.0, 7.0, 1.1, 0.64, Math.PI / 2, 'Look at the painting', 'Another view of the volcanoes. Someone at this hotel really loves Popocatépetl.');
   {
-    const r1 = add(group, new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.2), M.rug), -8.0, 0.004, 7.0);
+    const r1 = add(group, new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.2), M.rug), -5.0, 0.004, 7.0);
     r1.rotation.x = -Math.PI / 2;
     noShadow(r1);
     // Desk against the south wall, with a chair and a lamp.
-    const desk = node(group, -6.0, 0, 8.72, -Math.PI / 2);
+    const desk = node(group, -5.6, 0, 8.72, -Math.PI / 2);
     box(desk, M.walnut, 0.56, 0.04, 1.2, 0, 0.74, 0);
     for (const [lx, lz] of [[-0.24, -0.56], [0.24, -0.56], [-0.24, 0.56], [0.24, 0.56]]) box(desk, M.black, 0.03, 0.72, 0.03, lx, 0.36, lz);
     box(desk, M.linen, 0.21, 0.01, 0.3, -0.05, 0.765, 0.18);
     cyl(desk, M.clay, 0.04, 0.035, 0.1, -0.12, 0.81, -0.1, 16);
-    solid(-6.6, 8.44, -5.4, 9.0);
-    const dc = chair(-6.0, 8.05, Math.PI, M.mustard);
-    solid(-6.22, 7.83, -5.78, 8.27);
-    interact(dc, { label: () => 'Sit at the desk', act: () => ctx.sit({ eye: new THREE.Vector3(-6.0, 1.18, 8.0), yaw: Math.PI, pitch: -0.3 }) });
-    const dl = node(group, -6.4, 0.76, 8.8);
+    solid(-6.2, 8.44, -5.0, 9.0);
+    const dc = chair(-5.6, 8.12, Math.PI, M.mustard);
+    solid(-5.82, 7.9, -5.38, 8.34);
+    interact(dc, { label: () => 'Sit at the desk', act: () => ctx.sit({ eye: new THREE.Vector3(-5.6, 1.18, 8.07), yaw: Math.PI, pitch: -0.3 }) });
+    const dl = node(group, -6.0, 0.76, 8.8);
     cyl(dl, M.brass, 0.08, 0.09, 0.02, 0, 0.01, 0, 20);
     cyl(dl, M.brass, 0.008, 0.008, 0.45, 0, 0.22, -0.05, 8).rotation.x = -0.25;
     const dMat = std({ color: 0x1f3d8c, emissive: 0xffc47a, emissiveIntensity: 0, roughness: 0.5, side: THREE.DoubleSide });
@@ -1030,7 +1021,7 @@ export function buildRoom(ctx) {
     const deskLamp = toggler((k) => (dMat.emissiveIntensity = 0.9 * k), 6, { dirty: false });
     interact(dl, { label: () => (deskLamp.on ? 'Switch off the desk lamp' : 'Switch on the desk lamp'), act: () => (deskLamp.on = !deskLamp.on) });
   }
-  wallArt(M.tile, -7.6, 1.7, 5.075, 0.8, 0.8, 0);
+  wallArt(M.tile, -5.6, 1.7, 5.075, 0.8, 0.8, 0);
   // A wardrobe on the east wall.
   {
     const x0 = -3.78;
@@ -1311,7 +1302,7 @@ export function buildRoom(ctx) {
     water: [
       { on: () => tap.on, pos: new THREE.Vector3(-7.0, 1, 2.38), gain: 0.4, range: 4 },
       { on: () => shower.on, pos: new THREE.Vector3(-10.15, 1.2, 3.8), gain: 1, range: 5 },
-      { on: () => api.kitchenTap.on, pos: new THREE.Vector3(4.7, 1, 3.6), gain: 0.4, range: 4 },
+      { on: () => api.kitchenTap.on, pos: new THREE.Vector3(4.7, 1, 4.3), gain: 0.4, range: 4 },
       { on: () => api.bathTub.on, pos: new THREE.Vector3(-10.2, 0.6, 0.0), gain: 0.7, range: 4.5 },
     ],
   };
