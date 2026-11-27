@@ -204,9 +204,12 @@ export function buildRoom(ctx) {
   // White casing around a doorway. along = 'x' (wall runs along x at z = c) or 'z'.
   function casing(along, c, a0, a1, top, depth = 0.16) {
     const g = (p0, p1, q0, q1, y0, y1) => (along === 'x' ? wbox(group, M.white, p0, y0, q0, p1, y1, q1) : wbox(group, M.white, q0, y0, p0, q1, y1, p1));
-    g(a0 - 0.06, a0, c - depth / 2, c + depth / 2, 0, top + 0.06);
-    g(a1, a1 + 0.06, c - depth / 2, c + depth / 2, 0, top + 0.06);
-    g(a0 - 0.06, a1 + 0.06, c - depth / 2, c + depth / 2, top, top + 0.06);
+    // The trim stands 3 mm proud of the opening's sides and top. If it lined
+    // up exactly with the wall's ends, the two surfaces would flicker.
+    const r = 0.003;
+    g(a0 - 0.06, a0 + r, c - depth / 2, c + depth / 2, 0, top + 0.06);
+    g(a1 - r, a1 + 0.06, c - depth / 2, c + depth / 2, 0, top + 0.06);
+    g(a0 - 0.06, a1 + 0.06, c - depth / 2, c + depth / 2, top - r, top + 0.06);
   }
   // An interior door on a hinge. `free` points along the wall from the hinge to
   // the latch, `into` is the side it swings into. Doors start open.
@@ -473,7 +476,9 @@ export function buildRoom(ctx) {
     curtainGeo.computeVertexNormals();
   }
   const curtainL = add(group, new THREE.Mesh(curtainGeo, M.curtain), -2.95, 0.06, -4.86);
-  const curtainR = add(group, new THREE.Mesh(curtainGeo, M.curtain), 0.95, 0.06, -4.86);
+  // The right panel hangs just behind the left one so the two never share a
+  // surface where they overlap when closed (that made them flicker).
+  const curtainR = add(group, new THREE.Mesh(curtainGeo, M.curtain), 0.95, 0.06, -4.905);
   const curtains = toggler((k) => {
     const w = 2.0 - 1.6 * k;
     curtainL.scale.set(w, 1, 1 + 1.6 * k);
@@ -1032,7 +1037,7 @@ export function buildRoom(ctx) {
       wbox(group, M.walnut, x0, 2.26, z0, x1, 2.3, z1),
       wbox(group, M.walnut, x0, 0, z0, x1, 2.3, z0 + 0.04),
       wbox(group, M.walnut, x0, 0, z1 - 0.04, x1, 2.3, z1),
-      wbox(group, M.oak, x1 - 0.03, 0.08, z0, x1, 2.26, z1),
+      wbox(group, M.oak, x1 - 0.03, 0.08, z0 + 0.04, x1, 2.26, z1 - 0.04), // back panel, fitted between the sides
     ];
     rbox(group, M.linen, 0.12, 1.0, 0.5, 0.05, -3.5, 1.3, 7.3);
     rbox(group, M.teal, 0.1, 0.75, 0.48, 0.04, -3.5, 1.45, 7.9);
