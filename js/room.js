@@ -1,4 +1,4 @@
-// Hotel Jacaranda, suite 602, on the sixth floor above Paseo de la Reforma.
+// Air BnB, suite 602, on the sixth floor above Paseo de la Reforma.
 // Everything here is in meters; north (-z) faces the avenue.
 //
 // Floor plan (looking down):

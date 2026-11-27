@@ -209,11 +209,11 @@ arenaWorld.group.traverse((o) => {
 
 const hotel = {
   id: 'hotel',
-  title: 'Hotel Jacaranda',
+  title: 'Air BnB',
   sub: 'Suite 602 · Sixth floor · Paseo de la Reforma',
   chip: 'Suite 602',
   tasksTitle: 'Settle in',
-  goLabel: 'Back to hotel',
+  goLabel: 'Back to Air BnB',
   tasks: HOTEL_TASKS,
   done: new Set(),
   root: room.group,
@@ -1002,7 +1002,7 @@ function begin() {
   lock();
   if (!state.welcomed) {
     state.welcomed = true;
-    setTimeout(() => toast('Welcome to Hotel Jacaranda! Let some light in — open the curtains.'), 600);
+    setTimeout(() => toast('Welcome to Air BnB! Let some light in — open the curtains.'), 600);
   }
 }
 function pause() {
@@ -1027,7 +1027,7 @@ const DONE_TEXT = {
   hotel: {
     eyebrow: 'All settled in',
     title: '¡Bienvenidos a la Ciudad de México!',
-    lede: 'You’ve unpacked, seen the view, and watched the city light up. Enjoy your stay at Hotel Jacaranda.',
+    lede: 'You’ve unpacked, seen the view, and watched the city light up. Enjoy your stay at Air BnB.',
   },
   arena: {
     eyebrow: '¡Lu-cha! ¡Lu-cha!',

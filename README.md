@@ -1,7 +1,7 @@
-# Mexico City Simulation — Hotel Jacaranda
+# Mexico City Simulation — Air BnB
 
 A 3D first-person game in the browser. You've just checked into suite 602 on the sixth floor of
-the (fictional) Hotel Jacaranda, overlooking Paseo de la Reforma in
+the (fictional) Air BnB, overlooking Paseo de la Reforma in
 Mexico City. Explore the suite, open things up, step out onto the balcony,
 and watch the city light up at night.
 
