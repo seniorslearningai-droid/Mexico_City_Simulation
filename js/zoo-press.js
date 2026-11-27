@@ -69,6 +69,7 @@ export function buildZooPress(parent, ctx, coins, cabinetColor = 0x155572) {
   interact([slot, slit], () => inserted === 2 ? 'Coins in · turn the crank' : `Insert a coin (${inserted}/2)`, () => {
     if (ready) return ctx.toast('Take your coin from the tray first.');
     if (inserted === 2) return ctx.toast('Both coins are in. Turn the crank!');
+    if (ctx.pay && !ctx.pay()) return ctx.toast('You need $5 peso coins for this machine (2 per coin). Look for shiny coins lying around the zoo, the shops and Arena México!', 5200);
     inserted++;
     ctx.sound.coinIn();
   });

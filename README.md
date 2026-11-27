@@ -214,6 +214,14 @@ The route is condensed for the game. The models and labels draw on the
 [Museo Nacional de Historia’s Alcázar guide](https://mnh.inah.gob.mx/salas-del-alcazar)
 and [the museum’s floor plan](https://lugares.inah.gob.mx/images/museos/planos/72_historia_chapultepec.pdf).
 
+## Pesos
+
+Shiny $5 peso coins lie around Arena México, the aviary trail, the panda
+exhibit, the coastal zone, and the axolotl plaza (never in the hotel), with extra ones near the
+shops and all over the arena. Walk over one to pick it up; a coin counter
+appears next to the backpack. The souvenir coin presses take **2 coins per
+pressed coin**.
+
 ## Your backpack
 
 The backpack button in the top right corner (or `B`) opens your souvenirs
@@ -239,6 +247,7 @@ counts them, and the button bounces whenever you pick something up.
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
 | `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |
+| `js/pesos.js` | Loose $5 peso coins to pick up, and the wallet they go into |
 | `js/pandas.js` | Chapultepec Zoo panda exhibit: terrace, yard, Xin Xin and her daily routine, family tree, coin machine, and the flamingo lagoon next door |
 | `js/coastal.js` | Chapultepec Zoo coastal pools and animals |
 | `js/axolotls.js` | Indoor axolotl tanks and outdoor plaza |
