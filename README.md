@@ -238,14 +238,20 @@ map board by the entrance shows where everything is. 22 enclosures line the
 paths, each with a sign (Spanish name, English name, scientific name and a
 fact):
 
-- **Cats** — jaguar, black jaguar, ocelot, margay (tigrillo), leopard and two
-  lions. The big cats pace along their glass; the lion roars now and then.
+- **Cats** — jaguar, black jaguar, ocelot, margay (tigrillo), leopard and the
+  main attraction: a pride of three lions in a huge enclosure (26 × 23 m) with
+  a boulder kopje, shade trees and a waterhole behind a long glass front. The
+  big cats pace along their glass; the lion roars now and then.
 - **Monkeys** — spider monkeys swinging on ropes, siamangs that hoot, ring-tailed
   lemurs, white-faced, white-throated and tufted capuchins, stump-tailed
   macaques, cotton-top tamarins and patas monkeys.
 - **Others** — golden agoutis, red brocket deer (temazate), a crocodile that
   basks and swims, spotted hyenas, a spectacled bear, a sloth hanging in its
   tree, and a dim bat house you can peek into.
+
+The enclosures are open-top fences (mesh panels on posts, nothing overhead).
+Animals walk around rocks, tree trunks, logs and water and never through a
+fence; the crocodile basks on the sand and swims laps that keep it in its pond.
 
 It has its own ten-item jungle-explorer checklist.
 

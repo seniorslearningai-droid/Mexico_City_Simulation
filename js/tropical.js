@@ -48,7 +48,7 @@ const EXHIBITS = [
   { key: 'bear', es: 'Oso de antifaz', en: 'Spectacled bear', sci: 'Tremarctos ornatus', emoji: '🐻', at: [35, 4.5], w: 10, d: 10, side: 'w', type: 'glass', fact: 'The spectacled bear is the only bear in South America. Each one has its own pattern of pale “glasses” on its face.' },
   { key: 'patas', es: 'Mono patas', en: 'Patas monkeys', sci: 'Erythrocebus patas', emoji: '🐒', at: [17.5, 25], w: 9, d: 8, side: 'n', type: 'yardTall', fact: 'Patas monkeys are the fastest primates on the ground: they can run at about 55 km/h.' },
   { key: 'leopard', es: 'Leopardo', en: 'Leopard', sci: 'Panthera pardus', emoji: '🐆', at: [8, 26.5], w: 9, d: 9, side: 'n', type: 'glass', fact: 'Leopards are so strong they can drag their food up into a tree to keep it safe.' },
-  { key: 'lion', es: 'León', en: 'Lion', sci: 'Panthera leo', emoji: '🦁', at: [-9, 27.3], w: 12, d: 10, side: 'n', type: 'glass', fact: 'A lion’s roar can be heard up to 8 km away. Lions are the only cats that live in groups, called prides.' },
+  { key: 'lion', es: 'León', en: 'Lion', sci: 'Panthera leo', emoji: '🦁', at: [-15.3, 33.8], w: 26, d: 23, side: 'n', type: 'glass', big: true, fact: 'A lion’s roar can be heard up to 8 km away. Lions are the only cats that live in groups, called prides.' },
   { key: 'temazate', es: 'Temazate', en: 'Red brocket deer', sci: 'Mazama temama', emoji: '🦌', at: [-18, -9], w: 8, d: 7, side: 's', type: 'yard', fact: 'The temazate is a small deer from Mexico’s tropical forests. The males have short, spiky antlers.' },
   { key: 'throat', es: 'Capuchino de garganta blanca', en: 'White-throated capuchin', sci: 'Cebus capucinus', emoji: '🐒', at: [-5, -9], w: 8, d: 8, side: 's', type: 'cage', fact: 'Capuchins are clever: some use stones as tools to crack open hard nuts.' },
   { key: 'tufted', es: 'Capuchino de cuernos', en: 'Tufted capuchin', sci: 'Sapajus apella', emoji: '🐒', at: [6, -10], w: 8, d: 8, side: 's', type: 'cage', fact: 'Tufted capuchins are named for the two tufts of fur on their heads that look like little horns.' },
@@ -321,7 +321,7 @@ export function buildTropical(ctx) {
   const sun = new THREE.DirectionalLight(0xfff0d8, 2.8);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 30, far: 240 });
+  Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 30, far: 240 });
   sun.shadow.bias = -0.0006;
   sun.shadow.normalBias = 0.05;
   sun.shadow.autoUpdate = false;
@@ -485,7 +485,11 @@ export function buildTropical(ctx) {
         const b = a.bounds;
         // Big cats like to pace along the glass.
         const front = a.pacer && rand() < 0.5;
-        a.target.set(lerp(b.x0, b.x1, rand()), 0, front ? b.z1 - 0.3 : lerp(b.z0, b.z1, rand()));
+        const m = 0.7 * a.size;
+        for (let i = 0; i < 16; i++) {
+          a.target.set(lerp(b.x0 + m, b.x1 - m, rand()), 0, front ? b.z1 - m : lerp(b.z0 + m, b.z1 - m, rand()));
+          if (!blockedAt(a.ex, a.target.x, a.target.z, 0.8 * a.size)) break;
+        }
       }
     }
     let speed = 0;
@@ -502,6 +506,16 @@ export function buildTropical(ctx) {
         a.pos.z += Math.cos(a.heading) * speed * dt;
       }
     }
+    resolveQuad(a);
+    // Stuck against something for a while: pick somewhere else to go.
+    if (!a.last) a.last = a.pos.clone();
+    const moved = a.last.distanceTo(a.pos);
+    a.stuck = speed > 0.05 && moved < speed * dt * 0.3 ? (a.stuck || 0) + dt : Math.max(0, (a.stuck || 0) - dt);
+    if (a.stuck > 1.5) {
+      a.stuck = 0;
+      a.until = t;
+    }
+    a.last.copy(a.pos);
     const m = a.m;
     a.lie = damp(a.lie, a.mode === 'lie' ? 1 : 0, 3, dt);
     a.walk = damp(a.walk, speed > 0.02 ? 1 : 0, 6, dt);
@@ -585,6 +599,35 @@ export function buildTropical(ctx) {
 
   // ---------- exhibits ----------
   const exhibits = [];
+  function blockedAt(ex, x, z, pad) {
+    return ex.obstacles.some((o) => Math.hypot(x - o.x, z - o.z) < o.r + pad);
+  }
+  // Keep a four-legged animal out of rocks, trunks, logs and water, and inside
+  // its fence: its middle and its nose are both checked.
+  function resolveQuad(a) {
+    const s = a.size;
+    const b = a.bounds;
+    for (let it = 0; it < 3; it++) {
+      for (const [off, pr] of [[0, 0.42 * s], [0.62 * s, 0.26 * s], [-0.55 * s, 0.26 * s]]) {
+        const px = a.pos.x + Math.sin(a.heading) * off;
+        const pz = a.pos.z + Math.cos(a.heading) * off;
+        for (const o of a.ex.obstacles) {
+          const dx = px - o.x;
+          const dz = pz - o.z;
+          const d = Math.hypot(dx, dz);
+          const min = o.r + pr;
+          if (d < min) {
+            const k = d > 1e-4 ? (min - d) / d : 0;
+            a.pos.x += dx * k + (d > 1e-4 ? 0 : 0.01);
+            a.pos.z += dz * k;
+          }
+        }
+        // The fence: nose, middle and rump all stay inside.
+        a.pos.x += clamp(px, b.x0 + pr, b.x1 - pr) - px;
+        a.pos.z += clamp(pz, b.z0 + pr, b.z1 - pr) - pz;
+      }
+    }
+  }
   const signTex = (e) => T.zooSign(e.es.toUpperCase().length > 16 ? e.es.toUpperCase().replace(' DE ', ' ') : e.es.toUpperCase(), `${e.en} · ${e.sci}`, e.emoji, { head: '#2f6a3a', ink: '#1f3a1f', sky: ['#dff0d0', '#f4f0d8'] });
   function signPost(parent, x, z, e) {
     const sg = node(parent, x, 0, z);
@@ -611,14 +654,16 @@ export function buildTropical(ctx) {
     noRay(m);
     return m;
   }
-  function frame(parent, w, d, h, step = 2) {
+  function frame(parent, w, d, h, step = 2, rails = false) {
     const posts = [];
     const pts = [];
     for (let x = -w / 2; x <= w / 2 + 0.01; x += w / Math.max(1, Math.round(w / step))) pts.push([x, d / 2], [x, -d / 2]);
     for (let z = -d / 2; z <= d / 2 + 0.01; z += d / Math.max(1, Math.round(d / step))) pts.push([-w / 2, z], [w / 2, z]);
     for (const [x, z] of pts) posts.push(new THREE.BoxGeometry(0.1, h, 0.1).translate(x, h / 2, z));
-    for (const z of [-d / 2, d / 2]) posts.push(new THREE.BoxGeometry(w, 0.08, 0.08).translate(0, h, z));
-    for (const x of [-w / 2, w / 2]) posts.push(new THREE.BoxGeometry(0.08, 0.08, d).translate(x, h, 0));
+    if (rails) {
+      for (const z of [-d / 2, d / 2]) posts.push(new THREE.BoxGeometry(w, 0.08, 0.08).translate(0, h, z));
+      for (const x of [-w / 2, w / 2]) posts.push(new THREE.BoxGeometry(0.08, 0.08, d).translate(x, h, 0));
+    }
     const m = add(parent, new THREE.Mesh(mergeGeometries(posts), M.iron));
     cast(m);
     return m;
@@ -631,13 +676,22 @@ export function buildTropical(ctx) {
     const c0 = toWorld(-w / 2, -d / 2);
     const c1 = toWorld(w / 2, d / 2);
     colliders.push({ x0: Math.min(c0.x, c1.x), x1: Math.max(c0.x, c1.x), z0: Math.min(c0.z, c1.z), z1: Math.max(c0.z, c1.z), off: false });
-    const ex = { e, g, toWorld, visit: toWorld(0, d / 2 + 1.6), visited: false, perches: [], ropes: [], animals: [] };
+    const ex = { e, g, toWorld, visit: toWorld(0, d / 2 + 1.6), visited: false, perches: [], ropes: [], animals: [], obstacles: [] };
+    // Everything solid inside the enclosure, in the enclosure's own coordinates.
+    const solidRocks = (list) => {
+      rocks(g, list);
+      for (const [x, z, r] of list) ex.obstacles.push({ x, z, r: r * 1.25 });
+    };
+    const tree = (x, z, h, sc) => {
+      ex.obstacles.push({ x, z, r: 0.3 * sc });
+      return jungleTree(g, x, z, h, sc);
+    };
     exhibits.push(ex);
     const inside = flat(g, e.type === 'pool' ? M.sand : e.type === 'house' ? M.batRoom : M.grass, new THREE.PlaneGeometry(w - 0.1, d - 0.1), 0, 0.015, 0);
     inside.receiveShadow = true;
     if (e.type !== 'house') flat(g, M.dirt, new THREE.CircleGeometry(1, 20).scale(w * 0.3, d * 0.25, 1), -w * 0.1, 0.02, -d * 0.1);
     signPost(g, -w / 2 + 0.8, d / 2 + 0.45, e);
-    const tall = e.type === 'cage' ? 5 : e.type === 'glass' ? 3.4 : e.type === 'yardTall' ? 3 : 2.2;
+    const tall = e.type === 'cage' ? 4.5 : e.type === 'glass' ? 3.4 : e.type === 'yardTall' ? 3 : 2.2;
 
     if (e.type === 'glass' || e.type === 'pool') {
       // Low stone wall with glass on top along the front; mesh fence round the rest.
@@ -648,14 +702,18 @@ export function buildTropical(ctx) {
       box(g, M.iron, w, 0.06, 0.08, 0, fh + 1.5, d / 2);
       for (const [x0, z0, x1, z1] of [[w / 2, d / 2, w / 2, -d / 2], [w / 2, -d / 2, -w / 2, -d / 2], [-w / 2, -d / 2, -w / 2, d / 2]]) meshWall(g, x0, z0, x1, z1, 0, tall);
       frame(g, w, d, tall);
-      rocks(g, [[w * 0.3, -d * 0.3, 0.9], [-w * 0.32, -d * 0.25, 0.7], [w * 0.15, d * 0.15, 0.5]]);
+      if (e.type === 'pool') {
+        // Rocks only in the corners, well clear of the crocodile's water and bank.
+        solidRocks([[w * 0.38, -d * 0.4, 0.6], [-w * 0.38, -d * 0.4, 0.55], [-w * 0.37, d * 0.3, 0.5]]);
+      } else if (e.big) {
+        // The lions' kopje: a big pile of boulders at the back, plus a few more.
+        solidRocks([[-w * 0.26, -d * 0.3, 2.2], [-w * 0.26 + 2.6, -d * 0.3 - 0.9, 1.6], [-w * 0.26 - 2.3, -d * 0.3 + 1.1, 1.3], [w * 0.32, -d * 0.32, 1.4], [w * 0.05, d * 0.22, 0.8]]);
+      } else {
+        solidRocks([[w * 0.3, -d * 0.3, 0.9], [-w * 0.32, -d * 0.25, 0.7], [w * 0.15, d * 0.15, 0.5]]);
+      }
     } else if (e.type === 'cage' || e.type === 'yardTall') {
       for (const [x0, z0, x1, z1] of [[-w / 2, d / 2, w / 2, d / 2], [w / 2, d / 2, w / 2, -d / 2], [w / 2, -d / 2, -w / 2, -d / 2], [-w / 2, -d / 2, -w / 2, d / 2]]) meshWall(g, x0, z0, x1, z1, 0, tall);
-      if (e.type === 'cage') {
-        const roof = add(g, new THREE.Mesh(new THREE.PlaneGeometry(w, d), meshMat), 0, tall, 0);
-        roof.rotation.x = -Math.PI / 2;
-        noRay(roof);
-      }
+      // Open-top fences: mesh panels on posts and nothing overhead.
       frame(g, w, d, tall);
       box(g, M.stone, w, 0.3, 0.12, 0, 0.15, d / 2);
     } else if (e.type === 'yard') {
@@ -665,7 +723,7 @@ export function buildTropical(ctx) {
       cast(add(g, new THREE.Mesh(mergeGeometries(rails), M.wood)));
       for (const [x0, z0, x1, z1] of [[w / 2, d / 2, w / 2, -d / 2], [w / 2, -d / 2, -w / 2, -d / 2], [-w / 2, -d / 2, -w / 2, d / 2]]) meshWall(g, x0, z0, x1, z1, 0, tall);
       frame(g, w, d, tall, 3);
-      rocks(g, [[w * 0.3, -d * 0.3, 0.5]]);
+      solidRocks([[w * 0.3, -d * 0.3, 0.5]]);
     } else if (e.type === 'house') {
       // A dark little house with a big window, dimly lit red for the bats.
       const H = 3.2;
@@ -694,18 +752,25 @@ export function buildTropical(ctx) {
 
     // Trees, platforms and ropes for the climbers.
     const bounds = { x0: -w / 2 + 0.8, x1: w / 2 - 0.8, z0: -d / 2 + 0.8, z1: d / 2 - 0.8 };
+    ex.bounds = bounds;
     if (e.type === 'cage' || e.type === 'yardTall') {
       const trH = e.type === 'cage' ? 4.2 : 2.8;
-      const tl = jungleTree(g, -w * 0.25, -d * 0.2, trH, e.type === 'cage' ? 1 : 0.8);
-      const tr = jungleTree(g, w * 0.28, -d * 0.1, trH * 0.85, 0.85);
+      const tl = tree(-w * 0.25, -d * 0.2, trH, e.type === 'cage' ? 1 : 0.8);
+      const tr = tree(w * 0.28, -d * 0.1, trH * 0.85, 0.85);
       const local = (v) => v.clone().sub(new THREE.Vector3(e.at[0], 0, e.at[1])).applyAxisAngle(Y, -yaw);
       ex.perches.push(...tl.map(local), ...tr.map(local));
       for (const [px, pz, ph] of [[0, -d * 0.3, 1.6], [w * 0.15, d * 0.15, 0.9]]) {
+        ex.obstacles.push({ x: px, z: pz, r: 0.7 });
         cast(box(g, M.wood, 1.0, 0.08, 0.8, px, ph, pz));
         for (const sx of [-0.4, 0.4]) cyl(g, M.darkWood, 0.04, 0.04, ph, px + sx, ph / 2, pz, 6);
         ex.perches.push(new THREE.Vector3(px - 0.2, ph + 0.04, pz), new THREE.Vector3(px + 0.25, ph + 0.04, pz));
       }
-      for (let i = 0; i < 3; i++) ex.perches.push(new THREE.Vector3(lerp(bounds.x0, bounds.x1, rand()), 0, lerp(bounds.z0, bounds.z1, rand())));
+      for (let i = 0, n = 0; i < 40 && n < 3; i++) {
+        const v = new THREE.Vector3(lerp(bounds.x0, bounds.x1, rand()), 0, lerp(bounds.z0, bounds.z1, rand()));
+        if (blockedAt(ex, v.x, v.z, 0.5)) continue;
+        ex.perches.push(v);
+        n++;
+      }
       if (e.type === 'cage') {
         const a = new THREE.Vector3(-w * 0.25, 3.2, -d * 0.2);
         const b = new THREE.Vector3(w * 0.28, 2.9, -d * 0.1);
@@ -718,12 +783,30 @@ export function buildTropical(ctx) {
         }
       }
     } else if (e.type !== 'house') {
-      jungleTree(g, -w * 0.32, -d * 0.32, 4.5, 1);
+      // The crocodile's tree stands on the open side, out of reach of its tail.
+      if (e.type === 'pool') tree(w * 0.38, d * 0.05, 4.5, 1);
+      else tree(-w * 0.32, -d * 0.32, 4.5, 1);
       if (e.type === 'glass') {
         // A log platform for the cats.
-        const lg = cyl(g, M.bark, 0.25, 0.28, w * 0.4, w * 0.18, 0.5, -d * 0.15, 10);
+        const len = Math.min(w * 0.4, 4);
+        const lx = e.big ? w * 0.1 : w * 0.18;
+        const lg = cyl(g, M.bark, 0.25, 0.28, len, lx, 0.5, -d * 0.15, 10);
         lg.rotation.z = Math.PI / 2;
         cast(lg);
+        for (let k = 0; k <= 4; k++) ex.obstacles.push({ x: lx - len / 2 + (len * k) / 4, z: -d * 0.15, r: 0.45 });
+      }
+      if (e.big) {
+        // More shade trees and a waterhole for the pride.
+        tree(w * 0.36, -d * 0.05, 5.5, 1.2);
+        tree(-w * 0.05, -d * 0.36, 5, 1.1);
+        tree(-w * 0.4, d * 0.15, 4.5, 1);
+        const wx = w * 0.24;
+        const wz = d * 0.2;
+        flat(g, std({ map: T.gravel(), color: 0x7a6a50, roughness: 1 }), new THREE.CircleGeometry(1, 32).scale(2.9, 1.9, 1), wx, 0.02, wz);
+        flat(g, waterMat, new THREE.CircleGeometry(1, 32).scale(2.6, 1.6, 1), wx, 0.04, wz);
+        for (const dx of [-1.4, 0, 1.4]) ex.obstacles.push({ x: wx + dx, z: wz, r: 1.5 });
+        // Long grass in patches.
+        for (const [gx, gz, gs] of [[w * 0.05, d * 0.32, 2.6], [-w * 0.3, d * 0.05, 3], [w * 0.38, d * 0.32, 2]]) flat(g, M.dirt, new THREE.CircleGeometry(1, 18).scale(gs, gs * 0.6, 1), gx, 0.018, gz);
       }
     }
     ex.bounds = bounds;
@@ -733,7 +816,7 @@ export function buildTropical(ctx) {
 
   // ---------- put the animals in ----------
   const exhibitOf = (key) => exhibits.find((x) => x.e.key === key);
-  const COUNTS = { jaguar: 1, blackjag: 1, ocelot: 1, margay: 1, leopard: 1, lion: 2, hyena: 2, bear: 1, temazate: 2, agouti: 3, spider: 3, siamang: 2, lemur: 4, throat: 3, tufted: 3, whiteface: 3, macaque: 3, tamarin: 4, patas: 3 };
+  const COUNTS = { jaguar: 1, blackjag: 1, ocelot: 1, margay: 1, leopard: 1, lion: 3, hyena: 2, bear: 1, temazate: 2, agouti: 3, spider: 3, siamang: 2, lemur: 4, throat: 3, tufted: 3, whiteface: 3, macaque: 3, tamarin: 4, patas: 3 };
   for (const [key, n] of Object.entries(COUNTS)) {
     const ex = exhibitOf(key);
     for (let i = 0; i < n; i++) {
@@ -744,7 +827,12 @@ export function buildTropical(ctx) {
         m.root.userData.animal = key;
         bakeAnimal(m.root);
         ex.g.add(m.root);
-        const a = { kind: 'quad', m, ex, bounds: b, pos: new THREE.Vector3(lerp(b.x0, b.x1, rand()), 0, lerp(b.z0, b.z1, rand())), target: new THREE.Vector3(), heading: rand() * 6, mode: 'look', until: rand() * 6, lie: 0, walk: 0, phase: rand() * 6, speed: 0.6 * (o.size || 1), pacer: ['jaguar', 'blackjag', 'leopard', 'lion', 'ocelot'].includes(key) };
+        const start = new THREE.Vector3();
+        for (let k = 0; k < 30; k++) {
+          start.set(lerp(b.x0 + 1, b.x1 - 1, rand()), 0, lerp(b.z0 + 1, b.z1 - 1, rand()));
+          if (!blockedAt(ex, start.x, start.z, (o.size || 1) * 0.9)) break;
+        }
+        const a = { kind: 'quad', m, ex, bounds: b, size: o.size || 1, pos: start, target: new THREE.Vector3(), heading: rand() * 6, mode: 'look', until: rand() * 6, lie: 0, walk: 0, phase: rand() * 6, speed: 0.6 * (o.size || 1), pacer: ['jaguar', 'blackjag', 'leopard', 'lion', 'ocelot'].includes(key) };
         animals.push(a);
         ex.animals.push(a);
       } else {
@@ -799,28 +887,56 @@ export function buildTropical(ctx) {
       leg.rotation.z = sx * 1.1;
     }
     root.traverse((c) => (c.userData.animal = 'croc'));
-    const bank = new THREE.Vector3(w * 0.25, 0.02, d * 0.3);
-    const swim = new THREE.Vector3(-w * 0.1, -0.12, -d * 0.12);
-    return { ex, root, body, head, jaw, tailSegs, bank, swim, pos: bank.clone(), heading: -0.6, mode: 'bask', until: 15, t0: 0 };
+    // It basks on the sand between the pond and the glass, snout towards the
+    // water, then slides in and swims slow laps round an oval that keeps its
+    // whole body (snout to tail tip) in the water and clear of rocks and fence.
+    const bank = new THREE.Vector3(w * 0.11, 0.02, d * 0.21);
+    const lap = { x: 0, z: -d * 0.13, rx: w * 0.2, rz: d * 0.15 };
+    const entry = new THREE.Vector3(lap.x, -0.12, lap.z + lap.rz); // the oval's glass-side end (ang = 0)
+    return { ex, root, body, head, jaw, tailSegs, bank, lap, entry, pos: bank.clone(), heading: Math.PI, mode: 'bask', until: 15, t0: 0, ang: 0, from: new THREE.Vector3(), fromYaw: 0 };
   })();
+  // Walk (or swim) from one pose to another: turn to face the way, go, then
+  // turn to the final heading.
+  function crocMove(c, t, to, toYaw, dur) {
+    const u = Math.min(1, (t - c.t0) / dur);
+    const go = Math.atan2(to.x - c.from.x, to.z - c.from.z);
+    if (u < 0.2) c.heading = c.fromYaw + wrapAngle(go - c.fromYaw) * (u / 0.2);
+    else if (u < 0.8) {
+      c.heading = go;
+      c.pos.lerpVectors(c.from, to, (u - 0.2) / 0.6);
+    } else c.heading = go + wrapAngle(toYaw - go) * ((u - 0.8) / 0.2);
+    return u >= 1;
+  }
   function updateCroc(dt, t) {
     const c = croc;
-    if (t > c.until) {
-      c.mode = c.mode === 'bask' ? 'in' : c.mode === 'swim' ? 'out' : c.mode;
+    const L = c.lap;
+    const start = (mode) => {
+      c.from.copy(c.pos);
+      c.fromYaw = c.heading;
       c.t0 = t;
-      c.until = t + 1e9;
-    }
-    if (c.mode === 'in' || c.mode === 'out') {
-      const u = Math.min(1, (t - c.t0) / 4);
-      const [a, b] = c.mode === 'in' ? [c.bank, c.swim] : [c.swim, c.bank];
-      c.pos.lerpVectors(a, b, u);
-      c.heading = Math.atan2(b.x - a.x, b.z - a.z);
-      if (u >= 1) {
-        c.mode = c.mode === 'in' ? 'swim' : 'bask';
-        c.until = t + 15 + rand() * 15;
+      c.mode = mode;
+    };
+    if (c.mode === 'bask' && t > c.until) start('in');
+    if (c.mode === 'in') {
+      // Into the water at the glass-side end of the oval, facing along the lap.
+      if (crocMove(c, t, c.entry, Math.PI / 2, 7)) {
+        c.mode = 'swim';
+        c.ang = 0;
+        c.until = t + 20 + rand() * 20;
+      }
+    } else if (c.mode === 'swim') {
+      c.ang += dt * 0.12;
+      c.pos.set(L.x + Math.sin(c.ang) * L.rx, -0.12, L.z + Math.cos(c.ang) * L.rz);
+      // Facing along the oval (the direction it is moving).
+      c.heading = Math.atan2(Math.cos(c.ang) * L.rx, -Math.sin(c.ang) * L.rz);
+      // Climb out again from the same end of the oval it went in.
+      if (t > c.until && Math.cos(c.ang) > 0.995) start('out');
+    } else if (c.mode === 'out') {
+      if (crocMove(c, t, c.bank, Math.PI, 7)) {
+        c.mode = 'bask';
+        c.until = t + 20 + rand() * 15;
       }
     }
-    if (c.mode === 'swim') c.heading += dt * 0.05;
     c.jaw.rotation.x = c.mode === 'bask' ? Math.max(0, Math.sin(t * 0.25)) * 0.6 : 0;
     c.tailSegs.forEach((s, i) => (s.rotation.y = Math.sin(t * (c.mode === 'bask' ? 0.3 : 2) + i) * (c.mode === 'bask' ? 0.05 : 0.25)));
     c.root.position.copy(c.pos);
