@@ -64,11 +64,12 @@ the `main` branch and the root folder.
 
 Suite 602 is a whole apartment. Walk in through the front door and:
 
-- **Kitchen** (on your right, a cosy galley) — teal cabinets and talavera tiles, a fridge
-  that opens, a stove whose burners glow, a sink, a coffee machine (make a
-  café de olla), and a small island with two stools.
-- **Dining room** (straight ahead) — opens directly onto the kitchen, with a round
-  table, four chairs, a pendant lamp and a sideboard.
+- **Kitchen** (right beside the front door, on your right) — a compact
+  L-shaped kitchen that reaches no further east than the living room: teal
+  cabinets and talavera tiles, a fridge that opens, a stove whose burners
+  glow, a sink, and a coffee machine by the door (make a café de olla).
+- **Dining room** (straight ahead, through the arch) — a round table, four
+  chairs, a pendant lamp and a sideboard.
 - **Living room** (beyond the dining room) — a big three-seat couch facing a
   TV with a little local channel, an armchair, a coffee table, a painting of
   the volcanoes and the sliding door to the **balcony**. Below:
