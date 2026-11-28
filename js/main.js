@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildRoom, SUITE_SPAWN } from './room.js';
+import { buildAtrium } from './atrium.js';
 import { buildWorld } from './city.js';
 import { buildArena, ARENA_SPAWN } from './arena.js';
 import { buildAviary, AVIARY_SPAWN, BIRDS } from './aviary.js';
@@ -34,6 +35,7 @@ const HOTEL_TASKS = [
   ['closet', 'Find the bathroom inside the closet'],
   ['sink', 'Wash your hands'],
   ['lock', 'Lock the front door'],
+  ['lobby', 'Ride down to the lobby and rest on a couch'],
   ['night', 'See the city at night'],
 ];
 const ARENA_TASKS = [
@@ -192,6 +194,23 @@ room.group.traverse((o) => {
 room.mirror.castShadow = false;
 room.mirror.receiveShadow = false;
 
+// The open-air atrium outside the front door: galleries round a well that
+// goes down to the lobby and up to the sky.
+async function fadeThrough(title, sub, mid) {
+  state.traveling = true;
+  $('#fade .place').textContent = title;
+  $('#fade .sub').textContent = sub;
+  fadeEl.classList.add('show');
+  await wait(650);
+  mid();
+  await wait(450);
+  fadeEl.classList.remove('show');
+  state.traveling = false;
+}
+const atrium = buildAtrium({ toast, complete, sound, sit: (seat) => player.sit(seat), player: () => player, fade: (t, s, mid) => fadeThrough(t, s, mid) });
+room.group.add(atrium.group);
+room.colliders.push(...atrium.colliders);
+
 const arenaWorld = buildArena({
   toast,
   complete,
@@ -220,7 +239,7 @@ const hotel = {
   done: new Set(),
   root: room.group,
   colliders: room.colliders,
-  floorAt: () => 0,
+  floorAt: (x, z) => atrium.floorAt(x, z),
   spawn: SUITE_SPAWN,
   saved: null,
   enter() {
@@ -698,6 +717,7 @@ loc = hotel;
 arenaWorld.group.visible = false;
 
 player = new Player(camera, room.colliders);
+player.floorAt = hotel.floorAt; // the hotel has two levels: your floor and the lobby
 player.place(hotel.spawn);
 
 // ---------- avatar (only seen in the bathroom mirror, layer 1) ----------
@@ -815,7 +835,24 @@ paintMask();
 
 // ---------- the backpack: souvenirs from every place ----------
 const COIN_DESIGNS = 2 + COASTAL_COINS.length + AXOLOTL_COINS.length;
-const bag = { masks: [], coins: new Map(), plush: 0, photos: [], toys: new Map(), hinted: false, open: false };
+const bag = { masks: [], coins: new Map(), plush: 0, photos: [], toys: new Map(), key: true, hinted: false, open: false };
+// The key card to Suite 602, drawn once for the backpack.
+const keyIcon = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#d9447a';
+  g.beginPath();
+  g.roundRect(14, 30, 100, 68, 10);
+  g.fill();
+  g.fillStyle = '#f2c14e';
+  g.fillRect(14, 44, 100, 12);
+  g.fillStyle = '#fff';
+  g.font = 'bold 28px Georgia, serif';
+  g.textAlign = 'center';
+  g.fillText('602', 64, 88);
+  return c.toDataURL();
+})();
 const bagIcons = {};
 function maskIcon(d) {
   if (!bagIcons['mask' + d]) bagIcons['mask' + d] = maskFace(d).image.toDataURL();
@@ -881,6 +918,7 @@ function renderBag() {
     : empty('Buy traditional toys at the stalls by the Bandera Monumental.');
   $('#bagTotal').textContent = bagCount() === 1 ? '1 souvenir' : `${bagCount()} souvenirs`;
   $('#bagBody').innerHTML =
+    sec('Llave · Room key', 1, `<div class="bag-grid"><div class="bag-item"><img src="${keyIcon}" alt="Suite 602 key card"><span>Suite 602 key</span></div></div><p class="bag-empty">It opens your room, and only your room.</p>`) +
     sec('Máscaras · Masks', bag.masks.length, masks) +
     sec('Monedas · Coins', `${bag.coins.size}/${COIN_DESIGNS}`, coins) +
     sec('Peluches · Plushies', bag.plush, plush) +
@@ -1501,6 +1539,7 @@ function frame(dt, draw = true) {
 
   if (loc === hotel) {
     room.update(dt);
+    atrium.update(dt);
     world.update(dt, t);
     world.setNight(night);
     if (night > 0.97) complete('night');
@@ -1628,7 +1667,7 @@ function showPolaroid(url, caption) {
 // Open with ?debug to poke at the game from the browser console.
 if (new URLSearchParams(location.search).has('debug')) {
   window.hotel = {
-    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, castle: castleWorld, forest: forestWorld, tropical: tropicalWorld, atm: atmWorld, bandera: banderaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, wallet, pesos, openBag, closeBag, addSouvenir,
+    player, room, world, arena: arenaWorld, aviary: aviaryWorld, pandas: pandaWorld, coastal: coastalWorld, axolotls: axolotlWorld, castle: castleWorld, forest: forestWorld, tropical: tropicalWorld, atm: atmWorld, atrium, bandera: banderaWorld, camera, renderer, scene, toggleNight, toggleMask, travel, complete, useAction, state, bag, wallet, pesos, openBag, closeBag, addSouvenir,
     get loc() { return loc.id; },
     // Go somewhere instantly, without the fade (handy when timers are slow).
     jump(id) { if (id !== loc.id) arrive(PLACES.find((p) => p.id === id)); },

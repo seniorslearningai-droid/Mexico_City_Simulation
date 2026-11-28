@@ -687,19 +687,65 @@ export function buildRoom(ctx) {
   cyl(door, M.brass, 0.012, 0.012, 0.02, 0, 1.55, -0.035, 10).rotation.x = Math.PI / 2;
   cyl(door, M.chrome, 0.03, 0.03, 0.02, 0.38, 1.0, -0.035, 16).rotation.x = Math.PI / 2;
   box(door, M.chrome, 0.14, 0.02, 0.02, 0.32, 1.0, -0.055);
-  cyl(door, M.chrome, 0.025, 0.025, 0.015, 0.38, 1.22, -0.033, 16).rotation.x = Math.PI / 2;
-  const bolt = box(door, M.chrome, 0.012, 0.045, 0.014, 0.38, 1.22, -0.045);
+  const latch = cyl(door, M.chrome, 0.045, 0.045, 0.015, 0.38, 1.22, -0.033, 16);
+  latch.rotation.x = Math.PI / 2;
+  const bolt = box(door, M.chrome, 0.018, 0.07, 0.016, 0.38, 1.22, -0.045);
   noShadow(box(door, std({ color: 0xd9447a, roughness: 0.6 }), 0.1, 0.18, 0.004, 0.36, 0.86, -0.07));
-  solid(-1.6, 6.4, -0.6, 6.55);
+  // The door swings on its hinge (the west edge) into the foyer. Out in the
+  // hallway it has a handle and a key-card lock too.
+  {
+    const hinge = node(group, -1.6, 0, 6.455);
+    group.remove(door);
+    hinge.add(door);
+    door.position.set(0.5, 0, 0);
+    cyl(door, M.chrome, 0.03, 0.03, 0.02, 0.38, 1.0, 0.035, 16).rotation.x = Math.PI / 2;
+    box(door, M.chrome, 0.14, 0.02, 0.02, 0.32, 1.0, 0.055);
+    box(door, M.black, 0.07, 0.14, 0.02, 0.38, 1.22, 0.035);
+    api.frontDoor = hinge;
+  }
+  const doorShut = solid(-1.6, 6.4, -0.6, 6.55);
+  const doorOpenCol = solid(-1.66, 5.45, -1.54, 6.4);
+  doorOpenCol.off = true;
   const lock = toggler((k) => (bolt.rotation.z = (Math.PI / 2) * k), 5, { dirty: false });
+  const frontDoor = toggler((k) => {
+    api.frontDoor.rotation.y = 1.5 * k;
+    doorShut.off = k > 0.15;
+    doorOpenCol.off = k < 0.85;
+  }, 1.6);
   interact(door, {
-    label: () => (lock.on ? 'Unlock the door' : 'Lock the door'),
+    label: () => {
+      const outside = ctx.player().pos.z > 6.45;
+      if (frontDoor.on) return 'Close the door';
+      if (outside) return 'Open Suite 602 with your key';
+      return lock.on ? 'Unlock and open the door' : 'Open the door';
+    },
     act: () => {
+      const outside = ctx.player().pos.z > 6.45;
+      if (frontDoor.on) {
+        frontDoor.on = false;
+        return;
+      }
+      if (outside) {
+        if (lock.on) lock.on = false;
+        ctx.toast('*beep* The key card works — welcome back to Suite 602.', 2600);
+      } else if (lock.on) {
+        lock.on = false;
+        ctx.toast('*click* Unlocked.', 1600);
+      }
+      frontDoor.on = true;
+    },
+  });
+  // The latch on the inside locks it (when the door is shut).
+  interact([bolt, latch], {
+    label: () => (frontDoor.on ? null : lock.on ? 'Unlock the door' : 'Lock the door'),
+    act: () => {
+      if (frontDoor.on) return;
       lock.on = !lock.on;
       ctx.toast(lock.on ? '*click* Locked. Nobody gets in without a room key.' : 'Door unlocked.');
       if (lock.on) ctx.complete('lock');
     },
   });
+  api.frontDoorState = frontDoor;
   const mat = add(group, new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.7), M.sarape), -1.1, 0.005, 5.9);
   mat.rotation.x = -Math.PI / 2;
   noShadow(mat);

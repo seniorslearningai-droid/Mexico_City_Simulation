@@ -262,12 +262,15 @@ export function buildWorld(scene) {
     m.position.set(cx, cy, cz);
     group.add(m);
   }
-  // A hole in the building for our suite (x -10.75 .. 5.15, z to 9.15).
-  facadeBox(-26, GROUND, HOTEL_FRONT, -10.75, HOTEL_ROOF, 30);
-  facadeBox(5.15, GROUND, HOTEL_FRONT, 26, HOTEL_ROOF, 30);
-  facadeBox(-10.75, GROUND, HOTEL_FRONT, 5.15, -0.26, 30);
-  facadeBox(-10.75, 2.95, HOTEL_FRONT, 5.15, HOTEL_ROOF, 30);
-  facadeBox(-10.75, -0.26, 9.15, 5.15, 2.95, 30);
+  // A hole in the building for our suite (x -10.75 .. 5.15, z to 9.15), and
+  // behind it the open-air atrium (x -26 .. 22.8, z 9.15 .. 21.95), which
+  // js/atrium.js fills with galleries, a lobby and the sky.
+  facadeBox(-26, GROUND, HOTEL_FRONT, -10.75, HOTEL_ROOF, 9.15);
+  facadeBox(5.15, GROUND, HOTEL_FRONT, 26, HOTEL_ROOF, 9.15);
+  facadeBox(-10.75, GROUND, HOTEL_FRONT, 5.15, -0.26, 9.15);
+  facadeBox(-10.75, 2.95, HOTEL_FRONT, 5.15, HOTEL_ROOF, 9.15);
+  facadeBox(-26, GROUND, 21.95, 26, HOTEL_ROOF, 30);
+  facadeBox(22.8, GROUND, 9.15, 26, HOTEL_ROOF, 21.95);
   // Neighbouring balconies above, below and beside ours.
   const balc = [];
   const lastBalcony = Math.floor((HOTEL_ROOF - 2.95) / HOTEL_FLOOR_HEIGHT);

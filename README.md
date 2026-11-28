@@ -88,9 +88,27 @@ Suite 602 is a whole apartment. Walk in through the front door and:
     onto the city.
   - Inside the closet is a **second bathroom** with a bathtub you can fill.
 
-The interior doors open and close, and you can sit on the couch, the chairs
-and the stools and lie on the beds. A thirteen-item checklist tracks your
-progress as you settle in.
+The interior doors open and close, and you can sit on the couch and the
+chairs and lie on the beds. A fourteen-item checklist tracks your progress
+as you settle in.
+
+### Outside your door: the atrium
+
+The front door really opens (the latch on the inside locks it). Step out
+through the little vestibule and you're on a gallery on the left arm of a
+long **U** that wraps round an open-air atrium. Walls with room doors run
+along the outside of the U, and a glass railing along the inside:
+
+- **Three rooms on each side.** Yours, 602, is the middle one on the left
+  (601 and 603 are your neighbours; 604–606 are across the well). Only your
+  room opens — there's a **Suite 602 key card in your backpack**, and every
+  other door is locked.
+- **The well** goes all the way down to the lobby on floor 1 and all the way
+  up to the open sky (no roof), with galleries on every floor.
+- **The bottom of the U** has **two elevators and the stairs**. Ride (or
+  walk) down to the **lobby**, with its fountain, palms, reception desk and
+  two lounges of couches where you can rest and look up through the whole
+  building; then ride back up to floor 6.
 
 ## Arena México
 
@@ -322,6 +340,7 @@ counts them, and the button bounces whenever you pick something up.
 | `index.html`, `css/style.css` | Page, HUD and menus |
 | `js/main.js` | Renderer, input, checklist, game loop |
 | `js/room.js` | The hotel suite: every room's walls, doors, furniture, lights and everything you can use |
+| `js/atrium.js` | The hotel's open-air atrium outside the suite: U-shaped galleries, locked neighbours, elevators, stairs and the lobby |
 | `js/city.js` | Sky, sun, day/night, the city, traffic, landmarks, volcanoes |
 | `js/arena.js` | Arena México: stands, ring, stage, shops, fans, light show |
 | `js/aviary.js` | Chapultepec Zoo bird trail: forest path, aviaries, paddocks, ponds, birds, binoculars |
