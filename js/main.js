@@ -296,6 +296,7 @@ const aviary = {
   },
 };
 const pandaWorld = buildPandas({
+  buy: buyWithPesos,
   pay: () => payPeso(),
   toast,
   complete,
@@ -609,13 +610,7 @@ const banderaWorld = buildBandera({
   sound,
   sit: (seat) => player.sit(seat),
   player: () => player,
-  buy: (price) => {
-    const n = Math.ceil(price / 5);
-    if (wallet.coins < n) return false;
-    wallet.coins -= n;
-    updateWallet();
-    return true;
-  },
+  buy: buyWithPesos,
   souvenir: (toy) => addSouvenir('toy', toy),
 });
 scene.add(banderaWorld.group);
@@ -660,8 +655,12 @@ function updateWallet() {
   if (typeof bag !== 'undefined' && bag.open) renderBag();
 }
 function payPeso() {
-  if (wallet.coins < 1) return false;
-  wallet.coins--;
+  return buyWithPesos(5);
+}
+function buyWithPesos(price) {
+  const coins = Math.ceil(price / 5);
+  if (wallet.coins < coins) return false;
+  wallet.coins -= coins;
   updateWallet();
   return true;
 }
@@ -880,7 +879,7 @@ function renderBag() {
     sec('Peluches · Plushies', bag.plush, plush) +
     sec('Fotos · Photos', bag.photos.length, photos) +
     sec('Juguetes · Toys', `${bag.toys.size}/${TOYS.length}`, toys) +
-    sec('Pesos · $5 coins', `$${wallet.coins * 5}`, wallet.found || wallet.coins ? `<p class="bag-empty">${wallet.coins} coin${wallet.coins === 1 ? '' : 's'} to spend at the coin presses (2 per souvenir coin).</p>` : '<p class="bag-empty">Look for $5 coins glinting on the ground around the zoo, the shops and Arena México.</p>') +
+    sec('Pesos · $5 coins', `$${wallet.coins * 5}`, wallet.found || wallet.coins ? `<p class="bag-empty">${wallet.coins} coin${wallet.coins === 1 ? '' : 's'} to spend at the zoo and other shops.</p>` : '<p class="bag-empty">Look for $5 coins glinting on the ground around the zoo, the shops and Arena México.</p>') +
     sec('Billete · $20 bill', wallet.bills, wallet.bills ? '<p class="bag-empty">💵 A $20 peso bill. Trade it at the ATM for four $5 coins.</p>' : wallet.billFound ? '<p class="bag-empty">You traded your $20 bill at the ATM.</p>' : '<p class="bag-empty">Someone dropped a $20 bill somewhere in the zoo. It’s hard to spot!</p>');
 }
 function wearMask(d) {

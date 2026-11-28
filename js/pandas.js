@@ -959,12 +959,16 @@ export function buildPandas(ctx) {
   });
 
   // ---------- souvenir kiosk (west side of the plaza) ----------
+  const plushPrice = 20;
   let plushes = 0;
   {
     const kiosk = node(group, -4.15, 0, 11.5, Math.PI / 2);
     const kParts = [];
     kParts.push(box(kiosk, M.wood, 3.0, 1.05, 0.6, 0, 0.525, -0.3));
     box(kiosk, M.red, 3.04, 0.08, 0.64, 0, 1.08, -0.3);
+    const priceSign = T.boardSign('PANDA PLUSHIES', `$${plushPrice} MXN EACH`, { bg: '#b02428' });
+    kParts.push(add(kiosk, new THREE.Mesh(new THREE.PlaneGeometry(1.42, 0.355),
+      new THREE.MeshBasicMaterial({ map: priceSign, toneMapped: false })), 0, 0.72, 0.006));
     box(kiosk, M.wall, 3.0, 2.6, 0.1, 0, 1.3, -1.5);
     for (const s of [-1, 1]) box(kiosk, M.wall, 0.08, 2.6, 1.5, s * 1.5, 1.3, -0.8);
     for (const [x, z] of [[-1.5, 0], [1.5, 0], [-1.5, -1.55], [1.5, -1.55]]) cyl(kiosk, M.red, 0.07, 0.07, 2.6, x, 1.3, z, 8);
@@ -983,8 +987,12 @@ export function buildPandas(ctx) {
     for (let i = 0; i < 3; i++) plushAt(-0.8 + i * 0.8, 1.12, -0.35, 0.3, (rand() - 0.5) * 0.6);
     cast(kiosk);
     interact(kParts, {
-      label: () => 'Buy a panda plushie',
+      label: () => `Buy a panda plushie · $${plushPrice} MXN`,
       act: () => {
+        if (!ctx.buy(plushPrice)) {
+          ctx.toast(`A panda plushie costs $${plushPrice} MXN. Bring four $5 peso coins.`);
+          return;
+        }
         plushes++;
         ctx.sound.squeak();
         ctx.complete('pPlush');

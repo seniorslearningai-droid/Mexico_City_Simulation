@@ -181,7 +181,7 @@ Shuan Shuan.
 
 Around the terrace and the plaza: a keeper who's happy to chat about pandas,
 signs about Mexico's pandas and about Xin Xin, a souvenir kiosk with plush
-pandas, benches, and a photo spot that snaps a polaroid of Xin Xin.
+pandas (20 pesos each), benches, and a photo spot that snaps a polaroid of Xin Xin.
 
 On the plaza there's a **souvenir coin machine**, like the pressed-penny
 machines at real zoos. Pick the panda or the flamingo, drop two coins in the
