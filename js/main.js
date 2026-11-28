@@ -201,6 +201,7 @@ const arenaWorld = buildArena({
   push: (x, z) => player.push.set(x, z),
   player: () => player,
   buyMask,
+  buy: buyWithPesos,
 });
 scene.add(arenaWorld.group);
 arenaWorld.group.traverse((o) => {
@@ -773,8 +774,16 @@ function paintMask() {
   am.base.color.set(base);
   am.trim.color.set(trim);
 }
-function buyMask(design, first) {
-  const isNew = !bag.masks.includes(design);
+function buyMask(design, price) {
+  if (bag.masks.includes(design)) {
+    toast('You already have that color in your backpack.');
+    return;
+  }
+  if (!buyWithPesos(price)) {
+    toast(`You need $${price} MXN in $5 peso coins to buy a mask.`);
+    return;
+  }
+  const first = bag.masks.length === 0;
   maskState.owned = true;
   maskState.design = design;
   paintMask();
@@ -784,9 +793,7 @@ function buyMask(design, first) {
   toast(
     first
       ? `You bought a máscara! Press ${touch ? 'the mask button' : 'K'} to put it on.`
-      : isNew
-        ? 'Another máscara for your backpack! ¡Qué bonita!'
-        : 'You already have that one — it’s in your backpack.',
+      : 'Another máscara for your backpack! ¡Qué bonita!',
   );
 }
 function toggleMask() {

@@ -286,6 +286,12 @@ export function buildArena(ctx) {
   }
 
   // ---------- merch stand ----------
+  const maskPrice = 15;
+  const maskColors = ['red', 'blue', 'black', 'green', 'gold', 'purple'];
+  const maskOffer = (design) => ({
+    label: () => `Buy the ${maskColors[design]} mask · $${maskPrice} MXN`,
+    act: () => ctx.buyMask(design, maskPrice),
+  });
   const merch = node(group, -4.3, 0, 15.6);
   const merchParts = [];
   merchParts.push(box(merch, M.wood, 2.6, 0.06, 0.9, 0, 0.9, 0));
@@ -312,41 +318,37 @@ export function buildArena(ctx) {
   for (let i = 0; i < 5; i++) {
     const x = -1.0 + i * 0.5;
     merchParts.push(cyl(merch, M.black, 0.015, 0.03, 0.22, x, 1.04, -0.1, 8));
-    merchParts.push(...maskHead(merch, x, 1.27, -0.1, i).children);
+    interact(maskHead(merch, x, 1.27, -0.1, i).children, maskOffer(i));
   }
   // Masks hanging on the pegboard.
   for (let i = 0; i < 6; i++) {
     const tex = T.maskFace(i);
     const m = add(merch, new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.5), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.3, roughness: 0.5 })), -1.1 + i * 0.44, 1.85 + (i % 2) * 0.25, 0.51);
     m.rotation.y = Math.PI;
-    merchParts.push(m);
+    interact(m, maskOffer(i));
   }
-  const merchSign = add(merch, new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.6), new THREE.MeshBasicMaterial({ map: T.sign('MÁSCARAS', { w: 1024, h: 236, font: 'bold 120px Georgia, serif' }), toneMapped: false })), 0, 2.95, 0.5);
+  const merchSign = add(merch, new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.6), new THREE.MeshBasicMaterial({ map: T.boardSign('MÁSCARAS', `$${maskPrice} MXN EACH`, { bg: '#b02428' }), toneMapped: false })), 0, 2.95, 0.5);
   merchSign.rotation.y = Math.PI;
   merchParts.push(merchSign);
   solid(-5.75, 15.1, -2.85, 16.25);
-  let maskDesign = 0;
-  let boughtMask = false;
   interact(merchParts, {
-    label: () => (boughtMask ? 'Buy another luchador mask' : 'Buy a luchador mask'),
-    act: () => {
-      const design = maskDesign++ % T.MASKS.length;
-      ctx.buyMask(design, !boughtMask);
-      boughtMask = true;
-    },
+    label: () => `Choose a mask color · $${maskPrice} MXN each`,
+    act: () => ctx.toast('Look at the color you want on the mask display, then use it to buy that mask.'),
   });
 
   // ---------- snack stand ----------
   const snack = node(group, 4.3, 0, 15.6);
   const snackParts = [];
+  const popcornParts = [];
+  const popcornPrice = 10;
   snackParts.push(rbox(snack, M.teal, 2.6, 0.95, 0.85, 0.05, 0, 0.475, 0));
   snackParts.push(box(snack, M.wood, 2.7, 0.06, 0.95, 0, 0.98, 0));
   snackParts.push(box(snack, M.yellow, 2.9, 1.7, 0.06, 0, 1.75, 0.55));
   for (const s of [-1, 1]) box(snack, M.black, 0.06, 2.9, 0.06, s * 1.42, 1.45, 0.55);
   // Popcorn, taco trays, drinks.
   for (let i = 0; i < 3; i++) {
-    snackParts.push(cyl(snack, M.red, 0.09, 0.07, 0.22, -1.0 + i * 0.22, 1.12, -0.15, 12));
-    snackParts.push(add(snack, new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), std({ color: 0xfff1c4, roughness: 1 })), -1.0 + i * 0.22, 1.22, -0.15));
+    popcornParts.push(cyl(snack, M.red, 0.09, 0.07, 0.22, -1.0 + i * 0.22, 1.12, -0.15, 12));
+    popcornParts.push(add(snack, new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), std({ color: 0xfff1c4, roughness: 1 })), -1.0 + i * 0.22, 1.22, -0.15));
   }
   for (let i = 0; i < 2; i++) {
     snackParts.push(box(snack, M.white, 0.3, 0.03, 0.2, 0.1 + i * 0.36, 1.03, -0.15));
@@ -363,16 +365,33 @@ export function buildArena(ctx) {
   const snackSign = add(snack, new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.6), new THREE.MeshBasicMaterial({ map: T.sign('TACOS · CHURROS · PALOMITAS', { bg: '#1f8a4c', w: 1024, h: 236, font: 'bold 70px Georgia, serif' }), toneMapped: false })), 0, 2.95, 0.5);
   snackSign.rotation.y = Math.PI;
   snackParts.push(snackSign);
+  const popcornSign = add(snack, new THREE.Mesh(new THREE.PlaneGeometry(0.85, 0.2125),
+    new THREE.MeshBasicMaterial({
+      map: T.boardSign('PALOMITAS', `$${popcornPrice} MXN`, { bg: '#1f6b46' }),
+      toneMapped: false,
+    })), -0.78, 0.67, -0.433);
+  popcornSign.rotation.y = Math.PI;
+  popcornParts.push(popcornSign);
+  interact(popcornParts, {
+    label: () => `Buy popcorn · $${popcornPrice} MXN`,
+    act: () => {
+      if (!ctx.buy(popcornPrice)) {
+        ctx.toast(`You need $${popcornPrice} MXN in $5 peso coins to buy popcorn.`);
+        return;
+      }
+      ctx.toast('Palomitas with chile and lime — the arena classic.');
+      ctx.complete('snacks');
+    },
+  });
   solid(2.85, 15.1, 5.75, 16.25);
   const SNACKS = [
     'Tacos al pastor with pineapple and salsa verde. ¡Qué rico!',
     'A bag of churros, still warm and covered in sugar.',
-    'Palomitas with chile and lime — the arena classic.',
     'An ice-cold agua de jamaica.',
   ];
   let snackI = 0;
   interact(snackParts, {
-    label: () => 'Buy a snack',
+    label: () => 'Grab a snack',
     act: () => {
       ctx.toast(SNACKS[snackI++ % SNACKS.length]);
       ctx.complete('snacks');

@@ -96,11 +96,11 @@ progress as you settle in.
 
 - **Entrance stage** — a big LED screen, a lighting truss, and the tunnel
   doors. Open the doors and the fans pour in and fill the seats.
-- **Merch stand** — buy a luchador mask (and swap designs). Put it on and you
+- **Merch stand** — choose a mask color from the display and buy it for 15 pesos. Put it on and you
   see the world through its eye holes; your reflection in the hotel mirror
   wears it too.
-- **Snack stand** — tacos al pastor, churros, palomitas con chile, agua de
-  jamaica.
+- **Snack stand** — buy chile-lime popcorn for 10 pesos. The stand also has
+  tacos al pastor, churros, and agua de jamaica.
 - **The ring** — red, white and green ropes, padded turnbuckles, steel steps.
   Climb in, bounce off the ropes, climb a turnbuckle and jump, or slide out
   under the bottom rope.
