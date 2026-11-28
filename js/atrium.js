@@ -3,15 +3,15 @@
 // From above it's a long U of galleries round a well that is open from the
 // lobby all the way up to the sky:
 //
-//   z=9.15  ┌──601──────────┬──[602 ours]──┬──────603──────┬────┐
-//           │   left gallery (your floor runs past your door) │ E  │
-//   z=11.55 ├───────────── railing ───────────────────┐ gal │ L  │
-//           │        open well (look down to the      │ ler │ E  │
-//           │        lobby, up to the sky)            │  y  │ V  │
-//   z=19.55 ├───────────── railing ───────────────────┘     │ S  │
-//           │   right gallery                                │    │
-//   z=21.95 └──606──────────┴─────605──────┴──────604──────┴────┘
-//         x=-26                                         20.4  22.8  26
+//   z=9.15  ┌─601───[602 ours]───603──┬────┐
+//           │ left gallery (past your  │ E  │
+//   z=11.55 ├──── railing ─────────┐   │ L  │
+//           │  open well (down to  │gal│ E  │
+//           │  the lobby, up to    │ler│ V  │
+//   z=16.55 ├──── railing ─────────┘ y │ S  │
+//           │ right gallery            │    │
+//   z=18.95 └─606─────605──────604─────┴────┘
+//         x=-10                      7  9.4
 //
 // The bottom of the U (east end) has two elevators and the stairs. Only
 // your own room (602) opens; every other door is locked.
@@ -25,22 +25,23 @@ const FH = 3.15; // floor-to-floor height
 const ROOF = GROUND + 59;
 const TOP_K = 18; // the last slab (the galleries' roof)
 const OUR_K = 6; // the suite's floor (y = 0)
-const X0 = -26; // the well's west wall
-const XR = 20.4; // the well's east edge (start of the bottom gallery)
-const XC = 22.8; // the elevator core's face
+const X0 = -10; // the well's west wall
+const XR = 7.0; // the well's east edge (start of the bottom gallery)
+const XC = 9.4; // the elevator core's face
 const ZL = 9.15; // the left rooms' wall
 const ZLR = 11.55; // left railing
-const ZRR = 19.55; // right railing
-const ZR = 21.95; // the right rooms' wall
+const ZRR = 16.55; // right railing
+const ZR = 18.95; // the right rooms' wall
 const levelY = (k) => GROUND + k * FH;
 
 // Room doors along each gallery (door centres).
-const LEFT_DOORS = [[-18.4, '601'], [12.8, '603']]; // 602 is ours, in its vestibule at x = -1.1
-const RIGHT_DOORS = [[12.8, '604'], [-2.8, '605'], [-18.4, '606']];
-const LIFTS = [13.0, 15.1]; // elevator door centres (z) on the core wall
-const STAIRS_Z = 18.6;
+// The rooms sit close together: a door every 5-6 m.
+const LEFT_DOORS = [[-7.0, '601'], [4.0, '603']]; // 602 is ours, in its vestibule at x = -1.1
+const RIGHT_DOORS = [[4.0, '604'], [-1.5, '605'], [-7.0, '606']];
+const LIFTS = [12.4, 14.3]; // elevator door centres (z) on the core wall
+const STAIRS_Z = 17.3;
 // Where you step out of the elevator.
-const LIFT_LANDING = { x: 21.6, z: 14.05, yaw: Math.PI / 2, pitch: 0.05 };
+const LIFT_LANDING = { x: XR + 1.2, z: 13.35, yaw: Math.PI / 2, pitch: 0.05 };
 
 export function buildAtrium(ctx) {
   const group = new THREE.Group();
@@ -134,10 +135,10 @@ export function buildAtrium(ctx) {
   push('wall', boxGeo(X0, 2.85, ZL, XC, ROOF, ZL + 0.02));
   push('wall', boxGeo(X0, GROUND, ZR - 0.02, XC, ROOF, ZR)); // right rooms' wall
   push('wall', boxGeo(XC - 0.02, GROUND, ZL, XC, ROOF, ZR)); // elevator core
-  push('wall', boxGeo(X0 - 0.3, GROUND, ZL, X0, ROOF + 1.2, ZR)); // west end of the well
+  push('wall', boxGeo(X0, GROUND, ZL, X0 + 0.02, ROOF + 1.2, ZR)); // west end of the well
   // Parapets on the roof.
-  push('wall', boxGeo(X0 - 0.3, ROOF, ZL - 0.3, 26, ROOF + 1.2, ZL));
-  push('wall', boxGeo(X0 - 0.3, ROOF, ZR, 26, ROOF + 1.2, ZR + 0.3));
+  push('wall', boxGeo(X0, ROOF, ZL - 0.3, XC, ROOF + 1.2, ZL));
+  push('wall', boxGeo(X0, ROOF, ZR, XC, ROOF + 1.2, ZR + 0.3));
 
   // ---------- each floor: gallery slab, carpet, railing, doors, lights ----------
   for (let k = 1; k <= TOP_K; k++) {
@@ -183,7 +184,7 @@ export function buildAtrium(ctx) {
     push('frame', boxGeo(XC - 0.05, y, STAIRS_Z - 0.65, XC - 0.02, y + 2.3, STAIRS_Z + 0.65));
     if (k !== OUR_K) push('door', boxGeo(XC - 0.08, y, STAIRS_Z - 0.55, XC - 0.05, y + 2.15, STAIRS_Z + 0.55));
     // Wall lights between the doors.
-    for (const x of [-22, -10.5, 4.5, 17]) {
+    for (const x of [-9.2, -4.3, 1.8, 6.2]) {
       push('sconce', boxGeo(x - 0.12, y + 1.9, ZL + 0.02, x + 0.12, y + 2.15, ZL + 0.09));
       push('sconce', boxGeo(x - 0.12, y + 1.9, ZR - 0.09, x + 0.12, y + 2.15, ZR - 0.02));
     }
@@ -239,15 +240,15 @@ export function buildAtrium(ctx) {
       p.rotation.y = Math.PI;
     }
     // Floor number painted at the bottom of the U.
-    const sign = mesh(new THREE.PlaneGeometry(1.6, 0.5), plate('PISO 6', 512, 160));
-    sign.position.set(XC - 0.03, 2.55, 16.95);
+    const sign = mesh(new THREE.PlaneGeometry(1.1, 0.34), plate('PISO 6', 512, 160));
+    sign.position.set(XC - 0.03, 2.55, 15.85);
     sign.rotation.y = -Math.PI / 2;
     // Walls and railings you bump into.
     solid(6, X0, 9.0, -3.0, ZL + 0.08); // left rooms (and the bedroom behind)
     solid(6, 0.5, 9.0, XC, ZL + 0.08);
     solid(6, X0, ZR - 0.08, XC, ZR + 0.2); // right rooms
     solid(6, XC - 0.1, ZL, XC + 0.3, ZR); // the core
-    solid(6, X0 - 0.4, ZL, X0 + 0.05, ZR); // west end
+    solid(6, X0 - 0.4, ZL, X0 + 0.08, ZR); // west end
     solid(6, X0, ZLR - 0.12, XR + 0.1, ZLR + 0.02); // railings
     solid(6, X0, ZRR - 0.02, XR + 0.1, ZRR + 0.12);
     solid(6, XR - 0.02, ZLR - 0.12, XR + 0.12, ZRR + 0.12);
@@ -259,8 +260,8 @@ export function buildAtrium(ctx) {
   {
     const y = GROUND + 0.02;
     // A round fountain in the middle of the well.
-    const fx = -4;
-    const fz = 15.55;
+    const fx = -1.6;
+    const fz = (ZLR + ZRR) / 2;
     add(new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.8, 0.5, 40), M.marble), fx, y + 0.25, fz);
     add(new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.04, 40), M.water), fx, y + 0.45, fz);
     add(new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 1.2, 20), M.marble), fx, y + 0.8, fz);
@@ -306,11 +307,11 @@ export function buildAtrium(ctx) {
       solid(0, cx - 0.62, cz - 0.37, cx + 0.62, cz + 0.37);
       void tbl;
     }
-    lounge(-17, 15.55, M.sofa);
-    lounge(8.5, 15.55, M.sofa2);
+    lounge(-6.4, fz, M.sofa);
+    lounge(2.9, fz, M.sofa2);
     // Potted palms round the well.
     const frond = new THREE.PlaneGeometry(0.35, 1.6).translate(0, 0.8, 0);
-    for (const [px, pz] of [[-24.5, 12.6], [-24.5, 18.5], [-10.5, 12.6], [-10.5, 18.5], [2.5, 12.6], [2.5, 18.5], [15, 12.6], [15, 18.5]]) {
+    for (const [px, pz] of [[-9.3, 10.1], [-3.8, 10.1], [5.6, 10.1], [-9.3, 18.0], [-3.8, 18.0], [5.6, 18.0]]) {
       add(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.28, 0.6, 16), M.pot), px, y + 0.3, pz);
       add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.6, 8), M.wood), px, y + 1.4, pz);
       for (let i = 0; i < 8; i++) {
@@ -320,21 +321,22 @@ export function buildAtrium(ctx) {
       round(0, px, pz, 0.45);
     }
     // Reception desk by the elevators.
-    add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.1, 3.2), M.wood), 18.6, y + 0.55, 15.55);
-    add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 3.3), M.marble), 18.6, y + 1.12, 15.55);
-    const rec = mesh(new THREE.PlaneGeometry(2.4, 0.5), plate('RECEPCIÓN', 512, 110));
-    rec.position.set(18.18, y + 0.7, 15.55);
+    const RX = 6.1;
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.1, 3.0), M.wood), RX, y + 0.55, fz);
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 3.1), M.marble), RX, y + 1.12, fz);
+    const rec = mesh(new THREE.PlaneGeometry(2.2, 0.46), plate('RECEPCIÓN', 512, 110));
+    rec.position.set(RX - 0.42, y + 0.7, fz);
     rec.rotation.y = -Math.PI / 2;
     interact(rec, { label: (h) => (h.distance < 3 ? 'Ring the reception bell' : null), act: () => { ctx.sound.bell && ctx.sound.bell(); ctx.toast('*ding!* “¡Buenas tardes! Enjoy your stay at Air BnB.”'); } });
-    solid(0, 18.15, 13.9, 19.05, 17.2);
-    const lsign = mesh(new THREE.PlaneGeometry(1.6, 0.5), plate('LOBBY', 512, 160));
-    lsign.position.set(XC - 0.03, y + 2.55, 16.95);
+    solid(0, RX - 0.45, fz - 1.55, RX + 0.45, fz + 1.55);
+    const lsign = mesh(new THREE.PlaneGeometry(1.1, 0.34), plate('LOBBY', 512, 160));
+    lsign.position.set(XC - 0.03, y + 2.55, 15.85);
     lsign.rotation.y = -Math.PI / 2;
     // Lobby walls.
     solid(0, X0, ZL - 0.2, XC, ZL + 0.08);
     solid(0, X0, ZR - 0.08, XC, ZR + 0.2);
     solid(0, XC - 0.1, ZL, XC + 0.3, ZR);
-    solid(0, X0 - 0.4, ZL, X0 + 0.05, ZR);
+    solid(0, X0 - 0.4, ZL, X0 + 0.08, ZR);
     api.jet = jet;
   }
 
@@ -399,7 +401,7 @@ export function buildAtrium(ctx) {
       how === 'stairs' ? (to === 0 ? 'Down five flights of stairs…' : 'Up five flights of stairs… phew!') : to === 0 ? 'Going down…' : 'Going up…',
       () => {
         setLevel(to);
-        const spot = how === 'stairs' ? { x: 21.6, z: STAIRS_Z - 0.3, yaw: Math.PI / 2, pitch: 0.05 } : LIFT_LANDING;
+        const spot = how === 'stairs' ? { x: XR + 1.2, z: STAIRS_Z - 0.3, yaw: Math.PI / 2, pitch: 0.05 } : LIFT_LANDING;
         ctx.player().place(spot);
       },
     );
